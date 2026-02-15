@@ -18,5 +18,7 @@
 
 # Environment variables (contains secrets like webhook URLs)
 .env
- 
+
+# MCP server config (contains tokens)
+.mcp.json
   
