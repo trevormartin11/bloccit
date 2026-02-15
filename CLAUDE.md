@@ -8,4 +8,7 @@ When running in a non-interactive session (e.g., Claude Code on the web), use th
 2. **Error or blocker** — You've hit an error you can't resolve on your own
 3. **Input needed** — You need clarification or a decision from the user
 
-Keep messages concise. Include the branch name and a brief summary of what happened.
+Keep messages concise. Always include:
+- The **branch name** you're working on
+- A brief summary of what happened
+- The **task/prompt** you were given (so the user can find the right conversation)
