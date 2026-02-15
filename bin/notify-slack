@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+#
+# Send a notification to the configured Slack channel.
+#
+# Usage:
+#   bin/notify-slack "Your message here"
+#   bin/notify-slack --blocked "Describe what you're blocked on"
+#   bin/notify-slack --question "What should I do about X?"
+#
+# Configuration:
+#   Set the SLACK_WEBHOOK_URL environment variable (or add it to .env).
+#   See slack_setup.md for instructions on creating the webhook.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Load .env if it exists
+if [[ -f "$SCRIPT_DIR/.env" ]]; then
+  # shellcheck disable=SC1091
+  source "$SCRIPT_DIR/.env"
+fi
+
+if [[ -z "${SLACK_WEBHOOK_URL:-}" ]]; then
+  echo "Error: SLACK_WEBHOOK_URL is not set." >&2
+  echo "Set it in your environment or in .env at the project root." >&2
+  echo "See slack_setup.md for instructions." >&2
+  exit 1
+fi
+
+# Parse arguments
+MESSAGE_TYPE="info"
+MESSAGE=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --blocked)
+      MESSAGE_TYPE="blocked"
+      shift
+      MESSAGE="$1"
+      shift
+      ;;
+    --question)
+      MESSAGE_TYPE="question"
+      shift
+      MESSAGE="$1"
+      shift
+      ;;
+    --done)
+      MESSAGE_TYPE="done"
+      shift
+      MESSAGE="$1"
+      shift
+      ;;
+    *)
+      MESSAGE="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$MESSAGE" ]]; then
+  echo "Usage: bin/notify-slack [--blocked|--question|--done] \"message\"" >&2
+  exit 1
+fi
+
+# Build the Slack payload based on message type
+case "$MESSAGE_TYPE" in
+  blocked)
+    EMOJI=":rotating_light:"
+    PREFIX="*Blocked — Need Your Input*"
+    COLOR="#dc3545"
+    ;;
+  question)
+    EMOJI=":question:"
+    PREFIX="*Question for You*"
+    COLOR="#ffc107"
+    ;;
+  done)
+    EMOJI=":white_check_mark:"
+    PREFIX="*Task Complete*"
+    COLOR="#28a745"
+    ;;
+  *)
+    EMOJI=":robot_face:"
+    PREFIX="*Claude Update*"
+    COLOR="#6f42c1"
+    ;;
+esac
+
+PAYLOAD=$(cat <<EOF
+{
+  "text": "${EMOJI} ${PREFIX}",
+  "attachments": [
+    {
+      "color": "${COLOR}",
+      "text": $(printf '%s' "$MESSAGE" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'),
+      "footer": "bloccit • Claude Code",
+      "ts": $(date +%s)
+    }
+  ]
+}
+EOF
+)
+
+# Send to Slack
+HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d "$PAYLOAD" \
+  "$SLACK_WEBHOOK_URL")
+
+if [[ "$HTTP_STATUS" == "200" ]]; then
+  echo "Slack notification sent successfully."
+else
+  echo "Error: Slack returned HTTP $HTTP_STATUS" >&2
+  exit 1
+fi

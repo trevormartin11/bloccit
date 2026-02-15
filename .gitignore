@@ -15,5 +15,8 @@
 /log/*
 !/log/.keep
 /tmp
+
+# Environment variables (contains secrets like webhook URLs)
+.env
  
   
