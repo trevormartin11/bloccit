@@ -458,4 +458,130 @@ Usually external accountability, but when my willpower is high, internal discipl
 
 ## Key Themes & Patterns Identified
 
-*To be completed after analysis.*
+### The Master Variable: Health Controls Everything
+
+Your CIRS/chronic fatigue is not one problem among many — it is THE variable that cascades into every other domain. When you're symptomatic: energy tanks, mental health drops, workouts stop, diet slips, productivity craters, habits erode, stress tolerance plummets, and the in-law dynamic becomes unbearable. When you're well (like now, post-kambo): you rate energy at 8, mental health at 8, and can be productive for 8 hours.
+
+This means your Life OS cannot be designed like a healthy person's system. It needs two modes — a "healthy window" protocol and a "symptomatic" protocol — and the entire architecture must protect the things that keep you in the healthy window longer.
+
+**The single most important finding: Running is medicine, not exercise.** You said it yourself multiple times — running 5x/week keeps brain fog, fatigue, anxiety, depression, and CIRS symptoms at bay. When you stop running, everything collapses. This isn't a fitness goal. It's treatment. It needs to be framed and prioritized as such.
+
+---
+
+### 10 Critical Patterns
+
+**1. Your best hours are being stolen.**
+Peak focus: 8:30–11:00 AM. But you wake at 7:00–7:30 and spend the first 60 minutes scrolling TikTok and email in bed. By the time you're through matcha and supplements, it's likely 9:00+. You're burning 30–50% of your golden window before you even start. This is the highest-cost habit in your life right now.
+
+**2. You have no structure, and you know it.**
+Every day looks different. No planning. No budget. No productivity system. No habit tracking. But you also said planning the night before was "extremely effective" when you did it. You already have the answer — you just stopped doing it.
+
+**3. Massive gap between activity and output.**
+8 hours "productive" but only 1–3 on the right things. 10–20% of work time is high-leverage. You bill ~20 hrs/week but aren't even consistent at tracking that. This is not a capacity problem — it's a targeting problem. You're busy, not effective.
+
+**4. You run on willpower, and willpower is unreliable.**
+"Most of my habits have been built on sheer willpower, and that tends to fluctuate a lot more than it used to." This is the core failure mode. Willpower is a depletable resource, especially with CIRS draining your baseline. Every system you build needs to rely on environment design, automation, and defaults — not daily decisions.
+
+**5. Financial picture is precarious but fixable.**
+- Out: $13k–$15k/month ($10k fixed + $3–5k discretionary)
+- In: $11k–$15k/month
+- Debt: $100k+ credit cards + family office loan
+- Assets: Durango equity ($400–500k), $2M gift (interest only), primary home
+- The Durango sale can wipe the credit card debt and potentially the family office loan. After that, the math works IF discretionary spending is controlled. The $3–5k/month you "don't know" about is the leak.
+
+**6. The in-law dynamic is a stress multiplier with health consequences.**
+They're your boss AND a draining relationship you haven't set boundaries around. You identified stress as a direct trigger for CIRS symptoms. This means working for your in-laws without boundaries is literally making you sick. This isn't a relationship issue — it's a health issue.
+
+**7. You're socially isolated and it's getting worse.**
+Down 90% in friend contact over the past few years. Feels isolated even with people available. Only consistent meaningful conversation is therapy and your wife. 15 people you could call at 2 AM but you see friends twice a month. Isolation feeds the stress/depression cycle that triggers symptoms.
+
+**8. Diet is 80% functional, 20% self-sabotage.**
+The chicken + sweet potato meal is solid and consistent. That's your anchor. But the evening is chaos: sweets, DoorDash, frozen meals, no vegetables, almost no fruit. The protein ice cream swap is a smart move. The pattern is clear — you're disciplined when you have a default meal, and you fall apart when you have to make decisions while tired.
+
+**9. Your evening routine is destroying your morning.**
+TikTok in bed → fall asleep between 11:30 PM and 1:00 AM → phone scrolling when you wake up → slow start → golden hours wasted. This is a single chain reaction. Fix the evening, and the morning fixes itself.
+
+**10. You've proven you can do this — consistency is the only missing piece.**
+You get in great shape after 3 months of consistency. You maintained a fitness streak for 1.5 years. Planning worked when you did it. Your energy is 8/10 when you're taking care of yourself. The system works. You just need a system that survives the dips.
+
+---
+
+### Key Contradictions
+
+| What You Say | What's Actually Happening |
+|---|---|
+| Energy is 8/10 | Only 1–3 hours/day on the right things |
+| Planning was "extremely effective" | Haven't planned a day in months |
+| Values integrity and follow-through | Can't maintain a budget past 30 days |
+| Wants to deal with "as few people as possible" | Current role is business development |
+| Mental health is 8/10 | Feels socially isolated, stressed by in-laws |
+| 15 people I could call at 2 AM | Sees friends twice a month |
+| Knows running is essential medicine | Only worked out a few times in 3 weeks |
+| Coaches "don't provide enough accountability" | Also says external accountability is what works |
+
+These aren't criticisms — they're diagnostic. The gap between what you know works and what you actually do is where the entire Life OS needs to operate.
+
+---
+
+### The 6 Highest-Leverage Changes (Ranked by Cascade Effect)
+
+These are ordered by how many other problems they solve simultaneously:
+
+**1. Run every morning before anything else.**
+Solves: CIRS symptoms, brain fog, anxiety, depression, energy, mental health, body composition, sleep quality. This is not negotiable. It's the single change that holds everything else together. Even a 20-minute run on a bad day beats zero.
+
+**2. Reinstate nightly planning (10 minutes before bed, replaces TikTok).**
+Solves: No structure, wasted mornings, low high-leverage work time, feeling directionless, evening screen time, sleep onset. You already know this works. The only thing that changes is you do it on paper or a simple app instead of relying on willpower to "figure it out" each morning.
+
+**3. Hard boundary on the 8:30–11:00 AM window.**
+Solves: Low high-value output, career progress, income growth. No email, no phone, no in-law calls during this window. This is where ReplyScale work, real estate analysis, and any income-generating work happens. 2.5 protected hours × 5 days = 12.5 hours/week of real output — more than your current total.
+
+**4. Set explicit boundaries with in-laws.**
+Solves: Stress (which triggers CIRS), energy drain, career clarity, relationship tension. Define scope, hours, and communication rules. This may mean going back to salary with clear limits, or reducing hours and replacing income with ReplyScale/real estate.
+
+**5. Default evening meal (eliminate decisions).**
+Solves: DoorDash spending, wheat exposure, evening diet chaos, discretionary spending. Prep two default evening options (like the protein ice cream + one other clean option). If you don't have to decide, you won't default to DoorDash.
+
+**6. Automate the budget (different approach than before).**
+Solves: Financial blindspot, $3–5k/month unknown spending, no savings, debt paydown tracking. Previous attempts failed because manual input is a chore. Need a system that works passively — possibly consolidating to 2 cards, auto-categorization, weekly 5-minute review instead of daily logging.
+
+---
+
+### Financial Snapshot & Net Worth Estimate
+
+Based on what you provided (rough — we can refine with exact numbers):
+
+| Category | Estimate |
+|---|---|
+| **Assets** | |
+| Primary home equity | TBD (need home value & mortgage balance) |
+| Durango home equity | $400k–$500k |
+| $2M investment gift | $2,000,000 (principal locked) |
+| Other | TBD |
+| **Liabilities** | |
+| Credit card debt | -$100,000+ |
+| Family office loan | -$200,000–$300,000 (estimate) |
+| Primary mortgage | TBD |
+| **Estimated Net Worth** | $2M+ on paper, but principal is locked |
+| **Accessible Net Worth** | Durango equity minus debts = roughly breakeven to slightly positive |
+
+**Post-Durango Sale Scenario:**
+If the Durango house sells for ~$450k equity and you use it to clear $100k CC debt + family office loan, you'd eliminate the two biggest liabilities and free up significant monthly cash flow from minimum payments alone. This should be priority #1 financially.
+
+---
+
+### What the Life OS Needs to Do
+
+Based on this analysis, your system needs to:
+
+1. **Protect health above all else** — Running and sleep are non-negotiable infrastructure, not goals.
+2. **Eliminate daily decisions** — Default meals, default schedule blocks, pre-planned days. Your willpower is a scarce resource; stop spending it on things that should be automatic.
+3. **Survive the dips** — A "symptomatic mode" protocol that preserves the minimum viable habits even when you feel terrible, so you don't have to rebuild from zero every time.
+4. **Focus your limited high-energy hours on income-generating work** — Not email, not in-law busywork, not personal errands.
+5. **Automate finances** — A system that requires 5 minutes/week, not daily input.
+6. **Create external accountability that actually works** — Since coaches haven't worked, we need a different mechanism. Daily check-ins, automated tracking, visible consequences.
+7. **Progressively reduce in-law dependence** — As ReplyScale and real estate income grows, shift the balance of power.
+
+---
+
+*Analysis complete. Ready to architect the full Life OS system.*
