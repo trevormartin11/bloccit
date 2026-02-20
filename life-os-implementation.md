@@ -41,7 +41,10 @@ Before anything else works, you need to set up your environment. Do these once, 
 
 - [ ] **Set your phone to Do Not Disturb** from 6:30 AM–11:00 AM, auto-schedule it so it happens every weekday without you thinking about it.
 - [ ] **Download Strava** (if not already installed). Create an account. Pair your chest strap HR monitor.
-- [ ] **Create a simple spreadsheet or note** titled "Weekly Spend." One column: Date. Second column: Card B balance. That's it.
+- [ ] **Create the Nightly Plan + Scorecard Google Form** — follow the step-by-step instructions in Section 2 below. This replaces the notebook. Takes ~15 minutes to set up once, then saves you time every night.
+- [ ] **Add the form to your Android home screen** — so it's one tap away at 9:30 PM.
+- [ ] **Set a 9:25 PM alarm** labeled "Phone on charger → Nightly Plan" in Google Clock (daily, every day).
+- [ ] **Create a simple spreadsheet or note** titled "Weekly Spend." One column: Date. Second column: Card B balance. That's it. (Or add a "Card B Spend" column to your Life OS Tracker sheet to keep everything in one place.)
 
 ### Financial Setup (Do This Week, Not Tonight)
 
@@ -54,73 +57,82 @@ Before anything else works, you need to set up your environment. Do these once, 
 ## 2. The Nightly Plan — Exact Template
 
 **When:** 9:30 PM, after your phone goes on the charger outside the bedroom.
-**Where:** Notebook on your nightstand or desk.
-**Time required:** 8–10 minutes.
+**Where:** Google Form on your phone (bookmarked to home screen).
+**Time required:** 3–4 minutes.
 
-### What You Write
+### Automated Setup: Google Form + Google Sheet
 
-Copy this format every night. It fits on one notebook page.
+Instead of a notebook, you'll use a Google Form that takes 3–4 minutes to fill out on your phone. Every response automatically populates a Google Sheet — giving you a full history for weekly reviews, trend tracking, and the wife check-in.
 
-```
-DATE: ___________
+**How to create the form (one-time setup, 15 minutes):**
 
-TOMORROW'S SCHEDULE:
-  Wake: 6:30
-  Run: 6:45–7:45 → [distance target: ___ miles]
-  AM Block (8:30–11):
-    Task 1: ________________________________
-    Task 2 (if time): ________________________________
-  Midday (11:30–1:30):
-    ________________________________
-  Meal 1: 1:30 (chicken + sweet potato — prepped? Y/N)
-  PM Block / Gym: 2:30–4:00
-    ________________________________
-  Evening meal default: [protein ice cream / yogurt bowl / leftovers]
+1. Go to [forms.google.com](https://forms.google.com) on your computer
+2. Click **Blank form**
+3. Title it: **"Nightly Plan + Scorecard"**
+4. Add the following fields in this exact order:
 
-NOTES:
-  Anything on my mind that I need to dump so I can sleep:
-  ________________________________
-```
+**Section 1: Today's Scorecard**
+
+| # | Field Name | Type | Options |
+|---|---|---|---|
+| 1 | Date | Date | — |
+| 2 | Mode today | Dropdown | Mode A (Healthy) / Mode B (Symptomatic) |
+| 3 | Ran today (+ cold plunge in Mode A)? | Checkbox (single) | Yes |
+| 4 | AM block protected? | Checkbox (single) | Yes |
+| 5 | Default meals (no unplanned DoorDash, no wheat)? | Checkbox (single) | Yes |
+| 6 | Billed all hours? | Checkbox (single) | Yes |
+| 7 | Sauna + red light therapy? | Checkbox (single) | Yes |
+| 8 | Brushed teeth? | Checkbox (single) | Yes |
+| 9 | Phone outside bedroom right now? | Checkbox (single) | Yes |
+| 10 | Score | Dropdown | 7/7, 6/7, 5/7, 4/7, 3/7, 2/7, 1/7, 0/7 |
+| 11 | If below 6 — what happened? | Short answer | (Optional) |
+
+**Section 2: Tomorrow's Plan**
+
+| # | Field Name | Type | Notes |
+|---|---|---|---|
+| 12 | AM Block — Task 1 (must be revenue-generating) | Short answer | Required |
+| 13 | AM Block — Task 2 (if time) | Short answer | Optional |
+| 14 | Midday plan | Short answer | Optional |
+| 15 | Meal 1 prepped? | Dropdown | Yes / No — need to prep in morning |
+| 16 | PM Block / Gym plan | Short answer | Optional |
+| 17 | Evening meal default | Dropdown | Protein ice cream / Greek yogurt bowl / Leftover chicken + sweet potato / Eggs + rice |
+| 18 | Brain dump — anything on your mind | Paragraph | Optional — get it out of your head so you can sleep |
+
+5. Click the **Responses** tab → click the Google Sheets icon → **Create a new spreadsheet** → name it "Life OS Tracker"
+6. On your Android phone: open the form link in Chrome → tap the three dots → **Add to Home screen** → name it "Nightly Plan"
+
+**That's it.** Every night at 9:30, you tap the icon, fill it out in 3–4 minutes, and close it. All data flows to the spreadsheet automatically.
+
+### Android Automation (Optional but Recommended)
+
+Set a daily reminder so you don't forget:
+
+1. Open Google Clock → **Alarm** → create a new alarm at **9:25 PM** (every day)
+2. Label it: **"Phone on charger → Nightly Plan"**
+3. Or use **Google Calendar** → create a recurring event at 9:25 PM with a notification
 
 ### Rules for the Nightly Plan
 
 1. **Task 1 in the AM block must be revenue-generating.** ReplyScale outreach, real estate deal work, or the single most valuable thing you could do tomorrow. Not email. Not admin.
-2. **The meal plan must be filled in.** "I'll figure it out" is not an answer. If Meal 1 isn't prepped, write "PREP CHICKEN IN MORNING" as a note.
-3. **The notes section is for brain dumping.** If something's rattling around your head — write it down. It doesn't need a solution. Getting it on paper lets you sleep.
+2. **The meal plan must be filled in.** "I'll figure it out" is not an answer. If Meal 1 isn't prepped, select "No" and it's your reminder to prep in the morning.
+3. **The brain dump field is for getting things out of your head.** If something's rattling around — type it out. It doesn't need a solution. Getting it out lets you sleep.
 4. **Don't over-plan.** 2 tasks in the AM block is plenty. If you finish both, pull another from your list. But starting with 6 things guarantees you'll feel behind by 10 AM.
 
 ### What Input Is Required From You
 
-- 8 minutes of writing
+- 3–4 minutes tapping through the form
 - Deciding your #1 revenue task for tomorrow (this should take <60 seconds — it's usually obvious)
 - Checking if food is prepped
 
 ---
 
-## 3. The Daily Scorecard — Exact Template
+## 3. The Daily Scorecard — How It Works
 
-**When:** During nightly plan, as the last thing you write before closing the notebook.
-**Time required:** 2 minutes.
+The scorecard is now **built into the nightly plan form** — you fill out both at the same time. No separate step.
 
-### What You Write
-
-Add this to the bottom of each nightly plan page:
-
-```
-TODAY'S SCORE:
-  [  ] Ran today (+ cold plunge in Mode A)
-  [  ] AM block protected (no email/calls before 11)
-  [  ] Default meals (no unplanned DoorDash, no wheat)
-  [  ] Billed all hours
-  [  ] Sauna + red light therapy
-  [  ] Brushed teeth
-  [  ] Phone outside bedroom right now
-
-  Score: ___/7
-
-  If below 6: What specifically happened?
-  ________________________________
-```
+**When:** During nightly plan (9:30 PM), the first section of the Google Form.
+**Time required:** 60 seconds (it's just checkboxes).
 
 ### How to Score
 
@@ -137,7 +149,16 @@ TODAY'S SCORE:
 
 If you score 5/7 or below for **two consecutive days**, you must write the answer to this question before going to sleep:
 
-> "Am I entering a symptomatic period? If yes → switch to Mode B tomorrow. If no → what specifically will I change tomorrow to get back to 4+?"
+> "Am I entering a symptomatic period? If yes → switch to Mode B tomorrow. If no → what specifically will I change tomorrow to get back to 6+?"
+
+### Using the Spreadsheet for Weekly Reviews
+
+Every Sunday during your weekly review, open the "Life OS Tracker" spreadsheet:
+
+- **Scorecard summary:** Count the 7/7, 6/7, and 5/7-or-below days — the data is right there in columns
+- **Trend spotting:** Which checkbox do you miss most often? That's the habit that needs attention
+- **Wife check-in:** Show her the sheet on Sunday evening — it takes 30 seconds to pull up on your phone
+- **Mode tracking:** The "Mode today" column shows you exactly when you transitioned between modes
 
 ---
 
@@ -562,57 +583,47 @@ At the end of each week, sum the "Family Office" hours. That's your billable tot
 
 **When:** Sunday, anytime that works. Morning with matcha or evening before the nightly plan.
 **Time required:** 30 minutes.
-**Where:** Same notebook, or a dedicated "Weekly Review" section.
+**Where:** Open your "Life OS Tracker" spreadsheet on your phone or computer.
 
-### The Template
+### Step-by-Step
 
-Write this in your notebook:
+1. **Open the spreadsheet (2 min).** The scorecard data is already there from your nightly forms. Count:
+   - Days at 7/7: ___
+   - Days at 6/7: ___
+   - Days at 5/7 or below: ___
+   - Total runs this week: ___/6
+   - Total lifts this week: ___/4
+   - AM blocks protected: ___/5
+   - Which checkbox did you miss most? That's your focus for next week.
 
-```
-WEEKLY REVIEW — Week of __________
+2. **Financial check (already done Friday).** Pull up Friday's number:
+   - Card B this month: $_____ / $3,000
+   - On track? Y/N
 
-1. SCORECARD SUMMARY
-   Days at 7/7: ___
-   Days at 6/7: ___
-   Days at 5/7 or below: ___
-   Total runs this week: ___/6
-   Total lifts this week: ___/4
-   AM blocks protected: ___/5
+3. **What worked this week? (3 min)** One thing to keep doing. Type it in a note or say it out loud to your wife.
 
-2. FINANCIAL (from Friday check)
-   Card B this month: $_____ / $3,000
-   On track? Y/N
+4. **What broke this week? (3 min)** One thing to fix next week. Not five things. One.
 
-3. WHAT WORKED
-   One thing to keep doing:
-   ________________________________
+5. **Next week's priorities (5 min):**
+   - #1 revenue task: ________________________________
+   - #2 revenue task: ________________________________
+   - #3 revenue task: ________________________________
+   - Personal goal: ________________________________
 
-4. WHAT BROKE
-   One thing to fix next week:
-   ________________________________
+6. **Kambo cycle check (1 min):**
+   - Current window: Healthy / Transitioning / Symptomatic
+   - Weeks since last kambo: ___
+   - If approaching end of window: front-load important work this week.
 
-5. NEXT WEEK'S PRIORITIES
-   #1 revenue task: ________________________________
-   #2 revenue task: ________________________________
-   #3 revenue task: ________________________________
-   Personal goal: ________________________________
-
-6. KAMBO CYCLE CHECK
-   Current window: Healthy / Transitioning / Symptomatic
-   Weeks since last kambo: ___
-   If approaching end of window: front-load important work this week.
-
-7. MONDAY NIGHTLY PLAN
-   (Write tomorrow's full nightly plan here so you're ready to execute Monday AM)
-```
+7. **Monday nightly plan (5 min).** Open the Google Form and fill out tomorrow's plan — this doubles as your Sunday evening nightly plan.
 
 ### What Input Is Required From You
 
-- Flip through your daily scorecards for the week and count
+- Open the spreadsheet and read the data (it's already collected)
 - Transfer the financial number from Friday
 - Think for 3 minutes about what worked and what didn't
 - Decide 3 priorities for next week
-- Write Monday's plan
+- Fill out Monday's nightly plan form
 
 ---
 

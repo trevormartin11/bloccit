@@ -53,7 +53,7 @@ This is the most important 30 minutes of your day. It determines whether tomorro
 | Time | Action |
 |---|---|
 | 9:30 PM | Phone goes on charger **outside the bedroom** |
-| 9:30–9:40 | **Nightly Plan** — Write tomorrow's schedule. 3 sections: (1) Non-negotiables already done [run, meals], (2) Top 3 high-value tasks for the AM block, (3) Everything else. Use a notebook, whiteboard, or simple app. |
+| 9:30–9:40 | **Nightly Plan** — Open the Google Form on your phone (home screen shortcut). Score today's 7 checkboxes, plan tomorrow's AM block tasks, confirm meals prepped, brain dump anything on your mind. Submit. All data auto-populates your Life OS Tracker spreadsheet. |
 | 9:40–9:45 | **Brush teeth.** Non-negotiable. Do it right after the nightly plan while you're already in shutdown mode. Don't sit back down first — plan → bathroom → brush → done. |
 | 9:45–10:00 | Wind down — read, talk with wife, stretch. No screens. |
 | 10:00–10:30 | In bed. Lights out by 10:30. |
