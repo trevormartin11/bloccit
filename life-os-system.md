@@ -54,7 +54,8 @@ This is the most important 30 minutes of your day. It determines whether tomorro
 |---|---|
 | 9:30 PM | Phone goes on charger **outside the bedroom** |
 | 9:30–9:40 | **Nightly Plan** — Write tomorrow's schedule. 3 sections: (1) Non-negotiables already done [run, meals], (2) Top 3 high-value tasks for the AM block, (3) Everything else. Use a notebook, whiteboard, or simple app. |
-| 9:40–10:00 | Wind down — read, talk with wife, stretch. No screens. |
+| 9:40–9:45 | **Brush teeth.** Non-negotiable. Do it right after the nightly plan while you're already in shutdown mode. Don't sit back down first — plan → bathroom → brush → done. |
+| 9:45–10:00 | Wind down — read, talk with wife, stretch. No screens. |
 | 10:00–10:30 | In bed. Lights out by 10:30. |
 
 **Why the phone leaves the bedroom:** It eliminates the TikTok → late sleep → TikTok morning → wasted peak hours chain in one move. This is the single environment change with the highest ROI.
@@ -131,8 +132,9 @@ The minimum viable day. Non-negotiable even when you feel terrible.
 | 2 | **Eat the default meal.** Chicken + sweet potato. Don't think about it. Don't order DoorDash. | Prevents the diet spiral. Fuel your body even when your brain says it doesn't matter. |
 | 3 | **1 hour of work on the single most important task.** Just one. The one that would cost you the most to ignore. | Prevents "I haven't done anything in a week" guilt spiral. 1 hour × 5 days = a week that still moved forward. |
 | 4 | **Sauna (25 minutes) + Red Light Therapy.** Same as Mode A — this stays in both modes. | Recovery and detox support are even MORE important during symptomatic periods. The sauna supports CIRS detox pathways and the red light aids cellular recovery. This is medicine, not luxury. |
-| 5 | **Nightly plan — even if it's just 3 lines.** | Keeps the planning habit alive so you don't have to rebuild it when you feel better. |
-| 6 | **Phone outside bedroom by 9:30. Bed by 10:30.** | Sleep is the #1 recovery tool. Protect it above all else during symptomatic periods. |
+| 5 | **Brush teeth.** Yes, this is on the list. It's 2 minutes. Do it. | Oral health compounds. Skipping it when symptomatic is how a small thing becomes a big problem. This is the easiest win on the list. |
+| 6 | **Nightly plan — even if it's just 3 lines.** | Keeps the planning habit alive so you don't have to rebuild it when you feel better. |
+| 7 | **Phone outside bedroom by 9:30. Bed by 10:30.** | Sleep is the #1 recovery tool. Protect it above all else during symptomatic periods. |
 
 **What is explicitly allowed in Mode B:**
 - Sleeping 9–10 hours
@@ -145,6 +147,7 @@ The minimum viable day. Non-negotiable even when you feel terrible.
 - Zero movement for the day
 - Ordering DoorDash instead of cooking the default meal
 - Skipping the sauna + red light session (this is recovery — it's MORE important when symptomatic)
+- Skipping brushing your teeth (it's 2 minutes — there is no valid excuse)
 - Skipping the nightly plan
 - Phone in the bedroom overnight
 - Telling yourself "I'll get back on track when I feel better" without doing the minimum
@@ -398,7 +401,7 @@ You said coaches "don't provide the level of accountability I need." Unpacking t
 
 **The Daily Scorecard (2 minutes, done during nightly plan)**
 
-Score yourself on 5 binary questions. Yes or No. No partial credit.
+Score yourself on 7 binary questions. Yes or No. No partial credit.
 
 | # | Question | Y/N |
 |---|---|---|
@@ -407,13 +410,14 @@ Score yourself on 5 binary questions. Yes or No. No partial credit.
 | 3 | Did I eat the default meals (no unplanned DoorDash, no wheat)? | |
 | 4 | Did I bill all my hours? | |
 | 5 | Did I do sauna + red light therapy? | |
-| 6 | Is my phone outside the bedroom right now? | |
+| 6 | Did I brush my teeth? | |
+| 7 | Is my phone outside the bedroom right now? | |
 
 **Scoring:**
-- 6/6 = Perfect day. These stack.
-- 5/6 = Good day. Note which one you missed and why.
-- 4/6 = Slipping. Tomorrow must be 5+.
-- 3/6 or below = Emergency. You're in or approaching a dip. Consider switching to Mode B.
+- 7/7 = Perfect day. These stack.
+- 6/7 = Good day. Note which one you missed and why.
+- 5/7 = Slipping. Tomorrow must be 6+.
+- 4/7 or below = Emergency. You're in or approaching a dip. Consider switching to Mode B.
 
 **Track it visually.** A whiteboard in your office, a simple paper tracker, or a single-column spreadsheet. The streak becomes its own motivation — "I've hit 4+ for 14 days straight" creates momentum that willpower alone can't.
 
@@ -432,7 +436,7 @@ This isn't about her being your coach. It's about saying it out loud to someone 
 
 You said your systems erode gradually, not all at once. That means you need an early warning system.
 
-**The 2-Day Rule:** If you score below 5/6 for two consecutive days, you must do ONE of the following before going to sleep:
+**The 2-Day Rule:** If you score below 6/7 for two consecutive days, you must do ONE of the following before going to sleep:
 1. Write down (on paper, not in your head) what specifically caused the miss
 2. Identify if you're entering a symptomatic period (if so, switch to Mode B — no shame)
 3. Set an alarm 30 minutes earlier tomorrow

@@ -113,11 +113,12 @@ TODAY'S SCORE:
   [  ] Default meals (no unplanned DoorDash, no wheat)
   [  ] Billed all hours
   [  ] Sauna + red light therapy
+  [  ] Brushed teeth
   [  ] Phone outside bedroom right now
 
-  Score: ___/6
+  Score: ___/7
 
-  If below 5: What specifically happened?
+  If below 6: What specifically happened?
   ________________________________
 ```
 
@@ -129,11 +130,12 @@ TODAY'S SCORE:
 - "Default meals" means you ate the planned meals. One DoorDash order = no check. One wheat-containing food = no check.
 - "Billed all hours" means you logged time at the end of each work block today, and no hours are unaccounted for.
 - "Sauna + red light" means you did the full 25-minute sauna session with red light therapy. This counts in BOTH modes. No partial credit — 10 minutes doesn't count.
+- "Brushed teeth" — you brushed your teeth tonight. This is the easiest checkbox on the list. 2 minutes. No excuses in either mode.
 - "Phone outside bedroom" — it's either there or it's not.
 
 ### The 2-Day Rule
 
-If you score 4/6 or below for **two consecutive days**, you must write the answer to this question before going to sleep:
+If you score 5/7 or below for **two consecutive days**, you must write the answer to this question before going to sleep:
 
 > "Am I entering a symptomatic period? If yes → switch to Mode B tomorrow. If no → what specifically will I change tomorrow to get back to 4+?"
 
@@ -570,9 +572,9 @@ Write this in your notebook:
 WEEKLY REVIEW — Week of __________
 
 1. SCORECARD SUMMARY
-   Days at 6/6: ___
-   Days at 5/6: ___
-   Days at 4/6 or below: ___
+   Days at 7/7: ___
+   Days at 6/7: ___
+   Days at 5/7 or below: ___
    Total runs this week: ___/6
    Total lifts this week: ___/4
    AM blocks protected: ___/5
@@ -647,12 +649,13 @@ When you wake up and you're in a symptomatic period, don't try to figure out wha
 
 14. No guilt about watching TV, resting, or doing nothing productive. You did the minimum. That's enough.
 15. **9:30 PM: Phone goes on charger outside bedroom.**
-16. **Write tomorrow's Mode B plan.** Just 3 lines:
+16. **Write tomorrow's Mode B plan.** Just a few lines:
     - Walk: Y
     - Task 1: [single most important thing]
     - Sauna + red light: Y
     - Meals: chicken/sweet potato + [evening default]
-17. **Bed by 10:30.**
+17. **Brush teeth.** Right after writing the plan. Don't sit back down first.
+18. **Bed by 10:30.**
 
 ### How Long to Stay in Mode B
 
@@ -675,12 +678,13 @@ Print this or keep it on one page in the front of your notebook.
 │  □ Default meals (no freelancing)          │
 │  □ Bill all hours                          │
 │  □ Sauna 25 min + red light (BOTH modes)  │
+│  □ Brush teeth                             │
 │  □ Nightly plan + scorecard                │
 │  □ Phone outside bedroom by 9:30          │
 │                                            │
-│  Score: ___/5 (skip run + AM in Mode B)    │
+│  Score: ___/7 (skip run + AM in Mode B)    │
 │                                            │
-│  2 days below 4? → Write why or            │
+│  2 days below 6? → Write why or            │
 │  switch to Mode B                          │
 │                                            │
 │  Friday: 5-min financial check             │
