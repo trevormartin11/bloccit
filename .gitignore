@@ -15,5 +15,16 @@
 /log/*
 !/log/.keep
 /tmp
- 
-  
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.db
+
+# Environment
+.env
