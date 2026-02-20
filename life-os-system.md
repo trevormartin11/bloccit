@@ -66,7 +66,9 @@ This is the most important 30 minutes of your day. It determines whether tomorro
 | 6:30 | Alarm. No snooze. Feet on floor. Running clothes are laid out (set them out during nightly plan). |
 | 6:30–6:45 | Bathroom, matcha prep, lace up shoes. |
 | 6:45–7:45 | **RUN.** Minimum 3 miles. Target 5 miles. Chest strap on, Strava recording. On genuinely bad energy days within Mode A: 20-minute run minimum. There is no zero. |
-| 7:45–8:15 | Cool down, shower, supplements + Amino Energy + water. |
+| 7:45–8:15 | Cool down → **Cold plunge (3–5 minutes)** → shower, supplements + Amino Energy + water. |
+
+**Cold Plunge:** Do this immediately after the run while your body is still warm. Start with 2 minutes if you've never done it, build to 5 minutes over a few weeks. The combination of running + cold exposure amplifies the anti-inflammatory and mood benefits — both critical for CIRS management.
 | 8:15–8:30 | Review nightly plan. Confirm top 3 tasks for the AM block. Get set up at workspace. |
 
 ### Peak Work Block (8:30–11:00 AM)
@@ -111,7 +113,8 @@ You hit a wall at 1:30–2:00. The meal and the natural dip align. Use this stra
 
 | Time | Action |
 |---|---|
-| 5:00–7:00 | Personal time. Wife time. Errands. Social plans (when scheduled). |
+| 5:00–5:30 | **Sauna (25 minutes) + Red Light Therapy.** Run the red light panel during the sauna session. This is a daily non-negotiable in both modes — recovery, detox support for CIRS, and sleep quality. |
+| 5:30–7:00 | Personal time. Wife time. Errands. Social plans (when scheduled). |
 | 7:00 | **Default evening meal.** See Nutrition Protocol — no decisions. |
 | 7:00–9:30 | Free time with wife. TV, conversation, hobbies. No guilt. This is earned. |
 | 9:30 | Loop back to Evening Before protocol. |
@@ -127,8 +130,9 @@ The minimum viable day. Non-negotiable even when you feel terrible.
 | 1 | **Walk 20–30 minutes.** Not a run. A walk. Outside if possible. | Movement is still medicine. Blood flow. It won't fix everything but it prevents total stagnation. |
 | 2 | **Eat the default meal.** Chicken + sweet potato. Don't think about it. Don't order DoorDash. | Prevents the diet spiral. Fuel your body even when your brain says it doesn't matter. |
 | 3 | **1 hour of work on the single most important task.** Just one. The one that would cost you the most to ignore. | Prevents "I haven't done anything in a week" guilt spiral. 1 hour × 5 days = a week that still moved forward. |
-| 4 | **Nightly plan — even if it's just 3 lines.** | Keeps the planning habit alive so you don't have to rebuild it when you feel better. |
-| 5 | **Phone outside bedroom by 9:30. Bed by 10:30.** | Sleep is the #1 recovery tool. Protect it above all else during symptomatic periods. |
+| 4 | **Sauna (25 minutes) + Red Light Therapy.** Same as Mode A — this stays in both modes. | Recovery and detox support are even MORE important during symptomatic periods. The sauna supports CIRS detox pathways and the red light aids cellular recovery. This is medicine, not luxury. |
+| 5 | **Nightly plan — even if it's just 3 lines.** | Keeps the planning habit alive so you don't have to rebuild it when you feel better. |
+| 6 | **Phone outside bedroom by 9:30. Bed by 10:30.** | Sleep is the #1 recovery tool. Protect it above all else during symptomatic periods. |
 
 **What is explicitly allowed in Mode B:**
 - Sleeping 9–10 hours
@@ -140,6 +144,7 @@ The minimum viable day. Non-negotiable even when you feel terrible.
 **What is NOT allowed in Mode B:**
 - Zero movement for the day
 - Ordering DoorDash instead of cooking the default meal
+- Skipping the sauna + red light session (this is recovery — it's MORE important when symptomatic)
 - Skipping the nightly plan
 - Phone in the bedroom overnight
 - Telling yourself "I'll get back on track when I feel better" without doing the minimum
@@ -397,17 +402,18 @@ Score yourself on 5 binary questions. Yes or No. No partial credit.
 
 | # | Question | Y/N |
 |---|---|---|
-| 1 | Did I run today? | |
+| 1 | Did I run today (+ cold plunge in Mode A)? | |
 | 2 | Did I protect the AM block for high-value work? | |
 | 3 | Did I eat the default meals (no unplanned DoorDash, no wheat)? | |
 | 4 | Did I bill all my hours? | |
-| 5 | Is my phone outside the bedroom right now? | |
+| 5 | Did I do sauna + red light therapy? | |
+| 6 | Is my phone outside the bedroom right now? | |
 
 **Scoring:**
-- 5/5 = Perfect day. These stack.
-- 4/5 = Good day. Note which one you missed and why.
-- 3/5 = Slipping. Tomorrow must be 4+.
-- 2/5 or below = Emergency. You're in or approaching a dip. Consider switching to Mode B.
+- 6/6 = Perfect day. These stack.
+- 5/6 = Good day. Note which one you missed and why.
+- 4/6 = Slipping. Tomorrow must be 5+.
+- 3/6 or below = Emergency. You're in or approaching a dip. Consider switching to Mode B.
 
 **Track it visually.** A whiteboard in your office, a simple paper tracker, or a single-column spreadsheet. The streak becomes its own motivation — "I've hit 4+ for 14 days straight" creates momentum that willpower alone can't.
 
@@ -426,7 +432,7 @@ This isn't about her being your coach. It's about saying it out loud to someone 
 
 You said your systems erode gradually, not all at once. That means you need an early warning system.
 
-**The 2-Day Rule:** If you score below 4/5 for two consecutive days, you must do ONE of the following before going to sleep:
+**The 2-Day Rule:** If you score below 5/6 for two consecutive days, you must do ONE of the following before going to sleep:
 1. Write down (on paper, not in your head) what specifically caused the miss
 2. Identify if you're entering a symptomatic period (if so, switch to Mode B — no shame)
 3. Set an alarm 30 minutes earlier tomorrow

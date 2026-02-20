@@ -31,6 +31,12 @@ Before anything else works, you need to set up your environment. Do these once, 
 - [ ] **Put a notebook and pen on your nightstand** (or wherever you'll do the nightly plan). A cheap spiral notebook is perfect. Don't use an app — the phone is outside the bedroom.
 - [ ] **Check the fridge:** Do you have chicken and sweet potatoes for tomorrow? If not, add them to a grocery order right now. You need both by tomorrow afternoon.
 
+### Recovery Setup
+
+- [ ] **Cold plunge setup.** Cold plunge tub, stock tank, or ice bath — whatever you have access to. Fill it and verify the temperature (target: 38–50°F). If you don't have a setup yet, a cold shower at the coldest setting works as a starting point while you get one.
+- [ ] **Sauna ready to go.** Confirm it's operational and you can have it heated by 5:00 PM tomorrow. If infrared, typical heat-up time is 15–20 minutes — plan accordingly.
+- [ ] **Red light therapy panel positioned.** Set it up in or near the sauna so you can run both simultaneously. If using a portable panel, place it where it hits your torso/face during the session.
+
 ### Digital Setup
 
 - [ ] **Set your phone to Do Not Disturb** from 6:30 AM–11:00 AM, auto-schedule it so it happens every weekday without you thinking about it.
@@ -102,30 +108,32 @@ Add this to the bottom of each nightly plan page:
 
 ```
 TODAY'S SCORE:
-  [  ] Ran today
+  [  ] Ran today (+ cold plunge in Mode A)
   [  ] AM block protected (no email/calls before 11)
   [  ] Default meals (no unplanned DoorDash, no wheat)
   [  ] Billed all hours
+  [  ] Sauna + red light therapy
   [  ] Phone outside bedroom right now
 
-  Score: ___/5
+  Score: ___/6
 
-  If below 4: What specifically happened?
+  If below 5: What specifically happened?
   ________________________________
 ```
 
 ### How to Score
 
 - **Check the box** only if it fully happened. Partial credit = no check.
-- "Ran today" counts if you ran at least 20 minutes (on Mode A days). A walk does NOT count for Mode A scoring.
+- "Ran today (+ cold plunge)" counts if you ran at least 20 minutes (on Mode A days) AND did the cold plunge after. A walk does NOT count for Mode A scoring. In Mode B, a 20–30 minute walk counts (no cold plunge required).
 - "AM block protected" means you did NOT check email, take calls, or do admin work between 8:30 and 11:00. If you checked your phone once for 2 minutes — still counts. If you spent 30 minutes on email — doesn't count.
 - "Default meals" means you ate the planned meals. One DoorDash order = no check. One wheat-containing food = no check.
 - "Billed all hours" means you logged time at the end of each work block today, and no hours are unaccounted for.
+- "Sauna + red light" means you did the full 25-minute sauna session with red light therapy. This counts in BOTH modes. No partial credit — 10 minutes doesn't count.
 - "Phone outside bedroom" — it's either there or it's not.
 
 ### The 2-Day Rule
 
-If you score 3/5 or below for **two consecutive days**, you must write the answer to this question before going to sleep:
+If you score 4/6 or below for **two consecutive days**, you must write the answer to this question before going to sleep:
 
 > "Am I entering a symptomatic period? If yes → switch to Mode B tomorrow. If no → what specifically will I change tomorrow to get back to 4+?"
 
@@ -212,8 +220,9 @@ Zone 2 running builds your aerobic base, burns fat efficiently, and is sustainab
 1. **If you feel a sharp pain (not soreness, PAIN), stop.** Walk home. Take a rest day. Run again when pain-free. Running through injury at 240 lbs is how you lose months.
 2. **Stretch after every run.** 5 minutes minimum. Quads, hamstrings, calves, hip flexors. Standing stretches while cooling down are fine.
 3. **Hydrate before the run.** 16 oz of water with your matcha. Don't run dehydrated.
-4. **Log every run in Strava.** Start the GPS before you leave. Stop it when you're done. This is non-negotiable — the data is your accountability.
-5. **Bad-day minimum: 20 minutes.** If you absolutely cannot do the programmed distance, just run for 20 minutes at whatever pace. The streak > the workout.
+4. **Cold plunge immediately after the run (3–5 minutes).** Get in while your body is still warm from the run. Start at 2 minutes if you're new to it, build to 5 minutes over a few weeks. Then shower. The run + cold plunge combo maximizes the anti-inflammatory and dopamine response.
+5. **Log every run in Strava.** Start the GPS before you leave. Stop it when you're done. This is non-negotiable — the data is your accountability.
+6. **Bad-day minimum: 20 minutes.** If you absolutely cannot do the programmed distance, just run for 20 minutes at whatever pace. The streak > the workout.
 
 ### What Input Is Required From You
 
@@ -561,9 +570,9 @@ Write this in your notebook:
 WEEKLY REVIEW — Week of __________
 
 1. SCORECARD SUMMARY
-   Days at 5/5: ___
-   Days at 4/5: ___
-   Days at 3/5 or below: ___
+   Days at 6/6: ___
+   Days at 5/6: ___
+   Days at 4/6 or below: ___
    Total runs this week: ___/6
    Total lifts this week: ___/4
    AM blocks protected: ___/5
@@ -630,15 +639,20 @@ When you wake up and you're in a symptomatic period, don't try to figure out wha
 11. **Meal 2: protein ice cream or yogurt bowl.** Same as always. Default fires automatically.
 12. If you genuinely can't stomach food: protein shake. 2 scoops, water, done.
 
+### Mode B Recovery (Afternoon/Evening)
+
+13. **Sauna (25 minutes) + Red Light Therapy.** Heat the sauna, position the red light panel, sit for 25 minutes. This is NOT optional in Mode B — it's actually more important when symptomatic. The heat supports your CIRS detox pathways and the red light aids cellular recovery. Hydrate well before and after.
+
 ### Mode B Evening
 
-13. No guilt about watching TV, resting, or doing nothing productive. You did the minimum. That's enough.
-14. **9:30 PM: Phone goes on charger outside bedroom.**
-15. **Write tomorrow's Mode B plan.** Just 3 lines:
+14. No guilt about watching TV, resting, or doing nothing productive. You did the minimum. That's enough.
+15. **9:30 PM: Phone goes on charger outside bedroom.**
+16. **Write tomorrow's Mode B plan.** Just 3 lines:
     - Walk: Y
     - Task 1: [single most important thing]
+    - Sauna + red light: Y
     - Meals: chicken/sweet potato + [evening default]
-16. **Bed by 10:30.**
+17. **Bed by 10:30.**
 
 ### How Long to Stay in Mode B
 
@@ -653,24 +667,25 @@ Transition day: Run 20 minutes (not full distance). Do 1.5 hours of work instead
 Print this or keep it on one page in the front of your notebook.
 
 ```
-┌────────────────────────────────────────┐
-│          DAILY NON-NEGOTIABLES         │
-│                                        │
-│  □ Run (or walk in Mode B)             │
-│  □ AM block: 8:30–11, DND, Task 1     │
-│  □ Default meals (no freelancing)      │
-│  □ Bill all hours                      │
-│  □ Nightly plan + scorecard            │
-│  □ Phone outside bedroom by 9:30      │
-│                                        │
-│  Score: ___/5 (skip run + AM in Mode B)│
-│                                        │
-│  2 days below 4? → Write why or        │
-│  switch to Mode B                      │
-│                                        │
-│  Friday: 5-min financial check         │
-│  Sunday: 30-min weekly review          │
-└────────────────────────────────────────┘
+┌────────────────────────────────────────────┐
+│          DAILY NON-NEGOTIABLES             │
+│                                            │
+│  □ Run + cold plunge (walk in Mode B)      │
+│  □ AM block: 8:30–11, DND, Task 1         │
+│  □ Default meals (no freelancing)          │
+│  □ Bill all hours                          │
+│  □ Sauna 25 min + red light (BOTH modes)  │
+│  □ Nightly plan + scorecard                │
+│  □ Phone outside bedroom by 9:30          │
+│                                            │
+│  Score: ___/5 (skip run + AM in Mode B)    │
+│                                            │
+│  2 days below 4? → Write why or            │
+│  switch to Mode B                          │
+│                                            │
+│  Friday: 5-min financial check             │
+│  Sunday: 30-min weekly review              │
+└────────────────────────────────────────────┘
 ```
 
 ---
