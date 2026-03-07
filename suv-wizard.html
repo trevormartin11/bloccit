@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Luxury SUV Finder</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
   :root {
     --gold: #C9A84C;
@@ -13,9 +13,12 @@
     --dark: #1A1A2E;
     --darker: #0F0F1A;
     --card-bg: #232340;
-    --card-hover: #2E2E50;
     --text: #F0EDE6;
     --text-muted: #9B97A0;
+    --yes: #4CAF50;
+    --yes-glow: rgba(76, 175, 80, 0.3);
+    --no: #ef5350;
+    --no-glow: rgba(239, 83, 80, 0.3);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,6 +29,7 @@
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .bg-pattern {
@@ -36,410 +40,487 @@
       radial-gradient(ellipse at 50% 100%, rgba(201,168,76,0.03) 0%, transparent 40%);
   }
 
-  .container {
-    max-width: 1200px;
+  .app {
+    max-width: 500px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 16px;
     position: relative;
     z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
   }
 
+  /* Header */
   header {
     text-align: center;
-    padding: 30px 0 10px;
+    padding: 16px 0 8px;
+    flex-shrink: 0;
   }
   header h1 {
     font-family: 'Playfair Display', serif;
-    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-size: 1.6rem;
     font-weight: 700;
     background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-spacing: 1px;
   }
-  header p {
+  header .subtitle {
     color: var(--text-muted);
-    margin-top: 8px;
-    font-size: 1.05rem;
-    font-weight: 300;
+    font-size: 0.8rem;
+    margin-top: 4px;
   }
 
   /* Progress */
-  .progress-bar {
+  .progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+    flex-shrink: 0;
+  }
+  .progress-bar-bg {
+    flex: 1;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+  .progress-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* Card */
+  .card-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    perspective: 1000px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    transition: transform 0.5s ease, opacity 0.5s ease;
+    position: relative;
+  }
+  .card.swipe-right {
+    transform: translateX(120%) rotate(15deg);
+    opacity: 0;
+  }
+  .card.swipe-left {
+    transform: translateX(-120%) rotate(-15deg);
+    opacity: 0;
+  }
+  .card.entering {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  /* Photo area */
+  .card-photo {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.3s ease;
+  }
+  .card-photo .gradient-overlay {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 120px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    pointer-events: none;
+  }
+
+  /* Photo toggle tabs */
+  .photo-tabs {
+    position: absolute;
+    top: 12px; left: 12px; right: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 2;
+  }
+  .photo-tab {
+    flex: 1;
+    height: 3px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .photo-tab.active {
+    background: white;
+  }
+
+  .photo-label {
+    position: absolute;
+    top: 24px; left: 14px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255,255,255,0.7);
+    z-index: 2;
+  }
+
+  /* Loading placeholder */
+  .photo-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+  }
+  .photo-loading .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Stamp overlays */
+  .stamp {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%) rotate(-15deg);
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 8px 24px;
+    border-radius: 12px;
+    border: 4px solid;
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .stamp.like {
+    left: 20px;
+    color: var(--yes);
+    border-color: var(--yes);
+  }
+  .stamp.nope {
+    right: 20px;
+    color: var(--no);
+    border-color: var(--no);
+    transform: translateY(-50%) rotate(15deg);
+  }
+  .stamp.visible { opacity: 0.9; }
+
+  /* Card info */
+  .card-info {
+    padding: 20px;
+  }
+  .card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .card-brand-price {
+    color: var(--gold);
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .card-desc {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .card-tag {
+    background: rgba(201,168,76,0.12);
+    color: var(--gold);
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(201,168,76,0.15);
+  }
+
+  /* Action buttons */
+  .actions {
     display: flex;
     justify-content: center;
-    gap: 8px;
-    margin: 24px auto 32px;
-    max-width: 400px;
+    align-items: center;
+    gap: 24px;
+    padding: 20px 0;
+    flex-shrink: 0;
   }
-  .progress-dot {
-    width: 44px; height: 5px;
-    border-radius: 3px;
-    background: rgba(255,255,255,0.1);
-    transition: all 0.4s ease;
+  .action-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid;
+    background: rgba(255,255,255,0.03);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
   }
-  .progress-dot.active { background: var(--gold); }
-  .progress-dot.completed { background: var(--gold-light); opacity: 0.5; }
+  .action-btn:active {
+    transform: scale(0.9);
+  }
+  .btn-no {
+    border-color: var(--no);
+    color: var(--no);
+  }
+  .btn-no:hover, .btn-no:active {
+    background: var(--no-glow);
+    box-shadow: 0 0 30px var(--no-glow);
+  }
+  .btn-yes {
+    border-color: var(--yes);
+    color: var(--yes);
+  }
+  .btn-yes:hover, .btn-yes:active {
+    background: var(--yes-glow);
+    box-shadow: 0 0 30px var(--yes-glow);
+  }
+  .btn-undo {
+    width: 48px;
+    height: 48px;
+    border-color: var(--gold);
+    color: var(--gold);
+    font-size: 1.2rem;
+  }
+  .btn-undo:hover {
+    background: rgba(201,168,76,0.15);
+  }
 
-  /* Step */
-  .step { display: none; animation: fadeIn 0.5s ease; }
-  .step.active { display: block; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .step-question {
+  /* Welcome screen */
+  .welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     text-align: center;
-    margin-bottom: 28px;
+    padding: 40px 20px;
   }
-  .step-question h2 {
+  .welcome-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 360px;
+    margin-bottom: 32px;
+  }
+  .welcome-grid-img {
+    aspect-ratio: 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card-bg);
+  }
+  .welcome-grid-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .welcome h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin-bottom: 12px;
+  }
+  .welcome p {
+    color: var(--text-muted);
+    max-width: 340px;
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
+  .welcome .start-btn {
+    margin-top: 24px;
+    padding: 16px 48px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: var(--dark);
+    border: none;
+    border-radius: 50px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .welcome .start-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(201,168,76,0.3);
+  }
+
+  /* Results screen */
+  .results {
+    padding: 20px 0 60px;
+  }
+  .results-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .results-header h2 {
     font-family: 'Playfair Display', serif;
     font-size: 1.8rem;
     margin-bottom: 8px;
   }
-  .step-question p { color: var(--text-muted); font-size: 0.95rem; }
-
-  /* Option Cards — image heavy */
-  .options-grid {
-    display: grid;
-    gap: 18px;
-  }
-  .options-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
-  .options-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-  .options-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
-
-  @media (min-width: 900px) {
-    .options-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-  }
-  @media (max-width: 600px) {
-    .options-grid.cols-2, .options-grid.cols-3, .options-grid.cols-4 {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .option-card {
-    background: var(--card-bg);
-    border: 2px solid transparent;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    overflow: hidden;
-    position: relative;
-  }
-  .option-card:hover {
-    background: var(--card-hover);
-    border-color: rgba(201,168,76,0.3);
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-  }
-  .option-card.selected {
-    border-color: var(--gold);
-    background: var(--card-hover);
-    box-shadow: 0 0 30px rgba(201,168,76,0.15);
-  }
-  .option-card.selected::after {
-    content: '✓';
-    position: absolute;
-    top: 12px; right: 12px;
-    width: 30px; height: 30px;
-    background: var(--gold);
-    color: var(--dark);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 15px;
-    z-index: 3;
-  }
-
-  .option-visual {
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3.5rem;
-    position: relative;
-    overflow: hidden;
-    background-size: cover;
-    background-position: center;
-  }
-  .option-visual img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 1;
-  }
-  .option-visual .overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.2) 100%);
-    z-index: 2;
-  }
-  .option-visual .emoji-fallback {
-    z-index: 2;
-    position: relative;
-  }
-
-  .option-info {
-    padding: 16px 18px 18px;
-  }
-  .option-info h3 {
-    font-size: 1.05rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .option-info p {
-    font-size: 0.82rem;
+  .results-header p {
     color: var(--text-muted);
-    line-height: 1.4;
+    font-size: 0.9rem;
   }
 
-  /* Navigation */
-  .nav-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 36px;
-    padding-bottom: 40px;
-  }
-  .btn {
-    padding: 14px 36px;
-    border: none;
-    border-radius: 50px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    letter-spacing: 0.5px;
-  }
-  .btn-back {
-    background: rgba(255,255,255,0.05);
-    color: var(--text-muted);
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  .btn-back:hover { background: rgba(255,255,255,0.1); color: var(--text); }
-  .btn-next {
-    background: linear-gradient(135deg, var(--gold), #B8942F);
-    color: var(--dark);
-    font-weight: 600;
-  }
-  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(201,168,76,0.3); }
-  .btn-next:disabled {
-    opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none;
-  }
-  .btn-restart {
-    background: rgba(255,255,255,0.05);
-    color: var(--text);
-    border: 1px solid rgba(255,255,255,0.15);
-    margin-top: 20px;
-  }
-  .btn-restart:hover { background: rgba(255,255,255,0.1); }
-
-  /* Results */
-  .results-intro {
+  .results-empty {
     text-align: center;
-    margin-bottom: 40px;
+    padding: 60px 20px;
   }
-  .results-intro h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.2rem;
-    background: linear-gradient(135deg, var(--gold), var(--gold-light));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 10px;
+  .results-empty .emoji {
+    font-size: 3rem;
+    margin-bottom: 16px;
   }
-  .results-intro p { color: var(--text-muted); }
+  .results-empty h3 {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+  }
+  .results-empty p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+  }
 
   .result-card {
     background: var(--card-bg);
-    border-radius: 20px;
+    border-radius: 16px;
     overflow: hidden;
-    margin-bottom: 28px;
-    border: 1px solid rgba(255,255,255,0.06);
-    transition: all 0.3s ease;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: transform 0.2s;
   }
-  .result-card:hover {
-    border-color: rgba(201,168,76,0.2);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  .result-card:first-of-type {
+    border-color: rgba(201,168,76,0.3);
   }
-
-  .result-rank {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, var(--gold), #B8942F);
-    color: var(--dark);
-    padding: 6px 16px;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    margin-bottom: 12px;
-  }
-  .result-rank.rank-1 { font-size: 1rem; padding: 8px 20px; }
-
-  .result-body {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 0;
-  }
-  @media (max-width: 700px) {
-    .result-body { grid-template-columns: 1fr; }
-  }
-
-  .result-image {
-    min-height: 280px;
+  .result-card-img {
+    height: 200px;
+    background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+    overflow: hidden;
     position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    cursor: pointer;
   }
-  .result-image img {
-    position: absolute;
-    inset: 0;
+  .result-card-img img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: 1;
-    transition: transform 0.4s ease;
   }
-  .result-card:hover .result-image img {
-    transform: scale(1.05);
-  }
-  .result-image .gradient-bg {
+  .result-card-img .rank-badge {
     position: absolute;
-    inset: 0;
-    z-index: 0;
+    top: 12px;
+    left: 12px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(10px);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gold);
   }
-  .result-image .img-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to right, transparent 60%, rgba(35,35,64,0.95) 100%),
-                linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 40%);
-    z-index: 2;
+  .result-card-body {
+    padding: 16px;
   }
-  .result-image .fallback-label {
-    z-index: 1;
+  .result-card-body h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
-    text-align: center;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-    padding: 20px;
-    opacity: 0.8;
-  }
-
-  .result-details {
-    padding: 28px 30px;
-  }
-  .result-details h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     margin-bottom: 4px;
   }
-  .result-details .result-subtitle {
+  .result-card-body .brand-price {
     color: var(--gold);
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     font-weight: 500;
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
-  .result-details .result-desc {
+  .result-card-body .desc {
     color: var(--text-muted);
-    font-size: 0.88rem;
-    line-height: 1.7;
-    margin-bottom: 18px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 12px;
   }
-
-  .result-tags {
+  .result-card-body .tags {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-bottom: 18px;
+    margin-bottom: 14px;
   }
-  .result-tag {
-    background: rgba(201,168,76,0.1);
+  .result-card-body .tag {
+    background: rgba(201,168,76,0.12);
     color: var(--gold);
-    padding: 4px 12px;
-    border-radius: 50px;
-    font-size: 0.78rem;
+    font-size: 0.7rem;
     font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 20px;
     border: 1px solid rgba(201,168,76,0.15);
   }
-
-  .match-score {
+  .result-links {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    gap: 8px;
+    flex-wrap: wrap;
   }
-  .match-bar-bg {
-    flex: 1;
-    height: 8px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  .match-bar {
-    height: 100%;
-    border-radius: 4px;
-    background: linear-gradient(90deg, var(--gold), var(--gold-light));
-    transition: width 1s ease;
-  }
-  .match-pct {
-    font-weight: 600;
+  .result-link {
+    padding: 8px 16px;
+    background: transparent;
     color: var(--gold);
-    font-size: 0.95rem;
-    min-width: 42px;
-    text-align: right;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .result-link:hover {
+    background: var(--gold);
+    color: var(--dark);
   }
 
-  .result-cta {
-    display: inline-block;
-    margin-top: 12px;
-    padding: 10px 22px;
+  .restart-btn {
+    display: block;
+    margin: 24px auto;
+    padding: 14px 40px;
     background: transparent;
     color: var(--gold);
     border: 1px solid var(--gold);
     border-radius: 50px;
-    text-decoration: none;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 500;
-    transition: all 0.3s ease;
     cursor: pointer;
+    transition: all 0.2s;
   }
-  .result-cta:hover {
+  .restart-btn:hover {
     background: var(--gold);
     color: var(--dark);
-  }
-
-  /* Photo gallery strip on results */
-  .photo-strip {
-    display: flex;
-    gap: 4px;
-    overflow-x: auto;
-    padding: 0 0 4px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--gold) transparent;
-  }
-  .photo-strip::-webkit-scrollbar { height: 6px; }
-  .photo-strip::-webkit-scrollbar-track { background: transparent; }
-  .photo-strip::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
-
-  .photo-strip img {
-    height: 80px;
-    width: 120px;
-    object-fit: cover;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    opacity: 0.7;
-    flex-shrink: 0;
-  }
-  .photo-strip img:hover {
-    opacity: 1;
-    transform: scale(1.05);
   }
 
   /* Lightbox */
@@ -455,123 +536,68 @@
   }
   .lightbox.open { display: flex; }
   .lightbox img {
-    max-width: 92vw;
-    max-height: 88vh;
+    max-width: 94vw;
+    max-height: 90vh;
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.5);
   }
   .lightbox-close {
     position: absolute;
-    top: 20px; right: 30px;
+    top: 16px; right: 16px;
     color: white;
-    font-size: 2rem;
+    font-size: 1.5rem;
     cursor: pointer;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.15);
     border: none;
-    width: 44px; height: 44px;
+    width: 40px; height: 40px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  /* Welcome */
-  .welcome {
+  /* Keyboard hint */
+  .key-hint {
     text-align: center;
-    padding: 50px 20px;
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.2);
+    padding-bottom: 8px;
   }
-  .welcome-hero {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    max-width: 700px;
-    margin: 0 auto 40px;
-    border-radius: 20px;
-    overflow: hidden;
-  }
-  .welcome-hero-img {
-    height: 180px;
-    background-size: cover;
-    background-position: center;
-    border-radius: 12px;
-    position: relative;
-    overflow: hidden;
-  }
-  .welcome-hero-img img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  @media (max-width: 500px) {
-    .welcome-hero { grid-template-columns: 1fr; }
-    .welcome-hero-img { height: 150px; }
-  }
-  .welcome h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.4rem;
-    margin-bottom: 16px;
-  }
-  .welcome p {
-    color: var(--text-muted);
-    max-width: 600px;
-    margin: 0 auto 30px;
-    line-height: 1.7;
-    font-size: 1.05rem;
-  }
-  .welcome .btn-next { font-size: 1.1rem; padding: 16px 48px; }
-
-  .multi-note {
-    text-align: center;
-    color: var(--gold);
-    font-size: 0.85rem;
-    margin-bottom: 18px;
-    opacity: 0.8;
+  .key-hint kbd {
+    background: rgba(255,255,255,0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: inherit;
   }
 
-  .loading-spinner {
-    display: inline-block;
-    width: 24px; height: 24px;
-    border: 3px solid rgba(255,255,255,0.1);
-    border-top-color: var(--gold);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+  @media (max-width: 400px) {
+    .card-photo { height: 260px; }
+    .card-name { font-size: 1.3rem; }
+    .action-btn { width: 64px; height: 64px; font-size: 1.7rem; }
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  @media (max-width: 600px) {
-    header h1 { font-size: 1.8rem; }
-    .step-question h2 { font-size: 1.4rem; }
-    .results-intro h2 { font-size: 1.6rem; }
+  @media (min-width: 600px) {
+    .card-photo { height: 380px; }
   }
 </style>
 </head>
 <body>
 <div class="bg-pattern"></div>
-<div class="container">
-  <header>
-    <h1>Luxury SUV Finder</h1>
-    <p>Answer a few questions to discover your perfect luxury SUV</p>
-  </header>
-  <div class="progress-bar" id="progressBar"></div>
-  <div id="wizard"></div>
-</div>
+<div class="app" id="app"></div>
 
 <!-- Lightbox -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <button class="lightbox-close" onclick="closeLightbox()">&#10005;</button>
   <img id="lightboxImg" src="" alt="">
 </div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// IMAGE CACHE — fetched from Wikipedia REST API
+// IMAGE FETCHING — Wikipedia REST API
 // ═══════════════════════════════════════════════════════════════
 const imageCache = {};
 
 async function fetchWikiImage(title, fallbackTitle) {
-  const key = title;
-  if (imageCache[key]) return imageCache[key];
-
+  if (imageCache[title]) return imageCache[title];
   const titles = [title, fallbackTitle].filter(Boolean);
   for (const t of titles) {
     try {
@@ -581,20 +607,12 @@ async function fetchWikiImage(title, fallbackTitle) {
       const data = await res.json();
       const imgUrl = data.originalimage?.source || data.thumbnail?.source;
       if (imgUrl) {
-        imageCache[key] = imgUrl;
+        imageCache[title] = imgUrl;
         return imgUrl;
       }
     } catch (e) { /* try next */ }
   }
   return null;
-}
-
-// Prefetch all vehicle images on load
-async function prefetchImages() {
-  const promises = VEHICLES.map(v =>
-    fetchWikiImage(v.wikiTitle, v.wikiTitleAlt)
-  );
-  await Promise.allSettled(promises);
 }
 
 function openLightbox(src) {
@@ -613,781 +631,519 @@ const VEHICLES = [
   {
     name: "Range Rover",
     brand: "Land Rover",
-    startingPrice: "$104,500",
-    size: "full",
-    style: ["classic", "bold"],
-    interior: ["traditional", "modern"],
-    powertrain: ["gas", "hybrid"],
-    exterior: ["neutral", "earth", "dark"],
-    priority: ["comfort", "tech", "prestige"],
-    gradient: "linear-gradient(135deg, #1B4332, #2D6A4F)",
+    price: "$104,500",
     desc: "The icon of luxury SUVs. Unmatched road presence, whisper-quiet cabin, and genuine capability wrapped in British elegance.",
-    tags: ["British Heritage", "Supreme Comfort", "Iconic Design", "Whisper Quiet"],
-    wikiTitle: "Range Rover (L460)",
-    wikiTitleAlt: "Range Rover",
-    searchTerms: "2025 Range Rover luxury SUV"
+    tags: ["British Heritage", "Supreme Comfort", "Iconic Design"],
+    wiki: "Range Rover (L460)", wikiAlt: "Range Rover",
+    wikiInterior: "Range Rover", wikiInteriorAlt: "Range Rover (L460)",
+    search: "2025 Range Rover luxury SUV"
   },
   {
     name: "Range Rover Sport",
     brand: "Land Rover",
-    startingPrice: "$83,000",
-    size: "mid",
-    style: ["sporty", "classic"],
-    interior: ["modern", "traditional"],
-    powertrain: ["gas", "hybrid"],
-    exterior: ["dark", "neutral", "bold"],
-    priority: ["performance", "comfort", "tech"],
-    gradient: "linear-gradient(135deg, #1B4332, #3A7D5C)",
-    desc: "Athletic and refined. All the Range Rover DNA in a sportier, more dynamic package that's thrilling on the road.",
+    price: "$83,000",
+    desc: "Athletic and refined. All the Range Rover DNA in a sportier, more dynamic package.",
     tags: ["Dynamic Handling", "Sporty Luxury", "Advanced Tech"],
-    wikiTitle: "Range Rover Sport",
-    wikiTitleAlt: "Range Rover Sport (L461)",
-    searchTerms: "2025 Range Rover Sport"
+    wiki: "Range Rover Sport", wikiAlt: "Range Rover Sport (L461)",
+    wikiInterior: "Range Rover Sport", wikiInteriorAlt: null,
+    search: "2025 Range Rover Sport"
   },
   {
     name: "Porsche Cayenne Turbo GT",
     brand: "Porsche",
-    startingPrice: "$185,000",
-    size: "mid",
-    style: ["sporty", "modern"],
-    interior: ["modern", "sport"],
-    powertrain: ["gas", "hybrid"],
-    exterior: ["bold", "dark", "neutral"],
-    priority: ["performance", "tech"],
-    gradient: "linear-gradient(135deg, #8B0000, #C62828)",
+    price: "$185,000",
     desc: "The sports car disguised as an SUV. Blistering performance, razor-sharp handling, and unmistakable Porsche character.",
     tags: ["Sports Car DNA", "Track Capable", "German Engineering"],
-    wikiTitle: "Porsche Cayenne",
-    wikiTitleAlt: "Porsche Cayenne (PO536)",
-    searchTerms: "2025 Porsche Cayenne Turbo GT"
+    wiki: "Porsche Cayenne", wikiAlt: "Porsche Cayenne (PO536)",
+    wikiInterior: "Porsche Cayenne", wikiInteriorAlt: null,
+    search: "2025 Porsche Cayenne Turbo GT"
   },
   {
     name: "Porsche Cayenne",
     brand: "Porsche",
-    startingPrice: "$82,000",
-    size: "mid",
-    style: ["sporty", "modern"],
-    interior: ["modern", "sport"],
-    powertrain: ["gas", "hybrid", "electric"],
-    exterior: ["bold", "neutral", "dark"],
-    priority: ["performance", "tech", "comfort"],
-    gradient: "linear-gradient(135deg, #6D0000, #A52828)",
+    price: "$82,000",
     desc: "The benchmark for sporty luxury SUVs. Perfect blend of everyday comfort and exhilarating driving dynamics.",
     tags: ["Versatile", "Driver's SUV", "Premium Quality"],
-    wikiTitle: "Porsche Cayenne",
-    wikiTitleAlt: null,
-    searchTerms: "2025 Porsche Cayenne"
+    wiki: "Porsche Cayenne", wikiAlt: null,
+    wikiInterior: "Porsche Cayenne", wikiInteriorAlt: null,
+    search: "2025 Porsche Cayenne"
   },
   {
     name: "Mercedes-Maybach GLS 600",
     brand: "Mercedes-Maybach",
-    startingPrice: "$175,000",
-    size: "full",
-    style: ["classic", "bold"],
-    interior: ["traditional", "opulent"],
-    powertrain: ["gas"],
-    exterior: ["neutral", "dark", "earth"],
-    priority: ["comfort", "prestige"],
-    gradient: "linear-gradient(135deg, #1A1A2E, #4A3F6B)",
-    desc: "First-class air travel on four wheels. The Maybach GLS offers unparalleled rear-seat luxury with champagne cooler, reclining seats, and supreme isolation.",
-    tags: ["Ultra Luxury", "Rear-Seat Paradise", "Maybach Prestige", "Two-Tone Paint"],
-    wikiTitle: "Mercedes-Benz GLS-Class",
-    wikiTitleAlt: "Mercedes-Maybach GLS",
-    searchTerms: "Mercedes Maybach GLS 600"
+    price: "$175,000",
+    desc: "First-class air travel on four wheels. Champagne cooler, reclining seats, and supreme isolation from the world.",
+    tags: ["Ultra Luxury", "Rear-Seat Paradise", "Two-Tone Paint"],
+    wiki: "Mercedes-Benz GLS-Class", wikiAlt: "Mercedes-Maybach GLS",
+    wikiInterior: "Mercedes-Benz GLS-Class", wikiInteriorAlt: null,
+    search: "Mercedes Maybach GLS 600"
   },
   {
     name: "Mercedes G 63 AMG",
     brand: "Mercedes-AMG",
-    startingPrice: "$180,000",
-    size: "mid",
-    style: ["bold", "classic"],
-    interior: ["modern", "traditional"],
-    powertrain: ["gas"],
-    exterior: ["bold", "dark", "neutral"],
-    priority: ["prestige", "performance"],
-    gradient: "linear-gradient(135deg, #2C2C2C, #555555)",
-    desc: "The original luxury SUV icon. Military roots meet AMG power in this unmistakable, boxy icon of status and capability.",
-    tags: ["Iconic Shape", "AMG Power", "Celebrity Favorite", "Unmistakable"],
-    wikiTitle: "Mercedes-Benz G-Class",
-    wikiTitleAlt: null,
-    searchTerms: "Mercedes G63 AMG"
+    price: "$180,000",
+    desc: "The original luxury SUV icon. Military roots meet AMG power in this unmistakable, boxy icon of status.",
+    tags: ["Iconic Shape", "AMG Power", "Celebrity Favorite"],
+    wiki: "Mercedes-Benz G-Class", wikiAlt: null,
+    wikiInterior: "Mercedes-Benz G-Class", wikiInteriorAlt: null,
+    search: "Mercedes G63 AMG"
   },
   {
     name: "BMW XM",
     brand: "BMW",
-    startingPrice: "$159,000",
-    size: "mid",
-    style: ["sporty", "bold", "modern"],
-    interior: ["modern", "sport"],
-    powertrain: ["hybrid"],
-    exterior: ["bold", "dark"],
-    priority: ["performance", "tech"],
-    gradient: "linear-gradient(135deg, #003D7A, #1565C0)",
-    desc: "BMW's most powerful M vehicle ever. Bold, daring design meets hybrid supercar performance in this statement-making luxury SUV.",
-    tags: ["Hybrid Power", "Bold Design", "M Performance", "Head-Turner"],
-    wikiTitle: "BMW XM",
-    wikiTitleAlt: null,
-    searchTerms: "BMW XM"
+    price: "$159,000",
+    desc: "BMW's most powerful M vehicle ever. Bold design meets hybrid supercar performance.",
+    tags: ["Hybrid Power", "Bold Design", "M Performance"],
+    wiki: "BMW XM", wikiAlt: null,
+    wikiInterior: "BMW XM", wikiInteriorAlt: null,
+    search: "BMW XM"
   },
   {
     name: "BMW X7 M60i",
     brand: "BMW",
-    startingPrice: "$104,000",
-    size: "full",
-    style: ["classic", "modern"],
-    interior: ["modern", "traditional"],
-    powertrain: ["gas"],
-    exterior: ["neutral", "dark"],
-    priority: ["comfort", "tech", "performance"],
-    gradient: "linear-gradient(135deg, #002F5F, #0D47A1)",
-    desc: "Spacious three-row luxury with powerful V8 performance. The X7 delivers first-class comfort for the whole family.",
+    price: "$104,000",
+    desc: "Spacious three-row luxury with powerful V8 performance. First-class comfort for the whole family.",
     tags: ["Three-Row Luxury", "V8 Power", "Panoramic Views"],
-    wikiTitle: "BMW X7 (G07)",
-    wikiTitleAlt: "BMW X7",
-    searchTerms: "BMW X7 M60i"
+    wiki: "BMW X7 (G07)", wikiAlt: "BMW X7",
+    wikiInterior: "BMW X7 (G07)", wikiInteriorAlt: null,
+    search: "BMW X7 M60i"
   },
   {
     name: "Bentley Bentayga",
     brand: "Bentley",
-    startingPrice: "$195,000",
-    size: "full",
-    style: ["classic", "bold"],
-    interior: ["traditional", "opulent"],
-    powertrain: ["gas", "hybrid"],
-    exterior: ["neutral", "earth", "dark"],
-    priority: ["comfort", "prestige", "performance"],
-    gradient: "linear-gradient(135deg, #2E1503, #5D4037)",
-    desc: "Hand-crafted British luxury at its finest. Every surface is adorned with the world's most exquisite materials — wood, leather, and metal all finished by artisans.",
-    tags: ["Hand-Crafted", "W12 Available", "Bespoke Options", "British Excellence"],
-    wikiTitle: "Bentley Bentayga",
-    wikiTitleAlt: null,
-    searchTerms: "Bentley Bentayga"
+    price: "$195,000",
+    desc: "Hand-crafted British luxury at its finest. Every surface adorned with the world's most exquisite materials.",
+    tags: ["Hand-Crafted", "Bespoke Options", "British Excellence"],
+    wiki: "Bentley Bentayga", wikiAlt: null,
+    wikiInterior: "Bentley Bentayga", wikiInteriorAlt: null,
+    search: "Bentley Bentayga"
   },
   {
     name: "Rolls-Royce Cullinan",
     brand: "Rolls-Royce",
-    startingPrice: "$365,000",
-    size: "full",
-    style: ["classic", "bold"],
-    interior: ["opulent", "traditional"],
-    powertrain: ["gas"],
-    exterior: ["neutral", "dark", "earth"],
-    priority: ["comfort", "prestige"],
-    gradient: "linear-gradient(135deg, #1A0F2E, #3E2465)",
-    desc: "The pinnacle of automotive luxury. Named after the world's largest diamond, the Cullinan is effortless, silent, and incomparably luxurious.",
-    tags: ["The Pinnacle", "Starlight Headliner", "Magic Carpet Ride", "Bespoke Everything"],
-    wikiTitle: "Rolls-Royce Cullinan",
-    wikiTitleAlt: null,
-    searchTerms: "Rolls Royce Cullinan"
+    price: "$365,000",
+    desc: "The pinnacle of automotive luxury. Effortless, silent, and incomparably luxurious in every detail.",
+    tags: ["The Pinnacle", "Starlight Headliner", "Magic Carpet Ride"],
+    wiki: "Rolls-Royce Cullinan", wikiAlt: null,
+    wikiInterior: "Rolls-Royce Cullinan", wikiInteriorAlt: null,
+    search: "Rolls Royce Cullinan"
   },
   {
     name: "Lamborghini Urus",
     brand: "Lamborghini",
-    startingPrice: "$240,000",
-    size: "mid",
-    style: ["sporty", "bold"],
-    interior: ["sport", "modern"],
-    powertrain: ["gas", "hybrid"],
-    exterior: ["bold", "dark"],
-    priority: ["performance", "prestige"],
-    gradient: "linear-gradient(135deg, #B8860B, #E6A817)",
-    desc: "The world's first Super Sport Utility Vehicle. Lamborghini aggression meets practicality — outrageously fast, impossibly loud, and utterly unforgettable.",
-    tags: ["Super SUV", "V8 Twin-Turbo", "Exotic Presence", "Track Mode"],
-    wikiTitle: "Lamborghini Urus",
-    wikiTitleAlt: null,
-    searchTerms: "Lamborghini Urus"
+    price: "$240,000",
+    desc: "The world's first Super Sport Utility Vehicle. Outrageously fast, impossibly loud, and utterly unforgettable.",
+    tags: ["Super SUV", "V8 Twin-Turbo", "Exotic Presence"],
+    wiki: "Lamborghini Urus", wikiAlt: null,
+    wikiInterior: "Lamborghini Urus", wikiInteriorAlt: null,
+    search: "Lamborghini Urus"
   },
   {
     name: "Ferrari Purosangue",
     brand: "Ferrari",
-    startingPrice: "$400,000",
-    size: "mid",
-    style: ["sporty", "modern"],
-    interior: ["sport", "modern"],
-    powertrain: ["gas"],
-    exterior: ["bold", "dark"],
-    priority: ["performance", "prestige"],
-    gradient: "linear-gradient(135deg, #8B0000, #FF1744)",
-    desc: "Ferrari's first four-door, four-seat car. A naturally aspirated V12 and Ferrari handling in a sleek GT body — not an SUV, a Ferrari with more doors.",
-    tags: ["V12 Engine", "Ferrari Handling", "Exclusive", "Supercar Heart"],
-    wikiTitle: "Ferrari Purosangue",
-    wikiTitleAlt: null,
-    searchTerms: "Ferrari Purosangue"
+    price: "$400,000",
+    desc: "Ferrari's first four-door car. A naturally aspirated V12 and Ferrari handling in a sleek GT body.",
+    tags: ["V12 Engine", "Ferrari Handling", "Supercar Heart"],
+    wiki: "Ferrari Purosangue", wikiAlt: null,
+    wikiInterior: "Ferrari Purosangue", wikiInteriorAlt: null,
+    search: "Ferrari Purosangue"
   },
   {
     name: "Aston Martin DBX707",
     brand: "Aston Martin",
-    startingPrice: "$239,000",
-    size: "mid",
-    style: ["sporty", "classic"],
-    interior: ["traditional", "sport"],
-    powertrain: ["gas"],
-    exterior: ["bold", "dark", "neutral"],
-    priority: ["performance", "prestige", "comfort"],
-    gradient: "linear-gradient(135deg, #004D40, #00796B)",
-    desc: "James Bond meets family life — stunning design, bespoke interior, and savage performance in a beautiful British GT-inspired SUV.",
+    price: "$239,000",
+    desc: "James Bond meets family life. Stunning design, bespoke interior, and savage performance.",
     tags: ["Bespoke Interior", "British GT DNA", "Stunning Design"],
-    wikiTitle: "Aston Martin DBX",
-    wikiTitleAlt: "Aston Martin DBX707",
-    searchTerms: "Aston Martin DBX707"
+    wiki: "Aston Martin DBX", wikiAlt: "Aston Martin DBX707",
+    wikiInterior: "Aston Martin DBX", wikiInteriorAlt: null,
+    search: "Aston Martin DBX707"
   },
   {
     name: "Genesis GV80",
     brand: "Genesis",
-    startingPrice: "$75,000",
-    size: "mid",
-    style: ["modern", "classic"],
-    interior: ["modern", "traditional"],
-    powertrain: ["gas"],
-    exterior: ["neutral", "dark", "earth"],
-    priority: ["comfort", "tech"],
-    gradient: "linear-gradient(135deg, #1A237E, #3949AB)",
-    desc: "Korea's answer to German luxury — and many say it's better. Striking design, incredible value, and an interior that punches well above its price.",
-    tags: ["Best Value", "Stunning Interior", "10-Year Warranty", "Rising Star"],
-    wikiTitle: "Genesis GV80",
-    wikiTitleAlt: null,
-    searchTerms: "Genesis GV80"
+    price: "$75,000",
+    desc: "Korea's answer to German luxury — many say it's better. Incredible value and a stunning interior.",
+    tags: ["Best Value", "Stunning Interior", "10-Year Warranty"],
+    wiki: "Genesis GV80", wikiAlt: null,
+    wikiInterior: "Genesis GV80", wikiInteriorAlt: null,
+    search: "Genesis GV80"
   },
   {
     name: "Cadillac Escalade V",
     brand: "Cadillac",
-    startingPrice: "$155,000",
-    size: "full",
-    style: ["bold"],
-    interior: ["modern", "traditional"],
-    powertrain: ["gas"],
-    exterior: ["dark", "neutral"],
-    priority: ["prestige", "performance", "comfort"],
-    gradient: "linear-gradient(135deg, #1A1A1A, #424242)",
-    desc: "American luxury taken to eleven. Supercharged V8, 38-inch OLED curved display, and a commanding presence that dominates every scene.",
-    tags: ["Supercharged V8", "38\" OLED Display", "American Icon", "Massive Interior"],
-    wikiTitle: "Cadillac Escalade",
-    wikiTitleAlt: null,
-    searchTerms: "Cadillac Escalade V"
+    price: "$155,000",
+    desc: "American luxury taken to eleven. Supercharged V8, 38-inch OLED display, and a commanding presence.",
+    tags: ["Supercharged V8", "38\" OLED Display", "American Icon"],
+    wiki: "Cadillac Escalade", wikiAlt: null,
+    wikiInterior: "Cadillac Escalade", wikiInteriorAlt: null,
+    search: "Cadillac Escalade V"
   },
   {
     name: "Mercedes GLE 53 AMG Coupe",
     brand: "Mercedes-AMG",
-    startingPrice: "$85,000",
-    size: "mid",
-    style: ["sporty", "modern"],
-    interior: ["modern", "sport"],
-    powertrain: ["gas", "hybrid"],
-    exterior: ["dark", "neutral", "bold"],
-    priority: ["performance", "tech"],
-    gradient: "linear-gradient(135deg, #263238, #455A64)",
-    desc: "The coupe-SUV that started the trend. Sleek roofline, AMG power, and cutting-edge tech in a head-turning silhouette.",
-    tags: ["Coupe Styling", "AMG Tuned", "MBUX Tech", "Sleek Profile"],
-    wikiTitle: "Mercedes-Benz GLE-Class",
-    wikiTitleAlt: "Mercedes-Benz GLE Coupé",
-    searchTerms: "Mercedes GLE 53 AMG Coupe"
+    price: "$85,000",
+    desc: "The coupe-SUV that started the trend. Sleek roofline, AMG power, and cutting-edge tech.",
+    tags: ["Coupe Styling", "AMG Tuned", "Sleek Profile"],
+    wiki: "Mercedes-Benz GLE-Class", wikiAlt: "Mercedes-Benz GLE Coupé",
+    wikiInterior: "Mercedes-Benz GLE-Class", wikiInteriorAlt: null,
+    search: "Mercedes GLE 53 AMG Coupe"
   },
   {
     name: "Rivian R1S",
     brand: "Rivian",
-    startingPrice: "$82,000",
-    size: "full",
-    style: ["modern"],
-    interior: ["modern"],
-    powertrain: ["electric"],
-    exterior: ["earth", "bold", "neutral"],
-    priority: ["tech", "comfort"],
-    gradient: "linear-gradient(135deg, #1B5E20, #4CAF50)",
-    desc: "The adventure-ready electric SUV. Three rows, cutting-edge EV tech, and approachable modern design wrapped in sustainability.",
-    tags: ["All-Electric", "Three-Row", "Quad Motor Available", "Sustainable"],
-    wikiTitle: "Rivian R1S",
-    wikiTitleAlt: "Rivian R1T",
-    searchTerms: "Rivian R1S"
+    price: "$82,000",
+    desc: "The adventure-ready electric SUV. Three rows, quad motors available, and sustainable modern design.",
+    tags: ["All-Electric", "Three-Row", "Quad Motor Available"],
+    wiki: "Rivian R1S", wikiAlt: "Rivian R1T",
+    wikiInterior: "Rivian R1S", wikiInteriorAlt: null,
+    search: "Rivian R1S"
   },
   {
     name: "Tesla Model X Plaid",
     brand: "Tesla",
-    startingPrice: "$95,000",
-    size: "mid",
-    style: ["modern"],
-    interior: ["modern"],
-    powertrain: ["electric"],
-    exterior: ["neutral", "dark"],
-    priority: ["tech", "performance"],
-    gradient: "linear-gradient(135deg, #1A237E, #283593)",
-    desc: "The fastest SUV in the world. Falcon wing doors, ludicrous acceleration, and the most advanced tech on four wheels.",
-    tags: ["Falcon Wing Doors", "2.5s 0-60", "Autopilot", "Plaid Power"],
-    wikiTitle: "Tesla Model X",
-    wikiTitleAlt: null,
-    searchTerms: "Tesla Model X Plaid"
+    price: "$95,000",
+    desc: "The fastest SUV in the world. Falcon wing doors, ludicrous acceleration, and the most advanced tech.",
+    tags: ["Falcon Wing Doors", "2.5s 0-60", "Plaid Power"],
+    wiki: "Tesla Model X", wikiAlt: null,
+    wikiInterior: "Tesla Model X", wikiInteriorAlt: null,
+    search: "Tesla Model X Plaid"
   },
   {
     name: "Maserati Grecale Trofeo",
     brand: "Maserati",
-    startingPrice: "$95,000",
-    size: "compact",
-    style: ["sporty", "classic"],
-    interior: ["sport", "traditional"],
-    powertrain: ["gas"],
-    exterior: ["bold", "dark", "neutral"],
-    priority: ["performance", "prestige"],
-    gradient: "linear-gradient(135deg, #0D47A1, #1565C0)",
-    desc: "Italian flair in a compact luxury SUV. The Grecale brings Maserati's racing heritage and unmistakable exhaust note to the everyday drive.",
-    tags: ["Italian Exotic", "Nettuno V6", "Racing Heritage", "Compact Luxury"],
-    wikiTitle: "Maserati Grecale",
-    wikiTitleAlt: null,
-    searchTerms: "Maserati Grecale Trofeo"
+    price: "$95,000",
+    desc: "Italian flair in a compact luxury SUV. Racing heritage and unmistakable exhaust note for the daily drive.",
+    tags: ["Italian Exotic", "Nettuno V6", "Racing Heritage"],
+    wiki: "Maserati Grecale", wikiAlt: null,
+    wikiInterior: "Maserati Grecale", wikiInteriorAlt: null,
+    search: "Maserati Grecale Trofeo"
   },
   {
     name: "Land Rover Defender V8",
     brand: "Land Rover",
-    startingPrice: "$110,000",
-    size: "mid",
-    style: ["bold", "classic"],
-    interior: ["modern", "traditional"],
-    powertrain: ["gas"],
-    exterior: ["earth", "bold", "dark"],
-    priority: ["comfort", "performance"],
-    gradient: "linear-gradient(135deg, #33691E, #558B2F)",
-    desc: "Rugged luxury reimagined. The Defender V8 pairs legendary DNA with a supercharged V8 and surprisingly refined on-road manners.",
-    tags: ["Iconic Silhouette", "V8 Power", "Rugged Luxury", "Modern Classic"],
-    wikiTitle: "Land Rover Defender (L663)",
-    wikiTitleAlt: "Land Rover Defender",
-    searchTerms: "Land Rover Defender V8"
+    price: "$110,000",
+    desc: "Rugged luxury reimagined. Legendary off-road DNA with a supercharged V8 and surprisingly refined manners.",
+    tags: ["Iconic Silhouette", "V8 Power", "Modern Classic"],
+    wiki: "Land Rover Defender (L663)", wikiAlt: "Land Rover Defender",
+    wikiInterior: "Land Rover Defender (L663)", wikiInteriorAlt: null,
+    search: "Land Rover Defender V8"
   }
 ];
 
 // ═══════════════════════════════════════════════════════════════
-// STEP-LEVEL IMAGES — representative photos for each option
+// APP STATE
 // ═══════════════════════════════════════════════════════════════
-// We'll fetch images for representative vehicles per style option
-const STEP_IMAGES = {
-  size: {
-    compact: { wiki: "Maserati Grecale", alt: "Land Rover Range Rover Evoque" },
-    mid: { wiki: "Porsche Cayenne", alt: null },
-    full: { wiki: "Rolls-Royce Cullinan", alt: null },
-    any: { wiki: "Lamborghini Urus", alt: null }
-  },
-  style: {
-    sporty: { wiki: "Porsche Cayenne", alt: "Lamborghini Urus" },
-    classic: { wiki: "Bentley Bentayga", alt: "Range Rover" },
-    bold: { wiki: "Mercedes-Benz G-Class", alt: "Cadillac Escalade" },
-    modern: { wiki: "Tesla Model X", alt: "Genesis GV80" }
-  },
-  interior: {
-    traditional: { wiki: "Bentley Bentayga", alt: null },
-    modern: { wiki: "Tesla Model X", alt: "BMW iX" },
-    sport: { wiki: "Lamborghini Urus", alt: "Porsche Cayenne" },
-    opulent: { wiki: "Rolls-Royce Cullinan", alt: null }
-  },
-  exterior_color: {
-    neutral: { wiki: "Range Rover", alt: null },
-    dark: { wiki: "Mercedes-Benz G-Class", alt: null },
-    bold: { wiki: "Lamborghini Urus", alt: "Ferrari Purosangue" },
-    earth: { wiki: "Land Rover Defender (L663)", alt: "Land Rover Defender" }
-  },
-  powertrain: {
-    gas: { wiki: "Ferrari Purosangue", alt: null },
-    hybrid: { wiki: "BMW XM", alt: null },
-    electric: { wiki: "Rivian R1S", alt: "Tesla Model X" },
-    any: { wiki: "Bentley Bentayga", alt: null }
-  },
-  priority: {
-    comfort: { wiki: "Rolls-Royce Cullinan", alt: "Mercedes-Benz GLS-Class" },
-    performance: { wiki: "Lamborghini Urus", alt: "Ferrari Purosangue" },
-    tech: { wiki: "Tesla Model X", alt: "BMW XM" },
-    prestige: { wiki: "Rolls-Royce Cullinan", alt: "Bentley Bentayga" }
+let currentIndex = 0;
+let liked = [];
+let passed = [];
+let history = []; // for undo
+let currentPhotoView = 0; // 0 = exterior, 1 = interior
+let vehicleImages = {}; // { vehicleName: { exterior: url, interior: url } }
+let isAnimating = false;
+
+// Shuffle vehicles for variety
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
   }
-};
+  return a;
+}
 
-// Fetch step images
-async function fetchStepImage(stepId, value) {
-  const info = STEP_IMAGES[stepId]?.[value];
-  if (!info) return null;
-  return fetchWikiImage(info.wiki, info.alt);
+let deck = shuffle(VEHICLES);
+
+// ═══════════════════════════════════════════════════════════════
+// PREFETCH IMAGES
+// ═══════════════════════════════════════════════════════════════
+async function prefetchVehicleImages(vehicle) {
+  if (vehicleImages[vehicle.name]) return vehicleImages[vehicle.name];
+
+  const [exterior] = await Promise.all([
+    fetchWikiImage(vehicle.wiki, vehicle.wikiAlt)
+  ]);
+
+  vehicleImages[vehicle.name] = { exterior };
+  return vehicleImages[vehicle.name];
+}
+
+async function prefetchUpcoming() {
+  const upcoming = deck.slice(currentIndex, currentIndex + 3);
+  await Promise.allSettled(upcoming.map(v => prefetchVehicleImages(v)));
 }
 
 // ═══════════════════════════════════════════════════════════════
-// WIZARD STEPS
+// RENDER
 // ═══════════════════════════════════════════════════════════════
-const STEPS = [
-  { id: "welcome", type: "welcome" },
-  {
-    id: "size",
-    question: "What size SUV are you drawn to?",
-    subtitle: "Think about how much space you want and the kind of road presence you'd like.",
-    multi: false,
-    options: [
-      { value: "compact", label: "Compact / Sporty", desc: "Similar to your Evoque — nimble, easy to park, and stylish", emoji: "🚙", gradient: "linear-gradient(135deg, #37474F, #546E7A)" },
-      { value: "mid", label: "Midsize", desc: "More room to stretch out with strong road presence", emoji: "🚗", gradient: "linear-gradient(135deg, #4A148C, #7B1FA2)" },
-      { value: "full", label: "Full Size", desc: "Commanding presence, maximum luxury space", emoji: "🛻", gradient: "linear-gradient(135deg, #B71C1C, #D32F2F)" },
-      { value: "any", label: "Show Me Everything", desc: "I'm open to all sizes — surprise me", emoji: "✨", gradient: "linear-gradient(135deg, #1A237E, #6A1B9A)" }
-    ]
-  },
-  {
-    id: "style",
-    question: "What exterior style speaks to you?",
-    subtitle: "Select all that appeal to you.",
-    multi: true,
-    options: [
-      { value: "sporty", label: "Sporty & Athletic", desc: "Aggressive lines, sculpted body, performance look", emoji: "🏁", gradient: "linear-gradient(135deg, #B71C1C, #E53935)" },
-      { value: "classic", label: "Classic & Elegant", desc: "Timeless design, refined presence, understated luxury", emoji: "👑", gradient: "linear-gradient(135deg, #1B4332, #2D6A4F)" },
-      { value: "bold", label: "Bold & Imposing", desc: "Commanding, muscular, impossible to ignore", emoji: "💎", gradient: "linear-gradient(135deg, #1A1A2E, #4A3F6B)" },
-      { value: "modern", label: "Modern & Sleek", desc: "Clean lines, futuristic touches, tech-forward", emoji: "🔮", gradient: "linear-gradient(135deg, #0D47A1, #1976D2)" }
-    ]
-  },
-  {
-    id: "interior",
-    question: "What interior atmosphere do you prefer?",
-    subtitle: "Close your eyes and imagine your perfect cabin. Select all that appeal.",
-    multi: true,
-    options: [
-      { value: "traditional", label: "Rich & Traditional", desc: "Fine leather, real wood, polished metal — like a British manor", emoji: "🪵", gradient: "linear-gradient(135deg, #3E2723, #5D4037)" },
-      { value: "modern", label: "Modern & Tech-Forward", desc: "Large screens, ambient lighting, minimalist design", emoji: "🖥️", gradient: "linear-gradient(135deg, #263238, #455A64)" },
-      { value: "sport", label: "Sporty & Driver-Focused", desc: "Alcantara, carbon fiber, bolstered seats", emoji: "🏎️", gradient: "linear-gradient(135deg, #880E4F, #AD1457)" },
-      { value: "opulent", label: "Ultra Opulent", desc: "First-class seating, champagne coolers, starlight headliners", emoji: "🥂", gradient: "linear-gradient(135deg, #4A148C, #6A1B9A)" }
-    ]
-  },
-  {
-    id: "exterior_color",
-    question: "What exterior colors catch your eye?",
-    subtitle: "Select all colors you'd consider.",
-    multi: true,
-    options: [
-      { value: "neutral", label: "Classic Neutrals", desc: "White, silver, grey — timeless and elegant", emoji: "⬜", gradient: "linear-gradient(135deg, #90A4AE, #B0BEC5)" },
-      { value: "dark", label: "Dark & Dramatic", desc: "Black, dark grey, midnight blue — powerful and mysterious", emoji: "⬛", gradient: "linear-gradient(135deg, #1A1A1A, #333333)" },
-      { value: "bold", label: "Bold & Vibrant", desc: "Red, blue, yellow, green — stand out from the crowd", emoji: "🟥", gradient: "linear-gradient(135deg, #B71C1C, #0D47A1)" },
-      { value: "earth", label: "Earth & Nature Tones", desc: "Racing green, brown, sand, olive — sophisticated warmth", emoji: "🟤", gradient: "linear-gradient(135deg, #33691E, #5D4037)" }
-    ]
-  },
-  {
-    id: "powertrain",
-    question: "How do you feel about what's under the hood?",
-    subtitle: "This helps us match the right powertrain to your preferences.",
-    multi: false,
-    options: [
-      { value: "gas", label: "Traditional Engine", desc: "Nothing beats the rumble of a powerful V6, V8, or V12", emoji: "⛽", gradient: "linear-gradient(135deg, #BF360C, #E64A19)" },
-      { value: "hybrid", label: "Hybrid", desc: "Best of both worlds — power and efficiency", emoji: "🔋", gradient: "linear-gradient(135deg, #1B5E20, #388E3C)" },
-      { value: "electric", label: "Fully Electric", desc: "Silent luxury, instant torque, zero emissions", emoji: "⚡", gradient: "linear-gradient(135deg, #0D47A1, #1565C0)" },
-      { value: "any", label: "No Preference", desc: "I care more about the overall package", emoji: "🤷", gradient: "linear-gradient(135deg, #37474F, #546E7A)" }
-    ]
-  },
-  {
-    id: "priority",
-    question: "What matters most in your daily driving?",
-    subtitle: "Pick up to two priorities.",
-    multi: true,
-    maxSelect: 2,
-    options: [
-      { value: "comfort", label: "Supreme Comfort", desc: "Cloud-like ride, whisper-quiet cabin, massage seats", emoji: "☁️", gradient: "linear-gradient(135deg, #4A148C, #7B1FA2)" },
-      { value: "performance", label: "Thrilling Performance", desc: "Fast acceleration, sharp handling, sporty exhaust", emoji: "🚀", gradient: "linear-gradient(135deg, #B71C1C, #D32F2F)" },
-      { value: "tech", label: "Cutting-Edge Tech", desc: "Best screens, latest driver assists, connected features", emoji: "📱", gradient: "linear-gradient(135deg, #0D47A1, #1976D2)" },
-      { value: "prestige", label: "Prestige & Status", desc: "A name that turns heads and starts conversations", emoji: "🌟", gradient: "linear-gradient(135deg, #F57F17, #FFB300)" }
-    ]
-  },
-  { id: "results", type: "results" }
-];
+function renderApp() {
+  const app = document.getElementById('app');
 
-// ═══════════════════════════════════════════════════════════════
-// WIZARD STATE
-// ═══════════════════════════════════════════════════════════════
-let currentStep = 0;
-const answers = {};
+  if (currentIndex < 0) currentIndex = 0;
 
-function init() {
-  renderProgressBar();
-  renderStep();
-  prefetchImages();
-}
-
-function renderProgressBar() {
-  const bar = document.getElementById('progressBar');
-  const totalQ = STEPS.filter(s => s.type !== 'welcome' && s.type !== 'results').length;
-  bar.innerHTML = '';
-  for (let i = 0; i < totalQ; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'progress-dot';
-    const adj = currentStep - 1;
-    if (i < adj) dot.classList.add('completed');
-    if (i === adj) dot.classList.add('active');
-    bar.appendChild(dot);
-  }
-  bar.style.display = currentStep === 0 || currentStep === STEPS.length - 1 ? 'none' : 'flex';
-}
-
-async function renderStep() {
-  const step = STEPS[currentStep];
-  const wizard = document.getElementById('wizard');
-
-  if (step.type === 'welcome') {
-    // Fetch 3 hero images
-    const heroPromises = [
-      fetchWikiImage("Range Rover (L460)", "Range Rover"),
-      fetchWikiImage("Lamborghini Urus", null),
-      fetchWikiImage("Rolls-Royce Cullinan", null)
-    ];
-    const heroImages = await Promise.all(heroPromises);
-
-    const heroGradients = [
-      "linear-gradient(135deg, #1B4332, #2D6A4F)",
-      "linear-gradient(135deg, #B8860B, #E6A817)",
-      "linear-gradient(135deg, #1A0F2E, #3E2465)"
-    ];
-    const heroLabels = ["Range Rover", "Lamborghini Urus", "Rolls-Royce Cullinan"];
-
-    const heroHTML = heroImages.map((img, i) => `
-      <div class="welcome-hero-img" style="background: ${heroGradients[i]}">
-        ${img ? `<img src="${img}" alt="${heroLabels[i]}" style="object-fit:cover;" onerror="this.style.display='none'">` : ''}
-      </div>
-    `).join('');
-
-    wizard.innerHTML = `
-      <div class="step active">
-        <div class="welcome">
-          <div class="welcome-hero">${heroHTML}</div>
-          <h2>Find Your Dream Luxury SUV</h2>
-          <p>You currently drive a <strong>Land Rover Evoque</strong> — great taste! Let's find your next step up. We'll ask ${STEPS.length - 2} quick questions about your style and preferences, then recommend the perfect luxury SUVs for you to test drive.</p>
-          <button class="btn btn-next" onclick="nextStep()">Let's Get Started</button>
-        </div>
-      </div>`;
-    renderProgressBar();
+  // Welcome screen
+  if (currentIndex === -1 || (currentIndex === 0 && liked.length === 0 && passed.length === 0 && history.length === 0)) {
+    renderWelcome();
     return;
   }
 
-  if (step.type === 'results') {
-    await renderResults();
-    renderProgressBar();
+  // Results
+  if (currentIndex >= deck.length) {
+    renderResults();
     return;
   }
 
-  const multiNote = step.multi
-    ? `<p class="multi-note">${step.maxSelect ? `Select up to ${step.maxSelect}` : 'Select all that apply'}</p>`
+  renderCard();
+}
+
+async function renderWelcome() {
+  const app = document.getElementById('app');
+
+  // Fetch a few preview images
+  const previewVehicles = [deck[0], deck[1], deck[2], deck[3], deck[4], deck[5]].filter(Boolean);
+  const imgPromises = previewVehicles.map(v => fetchWikiImage(v.wiki, v.wikiAlt));
+  const imgs = await Promise.all(imgPromises);
+
+  const gridHTML = imgs.slice(0, 6).map((src, i) => `
+    <div class="welcome-grid-img">
+      ${src ? `<img src="${src}" alt="${previewVehicles[i].name}" onerror="this.parentElement.style.background='var(--card-bg)'">` : ''}
+    </div>
+  `).join('');
+
+  app.innerHTML = `
+    <header>
+      <h1>Luxury SUV Finder</h1>
+    </header>
+    <div class="welcome">
+      <div class="welcome-grid">${gridHTML}</div>
+      <h2>Find Your Dream SUV</h2>
+      <p>We'll show you ${deck.length} luxury SUVs one at a time. Just tap <strong>YES</strong> if you love how it looks or <strong>NO</strong> to pass.</p>
+      <p style="font-size:0.85rem">Tap the photo to switch between exterior and interior views.</p>
+      <button class="start-btn" onclick="startSwiping()">Let's Go</button>
+    </div>
+  `;
+}
+
+function startSwiping() {
+  currentIndex = 0;
+  liked = [];
+  passed = [];
+  history = [];
+  prefetchUpcoming();
+  renderCard();
+}
+
+async function renderCard() {
+  const app = document.getElementById('app');
+  const vehicle = deck[currentIndex];
+  currentPhotoView = 0;
+
+  // Ensure images are loaded
+  const imgs = await prefetchVehicleImages(vehicle);
+  prefetchUpcoming(); // prefetch next ones
+
+  const exteriorSrc = imgs.exterior || '';
+  const photoViews = [exteriorSrc].filter(Boolean);
+  const photoCount = Math.max(1, photoViews.length);
+
+  const tabsHTML = photoCount > 1
+    ? `<div class="photo-tabs">${Array.from({length: photoCount}, (_, i) =>
+        `<div class="photo-tab ${i === 0 ? 'active' : ''}" onclick="switchPhoto(${i})"></div>`
+      ).join('')}</div>`
     : '';
 
-  const cols = step.options.length <= 2 ? 'cols-2' : step.options.length === 3 ? 'cols-3' : 'cols-4';
-  const prev = answers[step.id] || (step.multi ? [] : null);
+  const labelText = 'Exterior';
 
-  // Fetch images for each option in parallel
-  const imgPromises = step.options.map(opt => fetchStepImage(step.id, opt.value));
-  const images = await Promise.all(imgPromises);
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(vehicle.search)}&tbm=isch`;
 
-  const optionsHTML = step.options.map((opt, i) => {
-    const isSelected = step.multi
-      ? (prev && prev.includes(opt.value))
-      : (prev === opt.value);
-    const imgSrc = images[i];
-    const imgTag = imgSrc
-      ? `<img src="${imgSrc}" alt="${opt.label}" onerror="this.style.display='none'"><div class="overlay"></div>`
-      : `<span class="emoji-fallback">${opt.emoji}</span>`;
-
-    return `
-      <div class="option-card ${isSelected ? 'selected' : ''}"
-           onclick="selectOption('${step.id}', '${opt.value}', ${step.multi}, ${step.maxSelect || 0})"
-           data-value="${opt.value}">
-        <div class="option-visual" style="background: ${opt.gradient}">${imgTag}</div>
-        <div class="option-info">
-          <h3>${opt.label}</h3>
-          <p>${opt.desc}</p>
+  app.innerHTML = `
+    <header>
+      <h1>Luxury SUV Finder</h1>
+      <div class="subtitle">Tap the photo to see more images</div>
+    </header>
+    <div class="progress">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" style="width: ${((currentIndex) / deck.length) * 100}%"></div>
+      </div>
+      <span class="progress-text">${currentIndex + 1} / ${deck.length}</span>
+    </div>
+    <div class="card-container">
+      <div class="card" id="card">
+        <div class="stamp like" id="stampLike">LIKE</div>
+        <div class="stamp nope" id="stampNope">NOPE</div>
+        <div class="card-photo" onclick="window.open('${searchUrl}', '_blank')">
+          ${exteriorSrc
+            ? `<img id="cardPhoto" src="${exteriorSrc}" alt="${vehicle.name}" onerror="this.style.display='none'">`
+            : `<div class="photo-loading"><div class="spinner"></div></div>`
+          }
+          <div class="gradient-overlay"></div>
+          <div class="photo-label">${labelText}</div>
         </div>
-      </div>`;
-  }).join('');
-
-  const hasSelection = step.multi
-    ? (prev && prev.length > 0)
-    : (prev !== null && prev !== undefined);
-
-  wizard.innerHTML = `
-    <div class="step active">
-      <div class="step-question">
-        <h2>${step.question}</h2>
-        <p>${step.subtitle}</p>
+        <div class="card-info">
+          <div class="card-name">${vehicle.name}</div>
+          <div class="card-brand-price">${vehicle.brand} &middot; Starting at ${vehicle.price}</div>
+          <div class="card-desc">${vehicle.desc}</div>
+          <div class="card-tags">
+            ${vehicle.tags.map(t => `<span class="card-tag">${t}</span>`).join('')}
+          </div>
+        </div>
       </div>
-      ${multiNote}
-      <div class="options-grid ${cols}">${optionsHTML}</div>
-      <div class="nav-buttons">
-        <button class="btn btn-back" onclick="prevStep()" ${currentStep <= 1 ? 'style="visibility:hidden"' : ''}>← Back</button>
-        <button class="btn btn-next" id="nextBtn" onclick="nextStep()" ${!hasSelection ? 'disabled' : ''}>
-          ${currentStep === STEPS.length - 2 ? 'See My Results →' : 'Next →'}
-        </button>
-      </div>
-    </div>`;
-
-  renderProgressBar();
+    </div>
+    <div class="actions">
+      <button class="action-btn btn-undo" onclick="undo()" title="Undo" ${history.length === 0 ? 'style="opacity:0.3;pointer-events:none"' : ''}>&#8630;</button>
+      <button class="action-btn btn-no" onclick="swipe('no')" title="Pass">&#10007;</button>
+      <button class="action-btn btn-yes" onclick="swipe('yes')" title="Love it">&#10003;</button>
+    </div>
+    <div class="key-hint">
+      <kbd>&larr;</kbd> pass &nbsp;&middot;&nbsp; <kbd>&rarr;</kbd> like &nbsp;&middot;&nbsp; <kbd>Z</kbd> undo
+    </div>
+  `;
 }
 
-function selectOption(stepId, value, isMulti, maxSelect) {
-  if (isMulti) {
-    if (!answers[stepId]) answers[stepId] = [];
-    const idx = answers[stepId].indexOf(value);
-    if (idx >= 0) {
-      answers[stepId].splice(idx, 1);
-    } else {
-      if (maxSelect && answers[stepId].length >= maxSelect) {
-        answers[stepId].shift();
-      }
-      answers[stepId].push(value);
-    }
+// ═══════════════════════════════════════════════════════════════
+// SWIPE ACTIONS
+// ═══════════════════════════════════════════════════════════════
+function swipe(direction) {
+  if (isAnimating) return;
+  if (currentIndex >= deck.length) return;
+
+  isAnimating = true;
+  const card = document.getElementById('card');
+  const vehicle = deck[currentIndex];
+
+  // Show stamp
+  if (direction === 'yes') {
+    document.getElementById('stampLike').classList.add('visible');
+    card.classList.add('swipe-right');
+    liked.push(vehicle);
   } else {
-    answers[stepId] = value;
+    document.getElementById('stampNope').classList.add('visible');
+    card.classList.add('swipe-left');
+    passed.push(vehicle);
   }
-  renderStep();
+
+  history.push({ index: currentIndex, direction });
+
+  setTimeout(() => {
+    currentIndex++;
+    isAnimating = false;
+    if (currentIndex >= deck.length) {
+      renderResults();
+    } else {
+      renderCard();
+    }
+  }, 400);
 }
 
-function nextStep() {
-  if (currentStep < STEPS.length - 1) {
-    currentStep++;
-    renderStep();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+function undo() {
+  if (history.length === 0 || isAnimating) return;
+
+  const last = history.pop();
+  if (last.direction === 'yes') {
+    liked.pop();
+  } else {
+    passed.pop();
   }
+  currentIndex = last.index;
+  renderCard();
 }
 
-function prevStep() {
-  if (currentStep > 0) {
-    currentStep--;
-    renderStep();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-}
+// Keyboard controls
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox')?.classList.contains('open')) return;
+  if (currentIndex >= deck.length || currentIndex < 0) return;
 
-function restart() {
-  currentStep = 0;
-  Object.keys(answers).forEach(k => delete answers[k]);
-  renderStep();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// ═══════════════════════════════════════════════════════════════
-// SCORING
-// ═══════════════════════════════════════════════════════════════
-function scoreVehicles() {
-  return VEHICLES.map(v => {
-    let score = 0;
-    let maxScore = 0;
-
-    // Size (20pts)
-    maxScore += 20;
-    if (answers.size === 'any') score += 15;
-    else if (v.size === answers.size) score += 20;
-    else if ((answers.size === 'mid' && v.size === 'full') || (answers.size === 'full' && v.size === 'mid')) score += 10;
-
-    // Style (25pts — most important)
-    maxScore += 25;
-    if (answers.style?.length > 0) {
-      const hits = v.style.filter(s => answers.style.includes(s)).length;
-      const possible = Math.min(answers.style.length, v.style.length);
-      if (possible > 0) score += Math.round((hits / possible) * 25);
-    } else score += 15;
-
-    // Interior (20pts)
-    maxScore += 20;
-    if (answers.interior?.length > 0) {
-      const hits = v.interior.filter(i => answers.interior.includes(i)).length;
-      const possible = Math.min(answers.interior.length, v.interior.length);
-      if (possible > 0) score += Math.round((hits / possible) * 20);
-    } else score += 12;
-
-    // Exterior color (10pts)
-    maxScore += 10;
-    if (answers.exterior_color?.length > 0) {
-      const hits = v.exterior.filter(c => answers.exterior_color.includes(c)).length;
-      if (hits > 0) score += Math.min(10, Math.round((hits / answers.exterior_color.length) * 10));
-    } else score += 6;
-
-    // Powertrain (10pts)
-    maxScore += 10;
-    if (!answers.powertrain || answers.powertrain === 'any') score += 8;
-    else if (v.powertrain.includes(answers.powertrain)) score += 10;
-
-    // Priority (15pts)
-    maxScore += 15;
-    if (answers.priority?.length > 0) {
-      const hits = v.priority.filter(p => answers.priority.includes(p)).length;
-      if (hits > 0) score += Math.round((hits / answers.priority.length) * 15);
-    } else score += 8;
-
-    const pct = Math.round((score / maxScore) * 100);
-    return { ...v, score, maxScore, pct: Math.min(99, Math.max(35, pct)) };
-  }).sort((a, b) => b.pct - a.pct);
-}
+  if (e.key === 'ArrowRight' || e.key === 'l') swipe('yes');
+  else if (e.key === 'ArrowLeft' || e.key === 'h') swipe('no');
+  else if (e.key === 'z' || e.key === 'Z') undo();
+});
 
 // ═══════════════════════════════════════════════════════════════
 // RESULTS
 // ═══════════════════════════════════════════════════════════════
 async function renderResults() {
-  const ranked = scoreVehicles();
-  const top = ranked.slice(0, 6);
-  const wizard = document.getElementById('wizard');
+  const app = document.getElementById('app');
 
-  // Show loading state
-  wizard.innerHTML = `
-    <div class="step active">
-      <div class="results-intro">
-        <h2>Finding Your Perfect Matches...</h2>
-        <p><span class="loading-spinner"></span></p>
+  if (liked.length === 0) {
+    app.innerHTML = `
+      <header>
+        <h1>Luxury SUV Finder</h1>
+      </header>
+      <div class="results-empty">
+        <div class="emoji">😅</div>
+        <h3>Tough Crowd!</h3>
+        <p>You didn't like any of the SUVs. Let's try again — maybe give a few a second chance?</p>
+        <button class="restart-btn" onclick="startSwiping()">Try Again</button>
       </div>
-    </div>`;
+    `;
+    return;
+  }
 
-  // Fetch images for top results
-  const imgPromises = top.map(v => fetchWikiImage(v.wikiTitle, v.wikiTitleAlt));
-  const images = await Promise.all(imgPromises);
+  // Show loading
+  app.innerHTML = `
+    <header>
+      <h1>Luxury SUV Finder</h1>
+    </header>
+    <div class="results-header">
+      <h2>Loading your favorites...</h2>
+      <p><span class="photo-loading" style="position:static;background:none;display:inline-flex"><span class="spinner"></span></span></p>
+    </div>
+  `;
 
-  const cardsHTML = top.map((v, i) => {
-    const rankLabel = i === 0 ? '🏆 #1 Top Match' : `#${i + 1} Match`;
-    const rankClass = i === 0 ? 'rank-1' : '';
-    const imgSrc = images[i];
-    const imgSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(v.searchTerms)}&tbm=isch`;
-    const reviewUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + new Date().getFullYear() + ' review test drive')}`;
+  // Fetch images for liked vehicles
+  const imgPromises = liked.map(v => prefetchVehicleImages(v));
+  await Promise.allSettled(imgPromises);
+
+  const cardsHTML = liked.map((v, i) => {
+    const imgs = vehicleImages[v.name] || {};
+    const imgSrc = imgs.exterior || '';
+    const imgSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(v.search)}&tbm=isch`;
     const interiorUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + new Date().getFullYear() + ' interior')}&tbm=isch`;
     const videoUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(v.name + ' ' + new Date().getFullYear() + ' review')}`;
-
-    const imageHTML = imgSrc
-      ? `<img src="${imgSrc}" alt="${v.name}" onerror="this.style.display='none'">`
-      : '';
+    const reviewUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + new Date().getFullYear() + ' review test drive')}`;
 
     return `
-      <div class="result-card" style="${i === 0 ? 'border-color: rgba(201,168,76,0.3);' : ''}">
-        <div class="result-body">
-          <div class="result-image" style="cursor:pointer;" onclick="${imgSrc ? `openLightbox('${imgSrc}')` : ''}">
-            <div class="gradient-bg" style="background: ${v.gradient}"></div>
-            ${imageHTML}
-            <div class="img-overlay"></div>
-            ${!imgSrc ? `<div class="fallback-label">${v.brand}<br><strong>${v.name}</strong></div>` : ''}
+      <div class="result-card">
+        <div class="result-card-img" onclick="${imgSrc ? `openLightbox('${imgSrc}')` : ''}">
+          ${imgSrc ? `<img src="${imgSrc}" alt="${v.name}" onerror="this.style.display='none'">` : ''}
+          <div class="rank-badge">${i === 0 ? '&#9829; #1 Favorite' : `#${i + 1}`}</div>
+        </div>
+        <div class="result-card-body">
+          <h3>${v.name}</h3>
+          <div class="brand-price">${v.brand} &middot; Starting at ${v.price}</div>
+          <div class="desc">${v.desc}</div>
+          <div class="tags">
+            ${v.tags.map(t => `<span class="tag">${t}</span>`).join('')}
           </div>
-          <div class="result-details">
-            <div class="result-rank ${rankClass}">${rankLabel}</div>
-            <h3>${v.name}</h3>
-            <div class="result-subtitle">${v.brand} · Starting at ${v.startingPrice}</div>
-            <p class="result-desc">${v.desc}</p>
-            <div class="result-tags">${v.tags.map(t => `<span class="result-tag">${t}</span>`).join('')}</div>
-            <div class="match-score">
-              <span style="font-size:0.85rem;color:var(--text-muted)">Match</span>
-              <div class="match-bar-bg"><div class="match-bar" style="width:${v.pct}%"></div></div>
-              <span class="match-pct">${v.pct}%</span>
-            </div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
-              <a class="result-cta" href="${imgSearchUrl}" target="_blank" rel="noopener">📸 Photos</a>
-              <a class="result-cta" href="${interiorUrl}" target="_blank" rel="noopener">🪑 Interior</a>
-              <a class="result-cta" href="${videoUrl}" target="_blank" rel="noopener">🎬 Videos</a>
-              <a class="result-cta" href="${reviewUrl}" target="_blank" rel="noopener">📝 Reviews</a>
-            </div>
+          <div class="result-links">
+            <a class="result-link" href="${imgSearchUrl}" target="_blank" rel="noopener">Photos</a>
+            <a class="result-link" href="${interiorUrl}" target="_blank" rel="noopener">Interior</a>
+            <a class="result-link" href="${videoUrl}" target="_blank" rel="noopener">Videos</a>
+            <a class="result-link" href="${reviewUrl}" target="_blank" rel="noopener">Reviews</a>
           </div>
         </div>
-      </div>`;
+      </div>
+    `;
   }).join('');
 
-  wizard.innerHTML = `
-    <div class="step active">
-      <div class="results-intro">
-        <h2>Your Top Matches</h2>
-        <p>Based on your preferences, here are the luxury SUVs we recommend you test drive</p>
-        <p style="font-size:0.85rem; margin-top:8px;">Click any car photo to enlarge it</p>
+  app.innerHTML = `
+    <header>
+      <h1>Luxury SUV Finder</h1>
+    </header>
+    <div class="results">
+      <div class="results-header">
+        <h2>Your Favorites</h2>
+        <p>You liked ${liked.length} out of ${deck.length} SUVs. Here are the ones that caught your eye!</p>
       </div>
       ${cardsHTML}
-      <div style="text-align:center;padding:20px 0 60px;">
-        <button class="btn btn-restart" onclick="restart()">← Start Over</button>
-      </div>
-    </div>`;
-
-  renderProgressBar();
+      <button class="restart-btn" onclick="startSwiping()">Start Over</button>
+    </div>
+  `;
 }
 
-// Launch
-init();
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+renderWelcome();
 </script>
 </body>
 </html>
