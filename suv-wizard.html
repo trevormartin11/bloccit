@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luxury SUV Finder</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8D48B;
+    --dark: #1A1A2E;
+    --darker: #0F0F1A;
+    --card-bg: #232340;
+    --card-hover: #2E2E50;
+    --text: #F0EDE6;
+    --text-muted: #9B97A0;
+    --accent: #6C63FF;
+    --success: #4CAF50;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--darker);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(108,99,255,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 100%, rgba(201,168,76,0.03) 0%, transparent 40%);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 40px 0 20px;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+  }
+  header p {
+    color: var(--text-muted);
+    margin-top: 8px;
+    font-size: 1.05rem;
+    font-weight: 300;
+  }
+
+  /* Progress */
+  .progress-bar {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 30px auto 40px;
+    max-width: 500px;
+  }
+  .progress-dot {
+    width: 40px; height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.4s ease;
+  }
+  .progress-dot.active { background: var(--gold); }
+  .progress-dot.completed { background: var(--gold-light); opacity: 0.5; }
+
+  /* Step */
+  .step {
+    display: none;
+    animation: fadeIn 0.5s ease;
+  }
+  .step.active { display: block; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-question {
+    text-align: center;
+    margin-bottom: 35px;
+  }
+  .step-question h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .step-question p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  /* Option Cards */
+  .options-grid {
+    display: grid;
+    gap: 20px;
+  }
+  .options-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .options-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .options-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+  @media (max-width: 768px) {
+    .options-grid.cols-3, .options-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 500px) {
+    .options-grid.cols-2, .options-grid.cols-3, .options-grid.cols-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .option-card {
+    background: var(--card-bg);
+    border: 2px solid transparent;
+    border-radius: 16px;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+  }
+  .option-card:hover {
+    background: var(--card-hover);
+    border-color: rgba(201,168,76,0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+  .option-card.selected {
+    border-color: var(--gold);
+    background: var(--card-hover);
+    box-shadow: 0 0 30px rgba(201,168,76,0.15);
+  }
+  .option-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 28px; height: 28px;
+    background: var(--gold);
+    color: var(--dark);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    z-index: 2;
+  }
+
+  .option-visual {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .option-info {
+    padding: 18px 20px 22px;
+  }
+  .option-info h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .option-info p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* Navigation */
+  .nav-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 40px;
+    padding-bottom: 40px;
+  }
+  .btn {
+    padding: 14px 36px;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 0.5px;
+  }
+  .btn-back {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-muted);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .btn-back:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+  .btn-next {
+    background: linear-gradient(135deg, var(--gold), #B8942F);
+    color: var(--dark);
+    font-weight: 600;
+  }
+  .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(201,168,76,0.3); }
+  .btn-next:disabled {
+    opacity: 0.4; cursor: not-allowed;
+    transform: none; box-shadow: none;
+  }
+  .btn-restart {
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.15);
+    margin-top: 20px;
+  }
+  .btn-restart:hover { background: rgba(255,255,255,0.1); }
+
+  /* Results */
+  .results-intro {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .results-intro h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+  }
+  .results-intro p { color: var(--text-muted); }
+
+  .result-card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    border: 1px solid rgba(255,255,255,0.06);
+    transition: all 0.3s ease;
+  }
+  .result-card:hover {
+    border-color: rgba(201,168,76,0.2);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+
+  .result-rank {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--gold), #B8942F);
+    color: var(--dark);
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+  .result-rank.rank-1 { font-size: 1rem; padding: 8px 20px; }
+
+  .result-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  @media (max-width: 700px) {
+    .result-body { grid-template-columns: 1fr; }
+  }
+
+  .result-image {
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-image .brand-logo {
+    font-size: 4rem;
+    opacity: 0.3;
+    position: absolute;
+  }
+  .result-image .car-name-overlay {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    text-align: center;
+    z-index: 1;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    padding: 20px;
+  }
+
+  .result-details {
+    padding: 30px;
+  }
+  .result-details h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+  }
+  .result-details .result-subtitle {
+    color: var(--gold);
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .result-details .result-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .result-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .result-tag {
+    background: rgba(201,168,76,0.1);
+    color: var(--gold);
+    padding: 5px 14px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid rgba(201,168,76,0.15);
+  }
+
+  .match-score {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .match-bar-bg {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .match-bar {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    transition: width 1s ease;
+  }
+  .match-pct {
+    font-weight: 600;
+    color: var(--gold);
+    font-size: 0.95rem;
+    min-width: 42px;
+    text-align: right;
+  }
+
+  .result-cta {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 10px 24px;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    border-radius: 50px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+  .result-cta:hover {
+    background: var(--gold);
+    color: var(--dark);
+  }
+
+  /* Welcome screen */
+  .welcome {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .welcome h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    margin-bottom: 16px;
+  }
+  .welcome p {
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 30px;
+    line-height: 1.7;
+    font-size: 1.05rem;
+  }
+  .welcome .btn-next { font-size: 1.1rem; padding: 16px 48px; }
+
+  /* Multi-select note */
+  .multi-note {
+    text-align: center;
+    color: var(--gold);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    opacity: 0.8;
+  }
+
+  /* Color swatches for exterior color step */
+  .color-option .option-visual {
+    height: 100px;
+  }
+
+  /* Responsive typography */
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.8rem; }
+    .step-question h2 { font-size: 1.4rem; }
+    .option-info h3 { font-size: 1rem; }
+    .results-intro h2 { font-size: 1.6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+<div class="container">
+  <header>
+    <h1>Luxury SUV Finder</h1>
+    <p>Answer a few questions to discover your perfect luxury SUV</p>
+  </header>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <div id="wizard"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// LUXURY SUV DATABASE
+// ═══════════════════════════════════════════════════════════════
+const VEHICLES = [
+  {
+    name: "Range Rover",
+    brand: "Land Rover",
+    startingPrice: "$104,500",
+    size: "full",
+    style: ["classic", "bold"],
+    interior: ["traditional", "modern"],
+    powertrain: ["gas", "hybrid"],
+    exterior: ["neutral", "earth", "dark"],
+    priority: ["comfort", "offroad", "tech"],
+    emoji: "🟢",
+    gradient: "linear-gradient(135deg, #1B4332, #2D6A4F)",
+    desc: "The icon of luxury SUVs. Unmatched road presence, whisper-quiet cabin, and genuine off-road capability wrapped in British elegance.",
+    tags: ["British Heritage", "Supreme Comfort", "Off-Road Capable", "Iconic Design"],
+    searchTerms: "Range Rover Land Rover"
+  },
+  {
+    name: "Range Rover Sport",
+    brand: "Land Rover",
+    startingPrice: "$83,000",
+    size: "mid",
+    style: ["sporty", "classic"],
+    interior: ["modern", "traditional"],
+    powertrain: ["gas", "hybrid"],
+    exterior: ["dark", "neutral", "bold"],
+    priority: ["performance", "comfort", "tech"],
+    emoji: "🟢",
+    gradient: "linear-gradient(135deg, #1B4332, #3A7D5C)",
+    desc: "Athletic and refined. All the Range Rover DNA in a sportier, more dynamic package that's thrilling on the road.",
+    tags: ["Dynamic Handling", "Sporty Luxury", "Advanced Tech"],
+    searchTerms: "Range Rover Sport"
+  },
+  {
+    name: "Porsche Cayenne Turbo GT",
+    brand: "Porsche",
+    startingPrice: "$185,000",
+    size: "mid",
+    style: ["sporty", "modern"],
+    interior: ["modern", "sport"],
+    powertrain: ["gas", "hybrid"],
+    exterior: ["bold", "dark", "neutral"],
+    priority: ["performance", "tech"],
+    emoji: "🔴",
+    gradient: "linear-gradient(135deg, #8B0000, #C62828)",
+    desc: "The sports car disguised as an SUV. Blistering performance, razor-sharp handling, and unmistakable Porsche character.",
+    tags: ["Sports Car DNA", "Track Capable", "German Engineering"],
+    searchTerms: "Porsche Cayenne Turbo GT"
+  },
+  {
+    name: "Porsche Cayenne",
+    brand: "Porsche",
+    startingPrice: "$82,000",
+    size: "mid",
+    style: ["sporty", "modern"],
+    interior: ["modern", "sport"],
+    powertrain: ["gas", "hybrid", "electric"],
+    exterior: ["bold", "neutral", "dark"],
+    priority: ["performance", "tech", "comfort"],
+    emoji: "🔴",
+    gradient: "linear-gradient(135deg, #6D0000, #A52828)",
+    desc: "The benchmark for sporty luxury SUVs. Perfect blend of everyday comfort and exhilarating driving dynamics.",
+    tags: ["Versatile", "Driver's SUV", "Premium Quality"],
+    searchTerms: "Porsche Cayenne"
+  },
+  {
+    name: "Mercedes-Benz GLS 600 Maybach",
+    brand: "Mercedes-Maybach",
+    startingPrice: "$175,000",
+    size: "full",
+    style: ["classic", "bold"],
+    interior: ["traditional", "opulent"],
+    powertrain: ["gas"],
+    exterior: ["neutral", "dark", "earth"],
+    priority: ["comfort", "prestige"],
+    emoji: "⚫",
+    gradient: "linear-gradient(135deg, #1A1A2E, #4A3F6B)",
+    desc: "First-class air travel on four wheels. The Maybach GLS offers unparalleled rear-seat luxury with champagne cooler, reclining seats, and supreme isolation.",
+    tags: ["Ultra Luxury", "Rear-Seat Paradise", "Maybach Prestige", "Two-Tone Paint"],
+    searchTerms: "Mercedes Maybach GLS"
+  },
+  {
+    name: "Mercedes G 63 AMG",
+    brand: "Mercedes-AMG",
+    startingPrice: "$180,000",
+    size: "mid",
+    style: ["bold", "classic"],
+    interior: ["modern", "traditional"],
+    powertrain: ["gas"],
+    exterior: ["bold", "dark", "neutral"],
+    priority: ["prestige", "offroad", "performance"],
+    emoji: "⬛",
+    gradient: "linear-gradient(135deg, #2C2C2C, #555555)",
+    desc: "The original luxury off-roader. Military roots meet AMG power in this unmistakable, boxy icon of status and capability.",
+    tags: ["Iconic Shape", "AMG Power", "Celebrity Favorite", "Off-Road Legend"],
+    searchTerms: "Mercedes G Wagon G63 AMG"
+  },
+  {
+    name: "BMW XM",
+    brand: "BMW",
+    startingPrice: "$159,000",
+    size: "mid",
+    style: ["sporty", "bold", "modern"],
+    interior: ["modern", "sport"],
+    powertrain: ["hybrid"],
+    exterior: ["bold", "dark"],
+    priority: ["performance", "tech"],
+    emoji: "🔵",
+    gradient: "linear-gradient(135deg, #003D7A, #1565C0)",
+    desc: "BMW's most powerful M vehicle ever. Bold, controversial design meets hybrid supercar performance in this statement-making luxury SUV.",
+    tags: ["Hybrid Supercar Power", "Bold Design", "M Performance", "Head-Turner"],
+    searchTerms: "BMW XM"
+  },
+  {
+    name: "BMW X7 M60i",
+    brand: "BMW",
+    startingPrice: "$104,000",
+    size: "full",
+    style: ["classic", "modern"],
+    interior: ["modern", "traditional"],
+    powertrain: ["gas"],
+    exterior: ["neutral", "dark"],
+    priority: ["comfort", "tech", "performance"],
+    emoji: "🔵",
+    gradient: "linear-gradient(135deg, #002F5F, #0D47A1)",
+    desc: "Spacious three-row luxury with powerful V8 performance. The X7 delivers first-class comfort for the whole family.",
+    tags: ["Three-Row Luxury", "V8 Power", "Family Friendly", "Panoramic Views"],
+    searchTerms: "BMW X7"
+  },
+  {
+    name: "Bentley Bentayga",
+    brand: "Bentley",
+    startingPrice: "$195,000",
+    size: "full",
+    style: ["classic", "bold"],
+    interior: ["traditional", "opulent"],
+    powertrain: ["gas", "hybrid"],
+    exterior: ["neutral", "earth", "dark"],
+    priority: ["comfort", "prestige", "performance"],
+    emoji: "🟤",
+    gradient: "linear-gradient(135deg, #2E1503, #5D4037)",
+    desc: "Hand-crafted British luxury at its finest. Every surface is adorned with the world's most exquisite materials — wood, leather, and metal all finished by artisans.",
+    tags: ["Hand-Crafted", "W12 Available", "Bespoke Options", "British Excellence"],
+    searchTerms: "Bentley Bentayga"
+  },
+  {
+    name: "Rolls-Royce Cullinan",
+    brand: "Rolls-Royce",
+    startingPrice: "$365,000",
+    size: "full",
+    style: ["classic", "bold"],
+    interior: ["opulent", "traditional"],
+    powertrain: ["gas"],
+    exterior: ["neutral", "dark", "earth"],
+    priority: ["comfort", "prestige"],
+    emoji: "🪙",
+    gradient: "linear-gradient(135deg, #1A0F2E, #3E2465)",
+    desc: "The pinnacle of automotive luxury. Named after the world's largest diamond, the Cullinan is effortless, silent, and incomparably luxurious.",
+    tags: ["The Pinnacle", "Starlight Headliner", "Magic Carpet Ride", "Bespoke Everything"],
+    searchTerms: "Rolls Royce Cullinan"
+  },
+  {
+    name: "Lamborghini Urus",
+    brand: "Lamborghini",
+    startingPrice: "$240,000",
+    size: "mid",
+    style: ["sporty", "bold"],
+    interior: ["sport", "modern"],
+    powertrain: ["gas", "hybrid"],
+    exterior: ["bold", "dark"],
+    priority: ["performance", "prestige"],
+    emoji: "🟡",
+    gradient: "linear-gradient(135deg, #B8860B, #E6A817)",
+    desc: "The world's first Super Sport Utility Vehicle. Lamborghini aggression meets practicality — outrageously fast, impossibly loud, and utterly unforgettable.",
+    tags: ["Super SUV", "V8 Twin-Turbo", "Exotic Presence", "Track Mode"],
+    searchTerms: "Lamborghini Urus"
+  },
+  {
+    name: "Ferrari Purosangue",
+    brand: "Ferrari",
+    startingPrice: "$400,000",
+    size: "mid",
+    style: ["sporty", "modern"],
+    interior: ["sport", "modern"],
+    powertrain: ["gas"],
+    exterior: ["bold", "dark"],
+    priority: ["performance", "prestige"],
+    emoji: "🏎️",
+    gradient: "linear-gradient(135deg, #8B0000, #FF1744)",
+    desc: "Ferrari's first four-door, four-seat car. A naturally aspirated V12 and Ferrari handling in a sleek GT body — not an SUV, a Ferrari with more doors.",
+    tags: ["V12 Engine", "Ferrari Handling", "Exclusive", "Supercar Heart"],
+    searchTerms: "Ferrari Purosangue"
+  },
+  {
+    name: "Aston Martin DBX707",
+    brand: "Aston Martin",
+    startingPrice: "$239,000",
+    size: "mid",
+    style: ["sporty", "classic"],
+    interior: ["traditional", "sport"],
+    powertrain: ["gas"],
+    exterior: ["bold", "dark", "neutral"],
+    priority: ["performance", "prestige", "comfort"],
+    emoji: "🦚",
+    gradient: "linear-gradient(135deg, #004D40, #00796B)",
+    desc: "The world's most powerful luxury SUV (at launch). James Bond meets family life — stunning design, bespoke interior, and savage performance.",
+    tags: ["Most Powerful", "Bespoke Interior", "British GT DNA", "Stunning Design"],
+    searchTerms: "Aston Martin DBX 707"
+  },
+  {
+    name: "Genesis GV80",
+    brand: "Genesis",
+    startingPrice: "$75,000",
+    size: "mid",
+    style: ["modern", "classic"],
+    interior: ["modern", "traditional"],
+    powertrain: ["gas"],
+    exterior: ["neutral", "dark", "earth"],
+    priority: ["comfort", "tech"],
+    emoji: "🔷",
+    gradient: "linear-gradient(135deg, #1A237E, #3949AB)",
+    desc: "Korea's answer to German luxury — and many say it's better. Striking design, incredible value, and an interior that punches well above its price.",
+    tags: ["Best Value", "Stunning Interior", "10-Year Warranty", "Rising Star"],
+    searchTerms: "Genesis GV80"
+  },
+  {
+    name: "Cadillac Escalade V",
+    brand: "Cadillac",
+    startingPrice: "$155,000",
+    size: "full",
+    style: ["bold"],
+    interior: ["modern", "traditional"],
+    powertrain: ["gas"],
+    exterior: ["dark", "neutral"],
+    priority: ["prestige", "performance", "comfort"],
+    emoji: "🇺🇸",
+    gradient: "linear-gradient(135deg, #1A1A1A, #424242)",
+    desc: "American luxury taken to eleven. Supercharged V8, 38-inch OLED curved display, and a commanding presence that dominates every parking lot.",
+    tags: ["Supercharged V8", "38\" OLED Display", "American Icon", "Massive Interior"],
+    searchTerms: "Cadillac Escalade V"
+  },
+  {
+    name: "Mercedes-Benz GLE 53 AMG Coupe",
+    brand: "Mercedes-AMG",
+    startingPrice: "$85,000",
+    size: "mid",
+    style: ["sporty", "modern"],
+    interior: ["modern", "sport"],
+    powertrain: ["gas", "hybrid"],
+    exterior: ["dark", "neutral", "bold"],
+    priority: ["performance", "tech"],
+    emoji: "⭐",
+    gradient: "linear-gradient(135deg, #263238, #455A64)",
+    desc: "The coupe-SUV that started the trend. Sleek roofline, AMG power, and cutting-edge tech in a head-turning silhouette.",
+    tags: ["Coupe Styling", "AMG Tuned", "MBUX Tech", "Sleek Profile"],
+    searchTerms: "Mercedes GLE Coupe AMG"
+  },
+  {
+    name: "Rivian R1S",
+    brand: "Rivian",
+    startingPrice: "$82,000",
+    size: "full",
+    style: ["modern"],
+    interior: ["modern"],
+    powertrain: ["electric"],
+    exterior: ["earth", "bold", "neutral"],
+    priority: ["tech", "offroad", "comfort"],
+    emoji: "⚡",
+    gradient: "linear-gradient(135deg, #1B5E20, #4CAF50)",
+    desc: "The adventure-ready electric SUV. Three rows, genuine off-road prowess, and cutting-edge EV tech wrapped in approachable, modern design.",
+    tags: ["All-Electric", "Adventure Ready", "Three-Row", "Quad Motor Available"],
+    searchTerms: "Rivian R1S"
+  },
+  {
+    name: "Tesla Model X Plaid",
+    brand: "Tesla",
+    startingPrice: "$95,000",
+    size: "mid",
+    style: ["modern"],
+    interior: ["modern"],
+    powertrain: ["electric"],
+    exterior: ["neutral", "dark"],
+    priority: ["tech", "performance"],
+    emoji: "⚡",
+    gradient: "linear-gradient(135deg, #1A237E, #283593)",
+    desc: "The fastest SUV in the world. Falcon wing doors, ludicrous acceleration, and the most advanced tech on four wheels.",
+    tags: ["Falcon Wing Doors", "2.5s 0-60", "Autopilot", "Plaid Power"],
+    searchTerms: "Tesla Model X Plaid"
+  },
+  {
+    name: "Maserati Grecale Trofeo",
+    brand: "Maserati",
+    startingPrice: "$95,000",
+    size: "compact",
+    style: ["sporty", "classic"],
+    interior: ["sport", "traditional"],
+    powertrain: ["gas"],
+    exterior: ["bold", "dark", "neutral"],
+    priority: ["performance", "prestige"],
+    emoji: "🔱",
+    gradient: "linear-gradient(135deg, #0D47A1, #1565C0)",
+    desc: "Italian flair in a compact luxury SUV. The Grecale brings Maserati's racing heritage and unmistakable exhaust note to the everyday drive.",
+    tags: ["Italian Exotic", "Nettuno V6", "Racing Heritage", "Compact Luxury"],
+    searchTerms: "Maserati Grecale Trofeo"
+  },
+  {
+    name: "Land Rover Defender V8",
+    brand: "Land Rover",
+    startingPrice: "$110,000",
+    size: "mid",
+    style: ["bold", "classic"],
+    interior: ["modern", "traditional"],
+    powertrain: ["gas"],
+    exterior: ["earth", "bold", "dark"],
+    priority: ["offroad", "comfort", "performance"],
+    emoji: "🟢",
+    gradient: "linear-gradient(135deg, #33691E, #558B2F)",
+    desc: "Rugged luxury reimagined. The Defender V8 pairs legendary off-road DNA with a supercharged V8 and surprisingly refined on-road manners.",
+    tags: ["Off-Road Icon", "V8 Power", "Rugged Luxury", "Adventure Ready"],
+    searchTerms: "Land Rover Defender V8"
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════
+// WIZARD STEPS
+// ═══════════════════════════════════════════════════════════════
+const STEPS = [
+  {
+    id: "welcome",
+    type: "welcome"
+  },
+  {
+    id: "size",
+    question: "What size SUV are you drawn to?",
+    subtitle: "Think about how much space you want — both inside and in terms of road presence.",
+    multi: false,
+    options: [
+      {
+        value: "compact",
+        label: "Compact / Sporty",
+        desc: "Similar to your Evoque — nimble, easy to park, and stylish",
+        emoji: "🚙",
+        gradient: "linear-gradient(135deg, #37474F, #546E7A)"
+      },
+      {
+        value: "mid",
+        label: "Midsize",
+        desc: "More room to stretch out, strong road presence, still manageable",
+        emoji: "🚗",
+        gradient: "linear-gradient(135deg, #4A148C, #7B1FA2)"
+      },
+      {
+        value: "full",
+        label: "Full Size",
+        desc: "Commanding presence, maximum luxury space, makes a statement",
+        emoji: "🛻",
+        gradient: "linear-gradient(135deg, #B71C1C, #D32F2F)"
+      },
+      {
+        value: "any",
+        label: "Show Me Everything",
+        desc: "I'm open to all sizes — surprise me with the best options",
+        emoji: "✨",
+        gradient: "linear-gradient(135deg, #1A237E, #6A1B9A)"
+      }
+    ]
+  },
+  {
+    id: "style",
+    question: "What exterior style speaks to you?",
+    subtitle: "Select all that appeal to you — you can pick more than one.",
+    multi: true,
+    options: [
+      {
+        value: "sporty",
+        label: "Sporty & Athletic",
+        desc: "Aggressive lines, sculpted body, performance-oriented look",
+        emoji: "🏁",
+        gradient: "linear-gradient(135deg, #B71C1C, #E53935)"
+      },
+      {
+        value: "classic",
+        label: "Classic & Elegant",
+        desc: "Timeless design, refined presence, understated luxury",
+        emoji: "👑",
+        gradient: "linear-gradient(135deg, #1B4332, #2D6A4F)"
+      },
+      {
+        value: "bold",
+        label: "Bold & Imposing",
+        desc: "Commanding, muscular, impossible to ignore on the road",
+        emoji: "💎",
+        gradient: "linear-gradient(135deg, #1A1A2E, #4A3F6B)"
+      },
+      {
+        value: "modern",
+        label: "Modern & Sleek",
+        desc: "Clean lines, futuristic touches, tech-forward design",
+        emoji: "🔮",
+        gradient: "linear-gradient(135deg, #0D47A1, #1976D2)"
+      }
+    ]
+  },
+  {
+    id: "interior",
+    question: "What interior atmosphere do you prefer?",
+    subtitle: "Close your eyes and imagine your perfect cabin.",
+    multi: true,
+    options: [
+      {
+        value: "traditional",
+        label: "Rich & Traditional",
+        desc: "Fine leather, real wood, polished metal — like a British manor",
+        emoji: "🪵",
+        gradient: "linear-gradient(135deg, #3E2723, #5D4037)"
+      },
+      {
+        value: "modern",
+        label: "Modern & Tech-Forward",
+        desc: "Large screens, ambient lighting, minimalist design",
+        emoji: "🖥️",
+        gradient: "linear-gradient(135deg, #263238, #455A64)"
+      },
+      {
+        value: "sport",
+        label: "Sporty & Driver-Focused",
+        desc: "Alcantara, carbon fiber, bolstered seats, flat-bottom wheel",
+        emoji: "🏎️",
+        gradient: "linear-gradient(135deg, #880E4F, #AD1457)"
+      },
+      {
+        value: "opulent",
+        label: "Ultra Opulent",
+        desc: "First-class seating, champagne coolers, starlight headliners",
+        emoji: "🥂",
+        gradient: "linear-gradient(135deg, #4A148C, #6A1B9A)"
+      }
+    ]
+  },
+  {
+    id: "exterior_color",
+    question: "What exterior colors catch your eye?",
+    subtitle: "Select all colors you'd consider for your SUV.",
+    multi: true,
+    options: [
+      {
+        value: "neutral",
+        label: "Classic Neutrals",
+        desc: "White, silver, grey — timeless and elegant",
+        emoji: "⬜",
+        gradient: "linear-gradient(135deg, #B0BEC5, #CFD8DC)"
+      },
+      {
+        value: "dark",
+        label: "Dark & Dramatic",
+        desc: "Black, dark grey, midnight blue — powerful and mysterious",
+        emoji: "⬛",
+        gradient: "linear-gradient(135deg, #1A1A1A, #333333)"
+      },
+      {
+        value: "bold",
+        label: "Bold & Vibrant",
+        desc: "Red, blue, yellow, green — stand out from the crowd",
+        emoji: "🟥",
+        gradient: "linear-gradient(135deg, #B71C1C, #0D47A1)"
+      },
+      {
+        value: "earth",
+        label: "Earth & Nature Tones",
+        desc: "British racing green, brown, sand, olive — sophisticated warmth",
+        emoji: "🟤",
+        gradient: "linear-gradient(135deg, #33691E, #5D4037)"
+      }
+    ]
+  },
+  {
+    id: "powertrain",
+    question: "How do you feel about what's under the hood?",
+    subtitle: "This helps us match the right powertrain to your preferences.",
+    multi: false,
+    options: [
+      {
+        value: "gas",
+        label: "Traditional Gas Engine",
+        desc: "Nothing beats the rumble of a powerful engine — V6, V8, or V12",
+        emoji: "⛽",
+        gradient: "linear-gradient(135deg, #BF360C, #E64A19)"
+      },
+      {
+        value: "hybrid",
+        label: "Hybrid",
+        desc: "Best of both worlds — power when you need it, efficiency when you don't",
+        emoji: "🔋",
+        gradient: "linear-gradient(135deg, #1B5E20, #388E3C)"
+      },
+      {
+        value: "electric",
+        label: "Fully Electric",
+        desc: "Silent luxury, instant torque, and zero emissions",
+        emoji: "⚡",
+        gradient: "linear-gradient(135deg, #0D47A1, #1565C0)"
+      },
+      {
+        value: "any",
+        label: "No Preference",
+        desc: "I care more about the overall package than what powers it",
+        emoji: "🤷",
+        gradient: "linear-gradient(135deg, #37474F, #546E7A)"
+      }
+    ]
+  },
+  {
+    id: "priority",
+    question: "What matters most in your daily driving?",
+    subtitle: "Pick up to two priorities.",
+    multi: true,
+    maxSelect: 2,
+    options: [
+      {
+        value: "comfort",
+        label: "Supreme Comfort",
+        desc: "Cloud-like ride, whisper-quiet cabin, massage seats",
+        emoji: "☁️",
+        gradient: "linear-gradient(135deg, #4A148C, #7B1FA2)"
+      },
+      {
+        value: "performance",
+        label: "Thrilling Performance",
+        desc: "Fast acceleration, sharp handling, sporty exhaust note",
+        emoji: "🚀",
+        gradient: "linear-gradient(135deg, #B71C1C, #D32F2F)"
+      },
+      {
+        value: "tech",
+        label: "Cutting-Edge Tech",
+        desc: "Best screens, latest driver assists, connected features",
+        emoji: "📱",
+        gradient: "linear-gradient(135deg, #0D47A1, #1976D2)"
+      },
+      {
+        value: "prestige",
+        label: "Prestige & Status",
+        desc: "A name that turns heads and starts conversations",
+        emoji: "🌟",
+        gradient: "linear-gradient(135deg, #F57F17, #FFB300)"
+      }
+    ]
+  },
+  {
+    id: "offroad",
+    question: "Will you ever go off the beaten path?",
+    subtitle: "Even occasional gravel roads or snowy driveways count.",
+    multi: false,
+    options: [
+      {
+        value: "never",
+        label: "Strictly Pavement",
+        desc: "Shopping, dining, school runs — always on smooth roads",
+        emoji: "🛣️",
+        gradient: "linear-gradient(135deg, #37474F, #546E7A)"
+      },
+      {
+        value: "light",
+        label: "Occasionally",
+        desc: "Gravel driveways, light trails, maybe a ski trip",
+        emoji: "🌲",
+        gradient: "linear-gradient(135deg, #2E7D32, #43A047)"
+      },
+      {
+        value: "serious",
+        label: "Yes, Regularly",
+        desc: "Trails, rough terrain, I want a vehicle that can handle anything",
+        emoji: "⛰️",
+        gradient: "linear-gradient(135deg, #4E342E, #6D4C41)"
+      }
+    ]
+  },
+  {
+    id: "results",
+    type: "results"
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════
+// WIZARD STATE
+// ═══════════════════════════════════════════════════════════════
+let currentStep = 0;
+const answers = {};
+
+function init() {
+  renderProgressBar();
+  renderStep();
+}
+
+function renderProgressBar() {
+  const bar = document.getElementById('progressBar');
+  const totalQuestions = STEPS.filter(s => s.type !== 'welcome' && s.type !== 'results').length;
+  bar.innerHTML = '';
+  for (let i = 0; i < totalQuestions; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'progress-dot';
+    const adjustedStep = currentStep - 1; // offset for welcome
+    if (i < adjustedStep) dot.classList.add('completed');
+    if (i === adjustedStep) dot.classList.add('active');
+    bar.appendChild(dot);
+  }
+  bar.style.display = currentStep === 0 || currentStep === STEPS.length - 1 ? 'none' : 'flex';
+}
+
+function renderStep() {
+  const step = STEPS[currentStep];
+  const wizard = document.getElementById('wizard');
+
+  if (step.type === 'welcome') {
+    wizard.innerHTML = `
+      <div class="step active">
+        <div class="welcome">
+          <h2>Find Your Dream Luxury SUV</h2>
+          <p>You currently drive a <strong>Land Rover Evoque</strong> — great taste! Let's find your next step up. We'll ask ${STEPS.length - 2} quick questions about your style and preferences, then recommend the perfect luxury SUVs for you to test drive.</p>
+          <button class="btn btn-next" onclick="nextStep()">Let's Get Started</button>
+        </div>
+      </div>`;
+    renderProgressBar();
+    return;
+  }
+
+  if (step.type === 'results') {
+    renderResults();
+    renderProgressBar();
+    return;
+  }
+
+  const multiNote = step.multi
+    ? `<p class="multi-note">${step.maxSelect ? `Select up to ${step.maxSelect}` : 'Select all that apply'}</p>`
+    : '';
+
+  const cols = step.options.length <= 2 ? 'cols-2' : step.options.length === 3 ? 'cols-3' : 'cols-4';
+  const prev = answers[step.id] || (step.multi ? [] : null);
+
+  const optionsHTML = step.options.map(opt => {
+    const isSelected = step.multi
+      ? (prev && prev.includes(opt.value))
+      : (prev === opt.value);
+    return `
+      <div class="option-card ${isSelected ? 'selected' : ''}"
+           onclick="selectOption('${step.id}', '${opt.value}', ${step.multi}, ${step.maxSelect || 0})"
+           data-value="${opt.value}">
+        <div class="option-visual" style="background: ${opt.gradient}">${opt.emoji}</div>
+        <div class="option-info">
+          <h3>${opt.label}</h3>
+          <p>${opt.desc}</p>
+        </div>
+      </div>`;
+  }).join('');
+
+  const hasSelection = step.multi
+    ? (prev && prev.length > 0)
+    : (prev !== null && prev !== undefined);
+
+  wizard.innerHTML = `
+    <div class="step active">
+      <div class="step-question">
+        <h2>${step.question}</h2>
+        <p>${step.subtitle}</p>
+      </div>
+      ${multiNote}
+      <div class="options-grid ${cols}">${optionsHTML}</div>
+      <div class="nav-buttons">
+        <button class="btn btn-back" onclick="prevStep()" ${currentStep <= 1 ? 'style="visibility:hidden"' : ''}>← Back</button>
+        <button class="btn btn-next" id="nextBtn" onclick="nextStep()" ${!hasSelection ? 'disabled' : ''}>
+          ${currentStep === STEPS.length - 2 ? 'See My Results →' : 'Next →'}
+        </button>
+      </div>
+    </div>`;
+
+  renderProgressBar();
+}
+
+function selectOption(stepId, value, isMulti, maxSelect) {
+  if (isMulti) {
+    if (!answers[stepId]) answers[stepId] = [];
+    const idx = answers[stepId].indexOf(value);
+    if (idx >= 0) {
+      answers[stepId].splice(idx, 1);
+    } else {
+      if (maxSelect && answers[stepId].length >= maxSelect) {
+        answers[stepId].shift();
+      }
+      answers[stepId].push(value);
+    }
+  } else {
+    answers[stepId] = value;
+  }
+  renderStep();
+}
+
+function nextStep() {
+  if (currentStep < STEPS.length - 1) {
+    currentStep++;
+    renderStep();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function prevStep() {
+  if (currentStep > 0) {
+    currentStep--;
+    renderStep();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function restart() {
+  currentStep = 0;
+  Object.keys(answers).forEach(k => delete answers[k]);
+  renderStep();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCORING & RESULTS
+// ═══════════════════════════════════════════════════════════════
+function scoreVehicles() {
+  return VEHICLES.map(v => {
+    let score = 0;
+    let maxScore = 0;
+
+    // Size match (weight: 20)
+    maxScore += 20;
+    if (answers.size === 'any') {
+      score += 15;
+    } else if (v.size === answers.size) {
+      score += 20;
+    } else if (
+      (answers.size === 'mid' && v.size === 'full') ||
+      (answers.size === 'full' && v.size === 'mid')
+    ) {
+      score += 10;
+    }
+
+    // Style match (weight: 25 — most important for aesthetics)
+    maxScore += 25;
+    if (answers.style && answers.style.length > 0) {
+      const styleMatches = v.style.filter(s => answers.style.includes(s)).length;
+      const stylePossible = Math.min(answers.style.length, v.style.length);
+      if (stylePossible > 0) {
+        score += Math.round((styleMatches / stylePossible) * 25);
+      }
+    } else {
+      score += 15;
+    }
+
+    // Interior match (weight: 20)
+    maxScore += 20;
+    if (answers.interior && answers.interior.length > 0) {
+      const intMatches = v.interior.filter(i => answers.interior.includes(i)).length;
+      const intPossible = Math.min(answers.interior.length, v.interior.length);
+      if (intPossible > 0) {
+        score += Math.round((intMatches / intPossible) * 20);
+      }
+    } else {
+      score += 12;
+    }
+
+    // Exterior color match (weight: 10)
+    maxScore += 10;
+    if (answers.exterior_color && answers.exterior_color.length > 0) {
+      const colorMatches = v.exterior.filter(c => answers.exterior_color.includes(c)).length;
+      if (colorMatches > 0) {
+        score += Math.min(10, Math.round((colorMatches / answers.exterior_color.length) * 10));
+      }
+    } else {
+      score += 6;
+    }
+
+    // Powertrain match (weight: 10)
+    maxScore += 10;
+    if (!answers.powertrain || answers.powertrain === 'any') {
+      score += 8;
+    } else if (v.powertrain.includes(answers.powertrain)) {
+      score += 10;
+    }
+
+    // Priority match (weight: 15)
+    maxScore += 15;
+    if (answers.priority && answers.priority.length > 0) {
+      const prioMatches = v.priority.filter(p => answers.priority.includes(p)).length;
+      if (prioMatches > 0) {
+        score += Math.round((prioMatches / answers.priority.length) * 15);
+      }
+    } else {
+      score += 8;
+    }
+
+    // Off-road bonus
+    if (answers.offroad === 'serious' && v.priority.includes('offroad')) {
+      score += 5;
+      maxScore += 5;
+    } else if (answers.offroad === 'light' && v.priority.includes('offroad')) {
+      score += 3;
+      maxScore += 3;
+    } else {
+      maxScore += 5;
+      if (answers.offroad === 'never') score += 3;
+    }
+
+    const pct = Math.round((score / maxScore) * 100);
+    return { ...v, score, maxScore, pct: Math.min(99, Math.max(40, pct)) };
+  }).sort((a, b) => b.pct - a.pct);
+}
+
+function renderResults() {
+  const ranked = scoreVehicles();
+  const top = ranked.slice(0, 6);
+
+  const wizard = document.getElementById('wizard');
+
+  const cardsHTML = top.map((v, i) => {
+    const rankLabel = i === 0 ? '🏆 #1 Top Match' : `#${i + 1} Match`;
+    const rankClass = i === 0 ? 'rank-1' : '';
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + new Date().getFullYear() + ' review')}&tbm=isch`;
+    const reviewUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + new Date().getFullYear() + ' review test drive')}`;
+
+    return `
+      <div class="result-card" style="${i === 0 ? 'border-color: rgba(201,168,76,0.3);' : ''}">
+        <div class="result-body">
+          <div class="result-image" style="background: ${v.gradient}">
+            <div class="brand-logo">${v.emoji}</div>
+            <div class="car-name-overlay">
+              ${v.brand}<br><strong>${v.name}</strong>
+            </div>
+          </div>
+          <div class="result-details">
+            <div class="result-rank ${rankClass}">${rankLabel}</div>
+            <h3>${v.name}</h3>
+            <div class="result-subtitle">${v.brand} · Starting at ${v.startingPrice}</div>
+            <p class="result-desc">${v.desc}</p>
+            <div class="result-tags">${v.tags.map(t => `<span class="result-tag">${t}</span>`).join('')}</div>
+            <div class="match-score">
+              <span style="font-size:0.85rem;color:var(--text-muted)">Match</span>
+              <div class="match-bar-bg"><div class="match-bar" style="width:${v.pct}%"></div></div>
+              <span class="match-pct">${v.pct}%</span>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+              <a class="result-cta" href="${searchUrl}" target="_blank" rel="noopener">View Photos</a>
+              <a class="result-cta" href="${reviewUrl}" target="_blank" rel="noopener">Read Reviews</a>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+  wizard.innerHTML = `
+    <div class="step active">
+      <div class="results-intro">
+        <h2>Your Top Matches</h2>
+        <p>Based on your preferences, here are the luxury SUVs we recommend you test drive</p>
+      </div>
+      ${cardsHTML}
+      <div style="text-align:center;padding:20px 0 60px;">
+        <button class="btn btn-restart" onclick="restart()">← Start Over</button>
+      </div>
+    </div>`;
+
+  // Animate match bars
+  setTimeout(() => {
+    document.querySelectorAll('.match-bar').forEach(bar => {
+      bar.style.width = bar.style.width;
+    });
+  }, 100);
+
+  renderProgressBar();
+}
+
+// Launch
+init();
+</script>
+</body>
+</html>
