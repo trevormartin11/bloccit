@@ -54,12 +54,12 @@
   /* Header */
   header {
     text-align: center;
-    padding: 16px 0 8px;
+    padding: 12px 0 6px;
     flex-shrink: 0;
   }
   header h1 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 700;
     background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
     -webkit-background-clip: text;
@@ -67,8 +67,8 @@
   }
   header .subtitle {
     color: var(--text-muted);
-    font-size: 0.8rem;
-    margin-top: 4px;
+    font-size: 0.75rem;
+    margin-top: 2px;
   }
 
   /* Progress */
@@ -76,7 +76,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 12px 0;
+    padding: 8px 0;
     flex-shrink: 0;
   }
   .progress-bar-bg {
@@ -103,7 +103,6 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     perspective: 1000px;
   }
 
@@ -123,19 +122,14 @@
     transform: translateX(-120%) rotate(-15deg);
     opacity: 0;
   }
-  .card.entering {
-    transform: scale(0.9);
-    opacity: 0;
-  }
 
   /* Photo area */
   .card-photo {
     position: relative;
     width: 100%;
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 10;
     background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
     overflow: hidden;
-    cursor: pointer;
   }
   .card-photo img {
     width: 100%;
@@ -145,28 +139,20 @@
     background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
     transition: opacity 0.3s ease;
   }
-  .card-photo .gradient-overlay {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 120px;
-    background: linear-gradient(transparent, rgba(0,0,0,0.7));
-    pointer-events: none;
-  }
 
-  /* Photo toggle tabs */
+  /* Photo story-style tabs */
   .photo-tabs {
     position: absolute;
-    top: 12px; left: 12px; right: 12px;
+    top: 8px; left: 8px; right: 8px;
     display: flex;
-    gap: 6px;
-    z-index: 2;
+    gap: 4px;
+    z-index: 3;
   }
   .photo-tab {
     flex: 1;
     height: 3px;
     background: rgba(255,255,255,0.25);
     border-radius: 3px;
-    cursor: pointer;
     transition: background 0.3s;
   }
   .photo-tab.active {
@@ -175,14 +161,30 @@
 
   .photo-label {
     position: absolute;
-    top: 24px; left: 14px;
-    font-size: 0.7rem;
+    top: 20px; left: 10px;
+    font-size: 0.65rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: rgba(255,255,255,0.7);
-    z-index: 2;
+    color: rgba(255,255,255,0.8);
+    z-index: 3;
+    background: rgba(0,0,0,0.4);
+    padding: 3px 8px;
+    border-radius: 4px;
+    backdrop-filter: blur(4px);
   }
+
+  /* Tap zones for navigating photos */
+  .photo-tap-left, .photo-tap-right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40%;
+    z-index: 2;
+    cursor: pointer;
+  }
+  .photo-tap-left { left: 0; }
+  .photo-tap-right { right: 0; width: 60%; }
 
   /* Loading placeholder */
   .photo-loading {
@@ -191,6 +193,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
+    gap: 8px;
     background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
   }
   .photo-loading .spinner {
@@ -199,6 +203,10 @@
     border-top-color: var(--gold);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
+  }
+  .photo-loading .loading-text {
+    font-size: 0.7rem;
+    color: var(--text-muted);
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -234,37 +242,74 @@
 
   /* Card info */
   .card-info {
-    padding: 20px;
+    padding: 14px 16px;
   }
   .card-name {
     font-family: 'Playfair Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
   .card-brand-price {
     color: var(--gold);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 500;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .card-desc {
     color: var(--text-muted);
-    font-size: 0.88rem;
-    line-height: 1.5;
-    margin-bottom: 14px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    margin-bottom: 10px;
   }
+
+  /* Color options in card */
+  .card-colors {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .color-option {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px 4px 6px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .color-option:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--gold);
+  }
+  .color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+  .color-name {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
   .card-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
   }
   .card-tag {
     background: rgba(201,168,76,0.12);
     color: var(--gold);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 500;
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 20px;
     border: 1px solid rgba(201,168,76,0.15);
   }
@@ -275,12 +320,12 @@
     justify-content: center;
     align-items: center;
     gap: 24px;
-    padding: 20px 0;
+    padding: 14px 0;
     flex-shrink: 0;
   }
   .action-btn {
-    width: 72px;
-    height: 72px;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
     border: 2px solid;
     background: rgba(255,255,255,0.03);
@@ -288,7 +333,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 1.8rem;
     transition: all 0.2s ease;
     -webkit-tap-highlight-color: transparent;
   }
@@ -312,11 +357,11 @@
     box-shadow: 0 0 30px var(--yes-glow);
   }
   .btn-undo {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     border-color: var(--gold);
     color: var(--gold);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
   }
   .btn-undo:hover {
     background: rgba(201,168,76,0.15);
@@ -382,29 +427,45 @@
 
   /* Results screen */
   .results {
-    padding: 20px 0 60px;
+    padding: 10px 0 60px;
   }
   .results-header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
   }
   .results-header h2 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.8rem;
-    margin-bottom: 8px;
+    font-size: 1.6rem;
+    margin-bottom: 6px;
   }
   .results-header p {
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .section-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 16px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label.liked { color: var(--yes); }
+  .section-label.passed { color: var(--no); }
+  .section-label .count {
+    font-size: 0.7rem;
+    background: rgba(255,255,255,0.08);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
   }
 
   .results-empty {
     text-align: center;
     padding: 60px 20px;
-  }
-  .results-empty .emoji {
-    font-size: 3rem;
-    margin-bottom: 16px;
   }
   .results-empty h3 {
     font-size: 1.3rem;
@@ -420,15 +481,14 @@
     background: var(--card-bg);
     border-radius: 16px;
     overflow: hidden;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
     border: 1px solid rgba(255,255,255,0.05);
-    transition: transform 0.2s;
   }
-  .result-card:first-of-type {
+  .result-card.top-pick {
     border-color: rgba(201,168,76,0.3);
   }
   .result-card-img {
-    height: 200px;
+    aspect-ratio: 16 / 9;
     background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
     overflow: hidden;
     position: relative;
@@ -437,74 +497,111 @@
   .result-card-img img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
   }
   .result-card-img .rank-badge {
     position: absolute;
-    top: 12px;
-    left: 12px;
+    top: 10px;
+    left: 10px;
     background: rgba(0,0,0,0.7);
     backdrop-filter: blur(10px);
-    padding: 6px 14px;
+    padding: 5px 12px;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 600;
     color: var(--gold);
   }
   .result-card-body {
-    padding: 16px;
+    padding: 14px;
   }
   .result-card-body h3 {
     font-family: 'Playfair Display', serif;
-    font-size: 1.3rem;
-    margin-bottom: 4px;
+    font-size: 1.2rem;
+    margin-bottom: 3px;
   }
   .result-card-body .brand-price {
     color: var(--gold);
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 500;
     margin-bottom: 8px;
   }
   .result-card-body .desc {
     color: var(--text-muted);
-    font-size: 0.85rem;
-    line-height: 1.5;
-    margin-bottom: 12px;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    margin-bottom: 10px;
   }
   .result-card-body .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 14px;
+    gap: 5px;
+    margin-bottom: 12px;
   }
   .result-card-body .tag {
     background: rgba(201,168,76,0.12);
     color: var(--gold);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 500;
-    padding: 4px 10px;
+    padding: 3px 8px;
     border-radius: 20px;
     border: 1px solid rgba(201,168,76,0.15);
   }
   .result-links {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
   }
   .result-link {
-    padding: 8px 16px;
+    padding: 7px 14px;
     background: transparent;
     color: var(--gold);
     border: 1px solid rgba(201,168,76,0.3);
     border-radius: 50px;
     text-decoration: none;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 500;
     transition: all 0.2s;
   }
   .result-link:hover {
     background: var(--gold);
     color: var(--dark);
+  }
+
+  /* Passed cards - more compact */
+  .passed-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255,255,255,0.03);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    opacity: 0.7;
+  }
+  .passed-card-img {
+    width: 70px;
+    height: 50px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+  }
+  .passed-card-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .passed-card-info h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .passed-card-info p {
+    font-size: 0.7rem;
+    color: var(--text-muted);
   }
 
   .restart-btn {
@@ -561,20 +658,20 @@
   /* Keyboard hint */
   .key-hint {
     text-align: center;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: rgba(255,255,255,0.2);
-    padding-bottom: 8px;
+    padding-bottom: 6px;
   }
   .key-hint kbd {
     background: rgba(255,255,255,0.08);
-    padding: 2px 6px;
-    border-radius: 4px;
+    padding: 2px 5px;
+    border-radius: 3px;
     font-family: inherit;
   }
 
   @media (max-width: 400px) {
-    .card-name { font-size: 1.3rem; }
-    .action-btn { width: 64px; height: 64px; font-size: 1.7rem; }
+    .card-name { font-size: 1.2rem; }
+    .action-btn { width: 60px; height: 60px; font-size: 1.6rem; }
   }
 </style>
 </head>
@@ -590,7 +687,7 @@
 
 <script>
 // ═══════════════════════════════════════════════════════════════
-// IMAGE FETCHING — Wikipedia REST API
+// IMAGE FETCHING
 // ═══════════════════════════════════════════════════════════════
 const imageCache = {};
 
@@ -613,6 +710,26 @@ async function fetchWikiImage(title, fallbackTitle) {
   return null;
 }
 
+// Fetch interior/additional images from Wikimedia Commons
+const commonsCache = {};
+async function fetchCommonsImages(searchTerm, limit = 3) {
+  if (commonsCache[searchTerm]) return commonsCache[searchTerm];
+  try {
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(searchTerm)}&gsrlimit=${limit}&prop=imageinfo&iiprop=url&iiurlwidth=800&format=json&origin=*`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const pages = data.query?.pages;
+    if (!pages) return [];
+    const imgs = Object.values(pages)
+      .sort((a, b) => a.index - b.index)
+      .map(p => p.imageinfo?.[0]?.thumburl || p.imageinfo?.[0]?.url)
+      .filter(Boolean);
+    commonsCache[searchTerm] = imgs;
+    return imgs;
+  } catch (e) { return []; }
+}
+
 function openLightbox(src) {
   document.getElementById('lightboxImg').src = src;
   document.getElementById('lightbox').classList.add('open');
@@ -623,208 +740,233 @@ function closeLightbox() {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
 
 // ═══════════════════════════════════════════════════════════════
-// VEHICLE DATABASE
+// VEHICLE DATABASE — Top trims, no Genesis/Rivian/Defender/Escalade/Tesla
 // ═══════════════════════════════════════════════════════════════
 const VEHICLES = [
   {
-    name: "Range Rover",
+    name: "Range Rover SV",
     brand: "Land Rover",
-    price: "$104,500",
-    desc: "The icon of luxury SUVs. Unmatched road presence, whisper-quiet cabin, and genuine capability wrapped in British elegance.",
-    tags: ["British Heritage", "Supreme Comfort", "Iconic Design"],
+    price: "$184,600",
+    desc: "The ultimate Range Rover. SV trim adds bespoke ceramic controls, semi-aniline leather, and exclusive paint options to the icon of luxury SUVs.",
+    tags: ["British Heritage", "SV Bespoke", "Supreme Comfort"],
     wiki: "Range Rover (L460)", wikiAlt: "Range Rover",
-    wikiInterior: "Range Rover", wikiInteriorAlt: "Range Rover (L460)",
-    search: "2025 Range Rover luxury SUV"
+    interiorSearch: "Range Rover SV interior leather",
+    search: "2025 Range Rover SV luxury",
+    colors: [
+      { name: "Batumi Gold", hex: "#B5975A", search: "Range Rover SV Batumi Gold" },
+      { name: "Fuji White", hex: "#F0F0EC", search: "Range Rover SV Fuji White" },
+      { name: "Santorini Black", hex: "#1C1C1E", search: "Range Rover SV Santorini Black" }
+    ]
   },
   {
-    name: "Range Rover Sport",
+    name: "Range Rover Sport SV",
     brand: "Land Rover",
-    price: "$83,000",
-    desc: "Athletic and refined. All the Range Rover DNA in a sportier, more dynamic package.",
-    tags: ["Dynamic Handling", "Sporty Luxury", "Advanced Tech"],
+    price: "$141,600",
+    desc: "The most powerful Range Rover Sport ever. 626 HP twin-turbo V8, carbon fiber body kit, and track-tuned suspension in a stunning athletic body.",
+    tags: ["626 HP", "Carbon Fiber", "Track Tuned"],
     wiki: "Range Rover Sport", wikiAlt: "Range Rover Sport (L461)",
-    wikiInterior: "Range Rover Sport", wikiInteriorAlt: null,
-    search: "2025 Range Rover Sport"
+    interiorSearch: "Range Rover Sport SV interior",
+    search: "2025 Range Rover Sport SV",
+    colors: [
+      { name: "Maya Blue", hex: "#5DADE2", search: "Range Rover Sport SV Maya Blue" },
+      { name: "Petrolene Blue", hex: "#1B3A4B", search: "Range Rover Sport SV blue" },
+      { name: "Firenze Red", hex: "#922B21", search: "Range Rover Sport SV Firenze Red" }
+    ]
   },
   {
     name: "Porsche Cayenne Turbo GT",
     brand: "Porsche",
     price: "$185,000",
-    desc: "The sports car disguised as an SUV. Blistering performance, razor-sharp handling, and unmistakable Porsche character.",
-    tags: ["Sports Car DNA", "Track Capable", "German Engineering"],
+    desc: "The sports car disguised as an SUV. 659 HP, 0-60 in 3.1 seconds, and razor-sharp handling with unmistakable Porsche character.",
+    tags: ["659 HP", "Track Capable", "German Engineering"],
     wiki: "Porsche Cayenne", wikiAlt: "Porsche Cayenne (PO536)",
-    wikiInterior: "Porsche Cayenne", wikiInteriorAlt: null,
-    search: "2025 Porsche Cayenne Turbo GT"
-  },
-  {
-    name: "Porsche Cayenne",
-    brand: "Porsche",
-    price: "$82,000",
-    desc: "The benchmark for sporty luxury SUVs. Perfect blend of everyday comfort and exhilarating driving dynamics.",
-    tags: ["Versatile", "Driver's SUV", "Premium Quality"],
-    wiki: "Porsche Cayenne", wikiAlt: null,
-    wikiInterior: "Porsche Cayenne", wikiInteriorAlt: null,
-    search: "2025 Porsche Cayenne"
+    interiorSearch: "Porsche Cayenne Turbo GT interior",
+    search: "2025 Porsche Cayenne Turbo GT",
+    colors: [
+      { name: "Arctic Grey", hex: "#A4A9AD", search: "Porsche Cayenne Turbo GT Arctic Grey" },
+      { name: "Carmine Red", hex: "#9B111E", search: "Porsche Cayenne Turbo GT red" },
+      { name: "Jet Black Metallic", hex: "#1A1A1A", search: "Porsche Cayenne Turbo GT black" }
+    ]
   },
   {
     name: "Mercedes-Maybach GLS 600",
     brand: "Mercedes-Maybach",
     price: "$175,000",
-    desc: "First-class air travel on four wheels. Champagne cooler, reclining seats, and supreme isolation from the world.",
+    desc: "First-class air travel on four wheels. The Maybach GLS offers champagne cooler, reclining rear seats, and supreme isolation from the world.",
     tags: ["Ultra Luxury", "Rear-Seat Paradise", "Two-Tone Paint"],
     wiki: "Mercedes-Benz GLS-Class", wikiAlt: "Mercedes-Maybach GLS",
-    wikiInterior: "Mercedes-Benz GLS-Class", wikiInteriorAlt: null,
-    search: "Mercedes Maybach GLS 600"
+    interiorSearch: "Mercedes Maybach GLS 600 interior champagne",
+    search: "Mercedes Maybach GLS 600",
+    colors: [
+      { name: "Obsidian Black / Mojave Silver", hex: "#1A1A1A", search: "Mercedes Maybach GLS 600 two tone silver black" },
+      { name: "Diamond White", hex: "#F5F5F0", search: "Mercedes Maybach GLS 600 diamond white" },
+      { name: "Nautica Blue / Mojave Silver", hex: "#1E3A5F", search: "Mercedes Maybach GLS 600 nautica blue" }
+    ]
   },
   {
     name: "Mercedes G 63 AMG",
     brand: "Mercedes-AMG",
     price: "$180,000",
-    desc: "The original luxury SUV icon. Military roots meet AMG power in this unmistakable, boxy icon of status.",
-    tags: ["Iconic Shape", "AMG Power", "Celebrity Favorite"],
+    desc: "The original luxury SUV icon. Military roots meet 577 HP AMG power in this unmistakable, boxy icon of status and capability.",
+    tags: ["Iconic Shape", "577 HP V8", "Celebrity Favorite"],
     wiki: "Mercedes-Benz G-Class", wikiAlt: null,
-    wikiInterior: "Mercedes-Benz G-Class", wikiInteriorAlt: null,
-    search: "Mercedes G63 AMG"
+    interiorSearch: "Mercedes G63 AMG interior 2025",
+    search: "2025 Mercedes G63 AMG",
+    colors: [
+      { name: "Manufaktur Olive Green", hex: "#4A5D23", search: "Mercedes G63 AMG olive green matte" },
+      { name: "Brilliant Blue", hex: "#1E40AF", search: "Mercedes G63 AMG brilliant blue" },
+      { name: "Obsidian Black", hex: "#1C1C1E", search: "Mercedes G63 AMG obsidian black" }
+    ]
   },
   {
-    name: "BMW XM",
-    brand: "BMW",
-    price: "$159,000",
-    desc: "BMW's most powerful M vehicle ever. Bold design meets hybrid supercar performance.",
-    tags: ["Hybrid Power", "Bold Design", "M Performance"],
+    name: "BMW XM Label Red",
+    brand: "BMW M",
+    price: "$185,000",
+    desc: "BMW's most powerful M vehicle ever. 738 HP hybrid V8, aggressive design, and supercar-rivaling performance in a luxury SUV.",
+    tags: ["738 HP Hybrid", "Most Powerful BMW", "Bold Statement"],
     wiki: "BMW XM", wikiAlt: null,
-    wikiInterior: "BMW XM", wikiInteriorAlt: null,
-    search: "BMW XM"
+    interiorSearch: "BMW XM Label Red interior",
+    search: "BMW XM Label Red",
+    colors: [
+      { name: "Toronto Red", hex: "#C41E3A", search: "BMW XM Label Red Toronto Red" },
+      { name: "Black Sapphire", hex: "#1A1A2E", search: "BMW XM Label Red black" },
+      { name: "Cape York Green", hex: "#2D5A27", search: "BMW XM Cape York Green" }
+    ]
   },
   {
     name: "BMW X7 M60i",
     brand: "BMW",
     price: "$104,000",
-    desc: "Spacious three-row luxury with powerful V8 performance. First-class comfort for the whole family.",
+    desc: "Spacious three-row luxury with a powerful 523 HP V8. First-class comfort, panoramic sky, and effortless highway cruising for the whole family.",
     tags: ["Three-Row Luxury", "V8 Power", "Panoramic Views"],
     wiki: "BMW X7 (G07)", wikiAlt: "BMW X7",
-    wikiInterior: "BMW X7 (G07)", wikiInteriorAlt: null,
-    search: "BMW X7 M60i"
+    interiorSearch: "BMW X7 M60i interior luxury",
+    search: "2025 BMW X7 M60i",
+    colors: [
+      { name: "Mineral White", hex: "#F0F0EA", search: "BMW X7 M60i mineral white" },
+      { name: "Black Sapphire", hex: "#1A1A2E", search: "BMW X7 M60i black sapphire" },
+      { name: "Tanzanite Blue", hex: "#2E1A47", search: "BMW X7 M60i tanzanite blue" }
+    ]
   },
   {
-    name: "Bentley Bentayga",
+    name: "Bentley Bentayga EWB Mulliner",
     brand: "Bentley",
-    price: "$195,000",
-    desc: "Hand-crafted British luxury at its finest. Every surface adorned with the world's most exquisite materials.",
-    tags: ["Hand-Crafted", "Bespoke Options", "British Excellence"],
+    price: "$245,000",
+    desc: "Extended wheelbase, hand-crafted by Mulliner. The ultimate Bentayga with airline-seat rear recliners, diamond-quilted leather, and bespoke everything.",
+    tags: ["Hand-Crafted", "Extended Wheelbase", "Mulliner Bespoke"],
     wiki: "Bentley Bentayga", wikiAlt: null,
-    wikiInterior: "Bentley Bentayga", wikiInteriorAlt: null,
-    search: "Bentley Bentayga"
+    interiorSearch: "Bentley Bentayga EWB Mulliner interior",
+    search: "Bentley Bentayga EWB Mulliner",
+    colors: [
+      { name: "British Racing Green", hex: "#004225", search: "Bentley Bentayga british racing green" },
+      { name: "Glacier White", hex: "#F0F0F0", search: "Bentley Bentayga glacier white" },
+      { name: "Onyx", hex: "#1A1A1A", search: "Bentley Bentayga onyx black" }
+    ]
   },
   {
-    name: "Rolls-Royce Cullinan",
+    name: "Rolls-Royce Cullinan Black Badge",
     brand: "Rolls-Royce",
-    price: "$365,000",
-    desc: "The pinnacle of automotive luxury. Effortless, silent, and incomparably luxurious in every detail.",
-    tags: ["The Pinnacle", "Starlight Headliner", "Magic Carpet Ride"],
+    price: "$440,000",
+    desc: "The darkest, most powerful Cullinan. Black Badge adds 29 more HP, darker chrome, a Spirit of Ecstasy in high-gloss black, and an even bolder presence.",
+    tags: ["Black Badge", "Starlight Headliner", "The Pinnacle"],
     wiki: "Rolls-Royce Cullinan", wikiAlt: null,
-    wikiInterior: "Rolls-Royce Cullinan", wikiInteriorAlt: null,
-    search: "Rolls Royce Cullinan"
+    interiorSearch: "Rolls Royce Cullinan Black Badge interior starlight",
+    search: "Rolls Royce Cullinan Black Badge",
+    colors: [
+      { name: "Black Diamond", hex: "#0D0D0D", search: "Rolls Royce Cullinan Black Badge black diamond" },
+      { name: "Bohemian Red", hex: "#7B1E2C", search: "Rolls Royce Cullinan red" },
+      { name: "English White", hex: "#F5F0E8", search: "Rolls Royce Cullinan white" }
+    ]
   },
   {
-    name: "Lamborghini Urus",
+    name: "Lamborghini Urus Performante",
     brand: "Lamborghini",
-    price: "$240,000",
-    desc: "The world's first Super Sport Utility Vehicle. Outrageously fast, impossibly loud, and utterly unforgettable.",
-    tags: ["Super SUV", "V8 Twin-Turbo", "Exotic Presence"],
+    price: "$264,000",
+    desc: "The Super SUV turned even more extreme. 666 HP, 47 lbs lighter, carbon fiber everywhere, and a Nurburgring SUV lap record. Outrageously fast.",
+    tags: ["666 HP", "Record Breaker", "Carbon Fiber"],
     wiki: "Lamborghini Urus", wikiAlt: null,
-    wikiInterior: "Lamborghini Urus", wikiInteriorAlt: null,
-    search: "Lamborghini Urus"
+    interiorSearch: "Lamborghini Urus Performante interior",
+    search: "Lamborghini Urus Performante",
+    colors: [
+      { name: "Giallo Auge", hex: "#F5C518", search: "Lamborghini Urus Performante yellow" },
+      { name: "Blu Eleos", hex: "#1B3F8B", search: "Lamborghini Urus Performante blue" },
+      { name: "Grigio Telesto", hex: "#7B8794", search: "Lamborghini Urus Performante grey" }
+    ]
   },
   {
     name: "Ferrari Purosangue",
     brand: "Ferrari",
     price: "$400,000",
-    desc: "Ferrari's first four-door car. A naturally aspirated V12 and Ferrari handling in a sleek GT body.",
-    tags: ["V12 Engine", "Ferrari Handling", "Supercar Heart"],
+    desc: "Ferrari's first four-door car. A naturally aspirated 715 HP V12 screaming to 8,250 RPM with Ferrari handling in a sleek GT body.",
+    tags: ["715 HP V12", "Ferrari Handling", "Supercar Heart"],
     wiki: "Ferrari Purosangue", wikiAlt: null,
-    wikiInterior: "Ferrari Purosangue", wikiInteriorAlt: null,
-    search: "Ferrari Purosangue"
+    interiorSearch: "Ferrari Purosangue interior",
+    search: "Ferrari Purosangue",
+    colors: [
+      { name: "Rosso Corsa", hex: "#D40000", search: "Ferrari Purosangue Rosso Corsa red" },
+      { name: "Grigio Silverstone", hex: "#8C8C8C", search: "Ferrari Purosangue grey Grigio" },
+      { name: "Blu Tour de France", hex: "#1B3D8E", search: "Ferrari Purosangue blue" }
+    ]
   },
   {
     name: "Aston Martin DBX707",
     brand: "Aston Martin",
     price: "$239,000",
-    desc: "James Bond meets family life. Stunning design, bespoke interior, and savage performance.",
-    tags: ["Bespoke Interior", "British GT DNA", "Stunning Design"],
+    desc: "James Bond meets family life. 707 HP, a stunning sculpted body, bespoke British interior, and savage performance that humiliates sports cars.",
+    tags: ["707 HP", "Bespoke Interior", "British GT DNA"],
     wiki: "Aston Martin DBX", wikiAlt: "Aston Martin DBX707",
-    wikiInterior: "Aston Martin DBX", wikiInteriorAlt: null,
-    search: "Aston Martin DBX707"
+    interiorSearch: "Aston Martin DBX707 interior",
+    search: "Aston Martin DBX707",
+    colors: [
+      { name: "Stirling Green", hex: "#1B4332", search: "Aston Martin DBX707 Stirling Green" },
+      { name: "Ultramarine Black", hex: "#0C1445", search: "Aston Martin DBX707 Ultramarine Black" },
+      { name: "Cosmos Orange", hex: "#D35400", search: "Aston Martin DBX707 orange" }
+    ]
   },
   {
-    name: "Genesis GV80",
-    brand: "Genesis",
-    price: "$75,000",
-    desc: "Korea's answer to German luxury — many say it's better. Incredible value and a stunning interior.",
-    tags: ["Best Value", "Stunning Interior", "10-Year Warranty"],
-    wiki: "Genesis GV80", wikiAlt: null,
-    wikiInterior: "Genesis GV80", wikiInteriorAlt: null,
-    search: "Genesis GV80"
-  },
-  {
-    name: "Cadillac Escalade V",
-    brand: "Cadillac",
-    price: "$155,000",
-    desc: "American luxury taken to eleven. Supercharged V8, 38-inch OLED display, and a commanding presence.",
-    tags: ["Supercharged V8", "38\" OLED Display", "American Icon"],
-    wiki: "Cadillac Escalade", wikiAlt: null,
-    wikiInterior: "Cadillac Escalade", wikiInteriorAlt: null,
-    search: "Cadillac Escalade V"
-  },
-  {
-    name: "Mercedes GLE 53 AMG Coupe",
+    name: "Mercedes-AMG GLE 63 S Coupe",
     brand: "Mercedes-AMG",
-    price: "$85,000",
-    desc: "The coupe-SUV that started the trend. Sleek roofline, AMG power, and cutting-edge tech.",
-    tags: ["Coupe Styling", "AMG Tuned", "Sleek Profile"],
+    price: "$121,000",
+    desc: "The coupe-SUV that started the trend, dialed to max. 603 HP AMG V8, sleek sloping roofline, and cutting-edge MBUX tech.",
+    tags: ["603 HP", "Coupe Styling", "AMG Handcrafted V8"],
     wiki: "Mercedes-Benz GLE-Class", wikiAlt: "Mercedes-Benz GLE Coupé",
-    wikiInterior: "Mercedes-Benz GLE-Class", wikiInteriorAlt: null,
-    search: "Mercedes GLE 53 AMG Coupe"
-  },
-  {
-    name: "Rivian R1S",
-    brand: "Rivian",
-    price: "$82,000",
-    desc: "The adventure-ready electric SUV. Three rows, quad motors available, and sustainable modern design.",
-    tags: ["All-Electric", "Three-Row", "Quad Motor Available"],
-    wiki: "Rivian R1S", wikiAlt: "Rivian R1T",
-    wikiInterior: "Rivian R1S", wikiInteriorAlt: null,
-    search: "Rivian R1S"
-  },
-  {
-    name: "Tesla Model X Plaid",
-    brand: "Tesla",
-    price: "$95,000",
-    desc: "The fastest SUV in the world. Falcon wing doors, ludicrous acceleration, and the most advanced tech.",
-    tags: ["Falcon Wing Doors", "2.5s 0-60", "Plaid Power"],
-    wiki: "Tesla Model X", wikiAlt: null,
-    wikiInterior: "Tesla Model X", wikiInteriorAlt: null,
-    search: "Tesla Model X Plaid"
+    interiorSearch: "Mercedes AMG GLE 63 S Coupe interior",
+    search: "Mercedes AMG GLE 63 S Coupe",
+    colors: [
+      { name: "Obsidian Black", hex: "#1C1C1E", search: "Mercedes GLE 63 S Coupe black" },
+      { name: "Polar White", hex: "#F5F5F0", search: "Mercedes GLE 63 S Coupe white" },
+      { name: "Hyacinth Red", hex: "#8B1A1A", search: "Mercedes GLE 63 S Coupe red" }
+    ]
   },
   {
     name: "Maserati Grecale Trofeo",
     brand: "Maserati",
     price: "$95,000",
-    desc: "Italian flair in a compact luxury SUV. Racing heritage and unmistakable exhaust note for the daily drive.",
-    tags: ["Italian Exotic", "Nettuno V6", "Racing Heritage"],
+    desc: "Italian flair in a compact luxury SUV. 523 HP Nettuno twin-turbo V6 with racing heritage and an unmistakable exhaust note.",
+    tags: ["523 HP Nettuno V6", "Italian Exotic", "Racing Heritage"],
     wiki: "Maserati Grecale", wikiAlt: null,
-    wikiInterior: "Maserati Grecale", wikiInteriorAlt: null,
-    search: "Maserati Grecale Trofeo"
+    interiorSearch: "Maserati Grecale Trofeo interior",
+    search: "Maserati Grecale Trofeo",
+    colors: [
+      { name: "Rosso Vincitore", hex: "#C41E3A", search: "Maserati Grecale Trofeo red" },
+      { name: "Bianco Astro", hex: "#F0F0EC", search: "Maserati Grecale Trofeo white" },
+      { name: "Blu Nobile", hex: "#1E3A5F", search: "Maserati Grecale Trofeo blue" }
+    ]
   },
   {
-    name: "Land Rover Defender V8",
-    brand: "Land Rover",
-    price: "$110,000",
-    desc: "Rugged luxury reimagined. Legendary off-road DNA with a supercharged V8 and surprisingly refined manners.",
-    tags: ["Iconic Silhouette", "V8 Power", "Modern Classic"],
-    wiki: "Land Rover Defender (L663)", wikiAlt: "Land Rover Defender",
-    wikiInterior: "Land Rover Defender (L663)", wikiInteriorAlt: null,
-    search: "Land Rover Defender V8"
+    name: "Porsche Cayenne GTS",
+    brand: "Porsche",
+    price: "$112,000",
+    desc: "The sweet spot of the Cayenne lineup. 4.0L twin-turbo V8, sport exhaust, sport-tuned chassis, and an interior that wraps you like a cockpit.",
+    tags: ["453 HP V8", "Sport Exhaust", "Driver's SUV"],
+    wiki: "Porsche Cayenne", wikiAlt: null,
+    interiorSearch: "Porsche Cayenne GTS interior 2025",
+    search: "2025 Porsche Cayenne GTS",
+    colors: [
+      { name: "Chalk", hex: "#E8E4DA", search: "Porsche Cayenne GTS chalk white" },
+      { name: "Mahogany Metallic", hex: "#4E2728", search: "Porsche Cayenne GTS mahogany brown" },
+      { name: "Night Blue Metallic", hex: "#1A2744", search: "Porsche Cayenne GTS night blue" }
+    ]
   }
 ];
 
@@ -834,12 +976,11 @@ const VEHICLES = [
 let currentIndex = 0;
 let liked = [];
 let passed = [];
-let history = []; // for undo
-let currentPhotoView = 0; // 0 = exterior, 1 = interior
-let vehicleImages = {}; // { vehicleName: { exterior: url, interior: url } }
+let history = [];
+let currentPhotoIndex = 0; // which photo tab is active
+let vehiclePhotos = {}; // { name: [url, url, ...] }
 let isAnimating = false;
 
-// Shuffle vehicles for variety
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -852,56 +993,54 @@ function shuffle(arr) {
 let deck = shuffle(VEHICLES);
 
 // ═══════════════════════════════════════════════════════════════
-// PREFETCH IMAGES
+// FETCH PHOTOS (exterior from Wikipedia, interior from Commons)
 // ═══════════════════════════════════════════════════════════════
-async function prefetchVehicleImages(vehicle) {
-  if (vehicleImages[vehicle.name]) return vehicleImages[vehicle.name];
+async function loadVehiclePhotos(vehicle) {
+  if (vehiclePhotos[vehicle.name]) return vehiclePhotos[vehicle.name];
 
-  const [exterior] = await Promise.all([
-    fetchWikiImage(vehicle.wiki, vehicle.wikiAlt)
+  // Start both fetches in parallel
+  const [exterior, interiorResults] = await Promise.all([
+    fetchWikiImage(vehicle.wiki, vehicle.wikiAlt),
+    fetchCommonsImages(vehicle.interiorSearch, 2)
   ]);
 
-  vehicleImages[vehicle.name] = { exterior };
-  return vehicleImages[vehicle.name];
+  const photos = [];
+
+  // Exterior
+  if (exterior) {
+    photos.push({ url: exterior, label: "Exterior" });
+  }
+
+  // Interior from Commons
+  if (interiorResults.length > 0) {
+    photos.push({ url: interiorResults[0], label: "Interior" });
+  }
+
+  // If we got a second interior/angle shot, add it
+  if (interiorResults.length > 1) {
+    photos.push({ url: interiorResults[1], label: "Interior Detail" });
+  }
+
+  vehiclePhotos[vehicle.name] = photos;
+  return photos;
 }
 
 async function prefetchUpcoming() {
-  const upcoming = deck.slice(currentIndex, currentIndex + 3);
-  await Promise.allSettled(upcoming.map(v => prefetchVehicleImages(v)));
+  const upcoming = deck.slice(currentIndex, currentIndex + 2);
+  await Promise.allSettled(upcoming.map(v => loadVehiclePhotos(v)));
 }
 
 // ═══════════════════════════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════════════════════════
-function renderApp() {
-  const app = document.getElementById('app');
-
-  if (currentIndex < 0) currentIndex = 0;
-
-  // Welcome screen
-  if (currentIndex === -1 || (currentIndex === 0 && liked.length === 0 && passed.length === 0 && history.length === 0)) {
-    renderWelcome();
-    return;
-  }
-
-  // Results
-  if (currentIndex >= deck.length) {
-    renderResults();
-    return;
-  }
-
-  renderCard();
-}
-
 async function renderWelcome() {
   const app = document.getElementById('app');
 
-  // Fetch a few preview images
-  const previewVehicles = [deck[0], deck[1], deck[2], deck[3], deck[4], deck[5]].filter(Boolean);
+  const previewVehicles = deck.slice(0, 6);
   const imgPromises = previewVehicles.map(v => fetchWikiImage(v.wiki, v.wikiAlt));
   const imgs = await Promise.all(imgPromises);
 
-  const gridHTML = imgs.slice(0, 6).map((src, i) => `
+  const gridHTML = imgs.map((src, i) => `
     <div class="welcome-grid-img">
       ${src ? `<img src="${src}" alt="${previewVehicles[i].name}" onerror="this.parentElement.style.background='var(--card-bg)'">` : ''}
     </div>
@@ -914,8 +1053,8 @@ async function renderWelcome() {
     <div class="welcome">
       <div class="welcome-grid">${gridHTML}</div>
       <h2>Find Your Dream SUV</h2>
-      <p>We'll show you ${deck.length} luxury SUVs one at a time. Just tap <strong>YES</strong> if you love how it looks or <strong>NO</strong> to pass.</p>
-      <p style="font-size:0.85rem">Tap the photo to switch between exterior and interior views.</p>
+      <p>We'll show you <strong>${deck.length} luxury SUVs</strong> one at a time. Tap <strong>YES</strong> if you love it or <strong>NO</strong> to pass.</p>
+      <p style="font-size:0.85rem">Tap left/right on photos to see exterior, interior, and more angles.</p>
       <button class="start-btn" onclick="startSwiping()">Let's Go</button>
     </div>
   `;
@@ -933,34 +1072,39 @@ function startSwiping() {
 async function renderCard() {
   const app = document.getElementById('app');
   const vehicle = deck[currentIndex];
-  currentPhotoView = 0;
+  currentPhotoIndex = 0;
 
-  // Ensure images are loaded
-  const imgs = await prefetchVehicleImages(vehicle);
-  prefetchUpcoming(); // prefetch next ones
+  // Load photos
+  const photos = await loadVehiclePhotos(vehicle);
+  prefetchUpcoming();
 
-  const exteriorSrc = imgs.exterior || '';
-  const photoViews = [exteriorSrc].filter(Boolean);
-  const photoCount = Math.max(1, photoViews.length);
+  const photoCount = photos.length || 1;
 
-  const tabsHTML = photoCount > 1
-    ? `<div class="photo-tabs">${Array.from({length: photoCount}, (_, i) =>
-        `<div class="photo-tab ${i === 0 ? 'active' : ''}" onclick="switchPhoto(${i})"></div>`
-      ).join('')}</div>`
-    : '';
+  // Tab bars
+  const tabsHTML = `<div class="photo-tabs">${Array.from({length: photoCount}, (_, i) =>
+    `<div class="photo-tab ${i === 0 ? 'active' : ''}" id="ptab${i}"></div>`
+  ).join('')}</div>`;
 
-  const labelText = 'Exterior';
+  const labelText = photos.length > 0 ? photos[0].label : 'Loading...';
+  const imgSrc = photos.length > 0 ? photos[0].url : '';
 
-  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(vehicle.search)}&tbm=isch`;
+  // Color options
+  const colorsHTML = vehicle.colors.map(c => {
+    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(c.search)}&tbm=isch`;
+    return `<a class="color-option" href="${searchUrl}" target="_blank" rel="noopener">
+      <span class="color-dot" style="background:${c.hex}"></span>
+      <span class="color-name">${c.name}</span>
+    </a>`;
+  }).join('');
 
   app.innerHTML = `
     <header>
       <h1>Luxury SUV Finder</h1>
-      <div class="subtitle">Tap the photo to see more images</div>
+      <div class="subtitle">Tap left/right on photo to see more views</div>
     </header>
     <div class="progress">
       <div class="progress-bar-bg">
-        <div class="progress-bar-fill" style="width: ${((currentIndex) / deck.length) * 100}%"></div>
+        <div class="progress-bar-fill" style="width: ${(currentIndex / deck.length) * 100}%"></div>
       </div>
       <span class="progress-text">${currentIndex + 1} / ${deck.length}</span>
     </div>
@@ -968,18 +1112,21 @@ async function renderCard() {
       <div class="card" id="card">
         <div class="stamp like" id="stampLike">LIKE</div>
         <div class="stamp nope" id="stampNope">NOPE</div>
-        <div class="card-photo" onclick="window.open('${searchUrl}', '_blank')">
-          ${exteriorSrc
-            ? `<img id="cardPhoto" src="${exteriorSrc}" alt="${vehicle.name}" onerror="this.style.display='none'">`
-            : `<div class="photo-loading"><div class="spinner"></div></div>`
+        <div class="card-photo" id="cardPhoto">
+          ${tabsHTML}
+          <div class="photo-tap-left" onclick="prevPhoto(event)"></div>
+          <div class="photo-tap-right" onclick="nextPhoto(event)"></div>
+          <div class="photo-label" id="photoLabel">${labelText}</div>
+          ${imgSrc
+            ? `<img id="photoImg" src="${imgSrc}" alt="${vehicle.name}" onerror="this.style.display='none'">`
+            : `<div class="photo-loading"><div class="spinner"></div><div class="loading-text">Loading photo...</div></div>`
           }
-          <div class="gradient-overlay"></div>
-          <div class="photo-label">${labelText}</div>
         </div>
         <div class="card-info">
           <div class="card-name">${vehicle.name}</div>
           <div class="card-brand-price">${vehicle.brand} &middot; Starting at ${vehicle.price}</div>
           <div class="card-desc">${vehicle.desc}</div>
+          <div class="card-colors">${colorsHTML}</div>
           <div class="card-tags">
             ${vehicle.tags.map(t => `<span class="card-tag">${t}</span>`).join('')}
           </div>
@@ -998,6 +1145,43 @@ async function renderCard() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// PHOTO NAVIGATION (tap left/right to cycle)
+// ═══════════════════════════════════════════════════════════════
+function nextPhoto(e) {
+  if (e) e.stopPropagation();
+  const vehicle = deck[currentIndex];
+  const photos = vehiclePhotos[vehicle.name] || [];
+  if (photos.length <= 1) return;
+
+  currentPhotoIndex = (currentPhotoIndex + 1) % photos.length;
+  updatePhoto(photos);
+}
+
+function prevPhoto(e) {
+  if (e) e.stopPropagation();
+  const vehicle = deck[currentIndex];
+  const photos = vehiclePhotos[vehicle.name] || [];
+  if (photos.length <= 1) return;
+
+  currentPhotoIndex = (currentPhotoIndex - 1 + photos.length) % photos.length;
+  updatePhoto(photos);
+}
+
+function updatePhoto(photos) {
+  const img = document.getElementById('photoImg');
+  const label = document.getElementById('photoLabel');
+  if (img && photos[currentPhotoIndex]) {
+    img.src = photos[currentPhotoIndex].url;
+    label.textContent = photos[currentPhotoIndex].label;
+  }
+  // Update tabs
+  photos.forEach((_, i) => {
+    const tab = document.getElementById(`ptab${i}`);
+    if (tab) tab.className = `photo-tab ${i === currentPhotoIndex ? 'active' : ''}`;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // SWIPE ACTIONS
 // ═══════════════════════════════════════════════════════════════
 function swipe(direction) {
@@ -1008,7 +1192,6 @@ function swipe(direction) {
   const card = document.getElementById('card');
   const vehicle = deck[currentIndex];
 
-  // Show stamp
   if (direction === 'yes') {
     document.getElementById('stampLike').classList.add('visible');
     card.classList.add('swipe-right');
@@ -1034,13 +1217,9 @@ function swipe(direction) {
 
 function undo() {
   if (history.length === 0 || isAnimating) return;
-
   const last = history.pop();
-  if (last.direction === 'yes') {
-    liked.pop();
-  } else {
-    passed.pop();
-  }
+  if (last.direction === 'yes') liked.pop();
+  else passed.pop();
   currentIndex = last.index;
   renderCard();
 }
@@ -1049,58 +1228,50 @@ function undo() {
 document.addEventListener('keydown', e => {
   if (document.getElementById('lightbox')?.classList.contains('open')) return;
   if (currentIndex >= deck.length || currentIndex < 0) return;
-
   if (e.key === 'ArrowRight' || e.key === 'l') swipe('yes');
   else if (e.key === 'ArrowLeft' || e.key === 'h') swipe('no');
   else if (e.key === 'z' || e.key === 'Z') undo();
 });
 
 // ═══════════════════════════════════════════════════════════════
-// RESULTS
+// RESULTS — Full summary: Liked + Passed
 // ═══════════════════════════════════════════════════════════════
 async function renderResults() {
   const app = document.getElementById('app');
 
-  if (liked.length === 0) {
-    app.innerHTML = `
-      <header>
-        <h1>Luxury SUV Finder</h1>
-      </header>
-      <div class="results-empty">
-        <div class="emoji">😅</div>
-        <h3>Tough Crowd!</h3>
-        <p>You didn't like any of the SUVs. Let's try again — maybe give a few a second chance?</p>
-        <button class="restart-btn" onclick="startSwiping()">Try Again</button>
-      </div>
-    `;
-    return;
-  }
-
-  // Show loading
+  // Loading
   app.innerHTML = `
-    <header>
-      <h1>Luxury SUV Finder</h1>
-    </header>
+    <header><h1>Luxury SUV Finder</h1></header>
     <div class="results-header">
-      <h2>Loading your favorites...</h2>
+      <h2>Building your results...</h2>
       <p><span class="photo-loading" style="position:static;background:none;display:inline-flex"><span class="spinner"></span></span></p>
     </div>
   `;
 
-  // Fetch images for liked vehicles
-  const imgPromises = liked.map(v => prefetchVehicleImages(v));
-  await Promise.allSettled(imgPromises);
+  // Ensure all images loaded
+  await Promise.allSettled([...liked, ...passed].map(v => loadVehiclePhotos(v)));
 
-  const cardsHTML = liked.map((v, i) => {
-    const imgs = vehicleImages[v.name] || {};
-    const imgSrc = imgs.exterior || '';
+  // Build liked cards (full detail)
+  const likedHTML = liked.map((v, i) => {
+    const photos = vehiclePhotos[v.name] || [];
+    const imgSrc = photos[0]?.url || '';
+    const year = new Date().getFullYear();
     const imgSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(v.search)}&tbm=isch`;
-    const interiorUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + new Date().getFullYear() + ' interior')}&tbm=isch`;
-    const videoUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(v.name + ' ' + new Date().getFullYear() + ' review')}`;
-    const reviewUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + new Date().getFullYear() + ' review test drive')}`;
+    const interiorUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + year + ' interior')}&tbm=isch`;
+    const videoUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(v.name + ' ' + year + ' review')}`;
+    const reviewUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + year + ' review test drive')}`;
+    const dealerUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' dealer near me test drive')}`;
+
+    const colorsHTML = v.colors.map(c => {
+      const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(c.search)}&tbm=isch`;
+      return `<a class="color-option" href="${searchUrl}" target="_blank" rel="noopener" style="text-decoration:none">
+        <span class="color-dot" style="background:${c.hex}"></span>
+        <span class="color-name">${c.name}</span>
+      </a>`;
+    }).join('');
 
     return `
-      <div class="result-card">
+      <div class="result-card ${i === 0 ? 'top-pick' : ''}">
         <div class="result-card-img" onclick="${imgSrc ? `openLightbox('${imgSrc}')` : ''}">
           ${imgSrc ? `<img src="${imgSrc}" alt="${v.name}" onerror="this.style.display='none'">` : ''}
           <div class="rank-badge">${i === 0 ? '&#9829; #1 Favorite' : `#${i + 1}`}</div>
@@ -1109,6 +1280,7 @@ async function renderResults() {
           <h3>${v.name}</h3>
           <div class="brand-price">${v.brand} &middot; Starting at ${v.price}</div>
           <div class="desc">${v.desc}</div>
+          <div class="card-colors" style="margin-bottom:10px">${colorsHTML}</div>
           <div class="tags">
             ${v.tags.map(t => `<span class="tag">${t}</span>`).join('')}
           </div>
@@ -1117,22 +1289,60 @@ async function renderResults() {
             <a class="result-link" href="${interiorUrl}" target="_blank" rel="noopener">Interior</a>
             <a class="result-link" href="${videoUrl}" target="_blank" rel="noopener">Videos</a>
             <a class="result-link" href="${reviewUrl}" target="_blank" rel="noopener">Reviews</a>
+            <a class="result-link" href="${dealerUrl}" target="_blank" rel="noopener" style="border-color:var(--yes);color:var(--yes)">Find Dealer</a>
           </div>
         </div>
       </div>
     `;
   }).join('');
 
+  // Build passed cards (compact)
+  const passedHTML = passed.map(v => {
+    const photos = vehiclePhotos[v.name] || [];
+    const imgSrc = photos[0]?.url || '';
+    return `
+      <div class="passed-card">
+        <div class="passed-card-img">
+          ${imgSrc ? `<img src="${imgSrc}" alt="${v.name}">` : ''}
+        </div>
+        <div class="passed-card-info">
+          <h4>${v.name}</h4>
+          <p>${v.brand} &middot; ${v.price}</p>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const likedCount = liked.length;
+  const passedCount = passed.length;
+
   app.innerHTML = `
-    <header>
-      <h1>Luxury SUV Finder</h1>
-    </header>
+    <header><h1>Luxury SUV Finder</h1></header>
     <div class="results">
       <div class="results-header">
-        <h2>Your Favorites</h2>
-        <p>You liked ${liked.length} out of ${deck.length} SUVs. Here are the ones that caught your eye!</p>
+        <h2>Results Summary</h2>
+        <p>Liked ${likedCount} &middot; Passed on ${passedCount} &middot; ${deck.length} total</p>
       </div>
-      ${cardsHTML}
+
+      ${likedCount > 0 ? `
+        <div class="section-label liked">
+          Schedule Test Drives <span class="count">${likedCount}</span>
+        </div>
+        ${likedHTML}
+      ` : `
+        <div class="results-empty">
+          <h3>No favorites this time</h3>
+          <p>She didn't fall in love with any — maybe try again?</p>
+        </div>
+      `}
+
+      ${passedCount > 0 ? `
+        <div class="section-label passed">
+          Passed On <span class="count">${passedCount}</span>
+        </div>
+        ${passedHTML}
+      ` : ''}
+
       <button class="restart-btn" onclick="startSwiping()">Start Over</button>
     </div>
   `;
