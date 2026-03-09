@@ -876,7 +876,7 @@
                 tags: ["626 HP", "Carbon Fiber", "Track Tuned"],
                 wiki: "Range Rover Sport",
                 wikiAlt: "Range Rover Sport (L461)",
-                commonsExterior: "2023 Range Rover Sport white",
+                exteriorUrl: "images/range-rover-sport-sv-white.jpg",
                 interiorSearch: "Range Rover Sport SV interior",
                 search: "2025 Range Rover Sport SV",
                 colors: [
@@ -1180,7 +1180,7 @@
 
             const photos = [];
 
-            const exterior = commonsExteriorResults[0] || wikiExterior;
+            const exterior = vehicle.exteriorUrl || commonsExteriorResults[0] || wikiExterior;
             if (exterior) {
                 photos.push({ url: exterior, label: "Exterior" });
             }
