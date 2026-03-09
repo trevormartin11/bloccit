@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury SUV Finder</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --gold: #C9A84C;
+            --gold-light: #E8D48B;
+            --dark: #1A1A2E;
+            --darker: #0F0F1A;
+            --card-bg: #232340;
+            --text: #F0EDE6;
+            --text-muted: #9B97A0;
+            --yes: #4CAF50;
+            --yes-glow: rgba(76, 175, 80, 0.3);
+            --no: #ef5350;
+            --no-glow: rgba(239, 83, 80, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .bg-pattern {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 20% 50%, rgba(201,168,76,0.06) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(108,99,255,0.04) 0%, transparent 50%), radial-gradient(ellipse at 50% 100%, rgba(201,168,76,0.03) 0%, transparent 40%);
+        }
+
+        .app {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 16px;
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            padding: 12px 0 6px;
+            flex-shrink: 0;
+        }
+
+        header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header .subtitle {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 2px;
+        }
+
+        .progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            flex-shrink: 0;
+        }
+
+        .progress-bar-bg {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .card-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            position: relative;
+        }
+
+        .card.swipe-right {
+            transform: translateX(120%) rotate(15deg);
+            opacity: 0;
+        }
+
+        .card.swipe-left {
+            transform: translateX(-120%) rotate(-15deg);
+            opacity: 0;
+        }
+
+        .card-photo {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 10;
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+            overflow: hidden;
+        }
+
+        .card-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+            transition: opacity 0.3s ease;
+        }
+
+        .photo-tabs {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            gap: 4px;
+            z-index: 3;
+        }
+
+        .photo-tab {
+            flex: 1;
+            height: 3px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 3px;
+            transition: background 0.3s;
+        }
+
+        .photo-tab.active {
+            background: white;
+        }
+
+        .photo-label {
+            position: absolute;
+            top: 20px;
+            left: 10px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.8);
+            z-index: 3;
+            background: rgba(0,0,0,0.4);
+            padding: 3px 8px;
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+        }
+
+        .photo-tap-left, .photo-tap-right {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 40%;
+            z-index: 2;
+            cursor: pointer;
+        }
+
+        .photo-tap-left {
+            left: 0;
+        }
+
+        .photo-tap-right {
+            right: 0;
+            width: 60%;
+        }
+
+        .photo-loading {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+        }
+
+        .photo-loading .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .photo-loading .loading-text {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stamp {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%) rotate(-15deg);
+            font-size: 3rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            padding: 8px 24px;
+            border-radius: 12px;
+            border: 4px solid;
+            opacity: 0;
+            z-index: 5;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .stamp.like {
+            left: 20px;
+            color: var(--yes);
+            border-color: var(--yes);
+        }
+
+        .stamp.nope {
+            right: 20px;
+            color: var(--no);
+            border-color: var(--no);
+            transform: translateY(-50%) rotate(15deg);
+        }
+
+        .stamp.visible {
+            opacity: 0.9;
+        }
+
+        .card-info {
+            padding: 14px 16px;
+        }
+
+        .card-name {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .card-brand-price {
+            color: var(--gold);
+            font-size: 0.82rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            line-height: 1.45;
+            margin-bottom: 10px;
+        }
+
+        .card-colors {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .color-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px 4px 6px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .color-option:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--gold);
+        }
+
+        .color-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
+        }
+
+        .color-name {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .card-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .card-tag {
+            background: rgba(201,168,76,0.12);
+            color: var(--gold);
+            font-size: 0.68rem;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: 20px;
+            border: 1px solid rgba(201,168,76,0.15);
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            padding: 14px 0;
+            flex-shrink: 0;
+        }
+
+        .action-btn {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            border: 2px solid;
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            transition: all 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .btn-no {
+            border-color: var(--no);
+            color: var(--no);
+        }
+
+        .btn-no:hover, .btn-no:active {
+            background: var(--no-glow);
+            box-shadow: 0 0 30px var(--no-glow);
+        }
+
+        .btn-yes {
+            border-color: var(--yes);
+            color: var(--yes);
+        }
+
+        .btn-yes:hover, .btn-yes:active {
+            background: var(--yes-glow);
+            box-shadow: 0 0 30px var(--yes-glow);
+        }
+
+        .btn-undo {
+            width: 44px;
+            height: 44px;
+            border-color: var(--gold);
+            color: var(--gold);
+            font-size: 1.1rem;
+        }
+
+        .btn-undo:hover {
+            background: rgba(201,168,76,0.15);
+        }
+
+        .welcome {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 360px;
+            margin-bottom: 32px;
+        }
+
+        .welcome-grid-img {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--card-bg);
+        }
+
+        .welcome-grid-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .welcome h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .welcome p {
+            color: var(--text-muted);
+            max-width: 340px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .welcome .start-btn {
+            margin-top: 24px;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--dark);
+            border: none;
+            border-radius: 50px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .welcome .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(201,168,76,0.3);
+        }
+
+        .results {
+            padding: 10px 0 60px;
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .results-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+        }
+
+        .results-header p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .section-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 16px 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-label.liked {
+            color: var(--yes);
+        }
+
+        .section-label.passed {
+            color: var(--no);
+        }
+
+        .section-label .count {
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.08);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .results-empty {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .results-empty h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        .results-empty p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .result-card.top-pick {
+            border-color: rgba(201,168,76,0.3);
+        }
+
+        .result-card-img {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .result-card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--gold);
+            border: 1px solid rgba(201,168,76,0.3);
+        }
+
+        .result-card-body {
+            padding: 14px 16px;
+        }
+
+        .result-card-body h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            margin-bottom: 3px;
+        }
+
+        .brand-price {
+            color: var(--gold);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .desc {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            line-height: 1.45;
+            margin-bottom: 10px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .tag {
+            background: rgba(201,168,76,0.1);
+            color: var(--gold);
+            font-size: 0.65rem;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+
+        .result-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .result-link {
+            font-size: 0.72rem;
+            padding: 5px 12px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            color: var(--text);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .result-link:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: var(--gold);
+        }
+
+        .passed-card {
+            display: flex;
+            gap: 12px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .passed-card-img {
+            width: 80px;
+            height: 60px;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+            overflow: hidden;
+        }
+
+        .passed-card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .passed-card-info {
+            padding: 10px 10px 10px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .passed-card-info h4 {
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .passed-card-info p {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .restart-btn {
+            display: block;
+            width: 100%;
+            margin: 12px auto 8px;
+            padding: 14px 40px;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .restart-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .send-btn {
+            display: block;
+            width: 100%;
+            margin: 24px auto 8px;
+            padding: 18px 40px;
+            background: linear-gradient(135deg, var(--yes), #2E7D32);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(76, 175, 80, 0.4);
+        }
+
+        .send-btn:active {
+            transform: scale(0.98);
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .lightbox.open {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 94vw;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .key-hint {
+            text-align: center;
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.2);
+            padding-bottom: 6px;
+        }
+
+        .key-hint kbd {
+            background: rgba(255,255,255,0.08);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: inherit;
+        }
+
+        @media (max-width: 400px) {
+            .card-name { font-size: 1.2rem; }
+            .action-btn { width: 60px; height: 60px; font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="app" id="app"></div>
+
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox(); event.stopPropagation();">✕</button>
+        <img id="lightboxImg" src="" alt="">
+    </div>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // IMAGE FETCHING
+        // ═══════════════════════════════════════════════════════════════
+        const imageCache = {};
+
+        async function fetchWikiImage(title, fallbackTitle) {
+            if (imageCache[title]) return imageCache[title];
+            const titles = [title, fallbackTitle].filter(Boolean);
+            for (const t of titles) {
+                try {
+                    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`;
+                    const res = await fetch(url);
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const imgUrl = data.originalimage?.source || data.thumbnail?.source;
+                    if (imgUrl) {
+                        imageCache[title] = imgUrl;
+                        return imgUrl;
+                    }
+                } catch (e) { /* try next */ }
+            }
+            return null;
+        }
+
+        const commonsCache = {};
+        async function fetchCommonsImages(searchTerm, limit = 3) {
+            if (commonsCache[searchTerm]) return commonsCache[searchTerm];
+            try {
+                const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(searchTerm)}&gsrlimit=${limit}&prop=imageinfo&iiprop=url&iiurlwidth=800&format=json&origin=*`;
+                const res = await fetch(url);
+                if (!res.ok) return [];
+                const data = await res.json();
+                const pages = data.query?.pages;
+                if (!pages) return [];
+                const imgs = Object.values(pages)
+                    .sort((a, b) => a.index - b.index)
+                    .map(p => p.imageinfo?.[0]?.thumburl || p.imageinfo?.[0]?.url)
+                    .filter(Boolean);
+                commonsCache[searchTerm] = imgs;
+                return imgs;
+            } catch (e) { return []; }
+        }
+
+        function openLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightbox').classList.add('open');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('open');
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        // ═══════════════════════════════════════════════════════════════
+        // VEHICLE DATABASE
+        // ═══════════════════════════════════════════════════════════════
+        const VEHICLES = [
+            {
+                name: "Range Rover SV",
+                brand: "Land Rover",
+                price: "$184,600",
+                desc: "The ultimate Range Rover. SV trim adds bespoke ceramic controls, semi-aniline leather, and exclusive paint options to the icon of luxury SUVs.",
+                tags: ["British Heritage", "SV Bespoke", "Supreme Comfort"],
+                wiki: "Range Rover (L460)",
+                wikiAlt: "Range Rover",
+                commonsExterior: "Range Rover L460 white",
+                interiorSearch: "Range Rover SV interior leather",
+                search: "2025 Range Rover SV luxury",
+                colors: [
+                    { name: "Batumi Gold", hex: "#B5975A", search: "Range Rover SV Batumi Gold" },
+                    { name: "Fuji White", hex: "#F0F0EC", search: "Range Rover SV Fuji White" },
+                    { name: "Santorini Black", hex: "#1C1C1E", search: "Range Rover SV Santorini Black" }
+                ]
+            },
+            {
+                name: "Range Rover Sport SV",
+                brand: "Land Rover",
+                price: "$141,600",
+                desc: "The most powerful Range Rover Sport ever. 626 HP twin-turbo V8, carbon fiber body kit, and track-tuned suspension in a stunning athletic body.",
+                tags: ["626 HP", "Carbon Fiber", "Track Tuned"],
+                wiki: "Range Rover Sport",
+                wikiAlt: "Range Rover Sport (L461)",
+                commonsExterior: "Range Rover Sport white",
+                interiorSearch: "Range Rover Sport SV interior",
+                search: "2025 Range Rover Sport SV",
+                colors: [
+                    { name: "Maya Blue", hex: "#5DADE2", search: "Range Rover Sport SV Maya Blue" },
+                    { name: "Petrolene Blue", hex: "#1B3A4B", search: "Range Rover Sport SV blue" },
+                    { name: "Firenze Red", hex: "#922B21", search: "Range Rover Sport SV Firenze Red" }
+                ]
+            },
+            {
+                name: "Porsche Cayenne Turbo GT",
+                brand: "Porsche",
+                price: "$185,000",
+                desc: "The sports car disguised as an SUV. 659 HP, 0-60 in 3.1 seconds, and razor-sharp handling with unmistakable Porsche character.",
+                tags: ["659 HP", "Track Capable", "German Engineering"],
+                wiki: "Porsche Cayenne",
+                wikiAlt: "Porsche Cayenne (PO536)",
+                interiorSearch: "Porsche Cayenne Turbo GT interior",
+                search: "2025 Porsche Cayenne Turbo GT",
+                colors: [
+                    { name: "Arctic Grey", hex: "#A4A9AD", search: "Porsche Cayenne Turbo GT Arctic Grey" },
+                    { name: "Carmine Red", hex: "#9B111E", search: "Porsche Cayenne Turbo GT red" },
+                    { name: "Jet Black Metallic", hex: "#1A1A1A", search: "Porsche Cayenne Turbo GT black" }
+                ]
+            },
+            {
+                name: "Mercedes-Maybach GLS 600",
+                brand: "Mercedes-Maybach",
+                price: "$175,000",
+                desc: "First-class air travel on four wheels. The Maybach GLS offers champagne cooler, reclining rear seats, and supreme isolation from the world.",
+                tags: ["Ultra Luxury", "Rear-Seat Paradise", "Two-Tone Paint"],
+                wiki: "Mercedes-Benz GLS-Class",
+                wikiAlt: "Mercedes-Maybach GLS",
+                interiorSearch: "Mercedes Maybach GLS 600 interior champagne",
+                search: "Mercedes Maybach GLS 600",
+                colors: [
+                    { name: "Obsidian Black / Mojave Silver", hex: "#1A1A1A", search: "Mercedes Maybach GLS 600 two tone silver black" },
+                    { name: "Diamond White", hex: "#F5F5F0", search: "Mercedes Maybach GLS 600 diamond white" },
+                    { name: "Nautica Blue / Mojave Silver", hex: "#1E3A5F", search: "Mercedes Maybach GLS 600 nautica blue" }
+                ]
+            },
+            {
+                name: "Mercedes G 63 AMG",
+                brand: "Mercedes-AMG",
+                price: "$180,000",
+                desc: "The original luxury SUV icon. Military roots meet 577 HP AMG power in this unmistakable, boxy icon of status and capability.",
+                tags: ["Iconic Shape", "577 HP V8", "Celebrity Favorite"],
+                wiki: "Mercedes-Benz G-Class",
+                wikiAlt: null,
+                interiorSearch: "Mercedes G63 AMG interior 2025",
+                search: "2025 Mercedes G63 AMG",
+                colors: [
+                    { name: "Manufaktur Olive Green", hex: "#4A5D23", search: "Mercedes G63 AMG olive green matte" },
+                    { name: "Brilliant Blue", hex: "#1E40AF", search: "Mercedes G63 AMG brilliant blue" },
+                    { name: "Obsidian Black", hex: "#1C1C1E", search: "Mercedes G63 AMG obsidian black" }
+                ]
+            },
+            {
+                name: "BMW XM Label Red",
+                brand: "BMW M",
+                price: "$185,000",
+                desc: "BMW's most powerful M vehicle ever. 738 HP hybrid V8, aggressive design, and supercar-rivaling performance in a luxury SUV.",
+                tags: ["738 HP Hybrid", "Most Powerful BMW", "Bold Statement"],
+                wiki: "BMW XM",
+                wikiAlt: null,
+                interiorSearch: "BMW XM Label Red interior",
+                search: "BMW XM Label Red",
+                colors: [
+                    { name: "Toronto Red", hex: "#C41E3A", search: "BMW XM Label Red Toronto Red" },
+                    { name: "Black Sapphire", hex: "#1A1A2E", search: "BMW XM Label Red black" },
+                    { name: "Cape York Green", hex: "#2D5A27", search: "BMW XM Cape York Green" }
+                ]
+            },
+            {
+                name: "BMW X7 M60i",
+                brand: "BMW",
+                price: "$104,000",
+                desc: "Spacious three-row luxury with a powerful 523 HP V8. First-class comfort, panoramic sky, and effortless highway cruising for the whole family.",
+                tags: ["Three-Row Luxury", "V8 Power", "Panoramic Views"],
+                wiki: "BMW X7 (G07)",
+                wikiAlt: "BMW X7",
+                interiorSearch: "BMW X7 M60i interior luxury",
+                search: "2025 BMW X7 M60i",
+                colors: [
+                    { name: "Mineral White", hex: "#F0F0EA", search: "BMW X7 M60i mineral white" },
+                    { name: "Black Sapphire", hex: "#1A1A2E", search: "BMW X7 M60i black sapphire" },
+                    { name: "Tanzanite Blue", hex: "#2E1A47", search: "BMW X7 M60i tanzanite blue" }
+                ]
+            },
+            {
+                name: "Bentley Bentayga EWB Mulliner",
+                brand: "Bentley",
+                price: "$245,000",
+                desc: "Extended wheelbase, hand-crafted by Mulliner. The ultimate Bentayga with airline-seat rear recliners, diamond-quilted leather, and bespoke everything.",
+                tags: ["Hand-Crafted", "Extended Wheelbase", "Mulliner Bespoke"],
+                wiki: "Bentley Bentayga",
+                wikiAlt: null,
+                interiorSearch: "Bentley Bentayga EWB Mulliner interior",
+                search: "Bentley Bentayga EWB Mulliner",
+                colors: [
+                    { name: "British Racing Green", hex: "#004225", search: "Bentley Bentayga british racing green" },
+                    { name: "Glacier White", hex: "#F0F0F0", search: "Bentley Bentayga glacier white" },
+                    { name: "Onyx", hex: "#1A1A1A", search: "Bentley Bentayga onyx black" }
+                ]
+            },
+            {
+                name: "Rolls-Royce Cullinan Black Badge",
+                brand: "Rolls-Royce",
+                price: "$440,000",
+                desc: "The darkest, most powerful Cullinan. Black Badge adds 29 more HP, darker chrome, a Spirit of Ecstasy in high-gloss black, and an even bolder presence.",
+                tags: ["Black Badge", "Starlight Headliner", "The Pinnacle"],
+                wiki: "Rolls-Royce Cullinan",
+                wikiAlt: null,
+                interiorSearch: "Rolls Royce Cullinan Black Badge interior starlight",
+                search: "Rolls Royce Cullinan Black Badge",
+                colors: [
+                    { name: "Black Diamond", hex: "#0D0D0D", search: "Rolls Royce Cullinan Black Badge black diamond" },
+                    { name: "Bohemian Red", hex: "#7B1E2C", search: "Rolls Royce Cullinan red" },
+                    { name: "English White", hex: "#F5F0E8", search: "Rolls Royce Cullinan white" }
+                ]
+            },
+            {
+                name: "Lamborghini Urus Performante",
+                brand: "Lamborghini",
+                price: "$264,000",
+                desc: "The Super SUV turned even more extreme. 666 HP, 47 lbs lighter, carbon fiber everywhere, and a Nurburgring SUV lap record. Outrageously fast.",
+                tags: ["666 HP", "Record Breaker", "Carbon Fiber"],
+                wiki: "Lamborghini Urus",
+                wikiAlt: null,
+                commonsExterior: "Lamborghini Urus Grigio grey gray",
+                interiorSearch: "Lamborghini Urus Performante interior",
+                search: "Lamborghini Urus Performante",
+                colors: [
+                    { name: "Grigio Keres (Matte)", hex: "#5A5A5A", search: "Lamborghini Urus Performante Grigio Keres matte grey" },
+                    { name: "Grigio Nimbus", hex: "#8E8E8E", search: "Lamborghini Urus Performante Grigio Nimbus silver grey" },
+                    { name: "Nero Noctis (Black)", hex: "#1A1A1A", search: "Lamborghini Urus Performante Nero Noctis black" }
+                ]
+            },
+            {
+                name: "Ferrari Purosangue",
+                brand: "Ferrari",
+                price: "$400,000",
+                desc: "Ferrari's first four-door car. A naturally aspirated 715 HP V12 screaming to 8,250 RPM with Ferrari handling in a sleek GT body.",
+                tags: ["715 HP V12", "Ferrari Handling", "Supercar Heart"],
+                wiki: "Ferrari Purosangue",
+                wikiAlt: null,
+                interiorSearch: "Ferrari Purosangue interior",
+                search: "Ferrari Purosangue",
+                colors: [
+                    { name: "Rosso Corsa", hex: "#D40000", search: "Ferrari Purosangue Rosso Corsa red" },
+                    { name: "Grigio Silverstone", hex: "#8C8C8C", search: "Ferrari Purosangue grey Grigio" },
+                    { name: "Blu Tour de France", hex: "#1B3D8E", search: "Ferrari Purosangue blue" }
+                ]
+            },
+            {
+                name: "Aston Martin DBX707",
+                brand: "Aston Martin",
+                price: "$239,000",
+                desc: "James Bond meets family life. 707 HP, a stunning sculpted body, bespoke British interior, and savage performance that humiliates sports cars.",
+                tags: ["707 HP", "Bespoke Interior", "British GT DNA"],
+                wiki: "Aston Martin DBX",
+                wikiAlt: "Aston Martin DBX707",
+                interiorSearch: "Aston Martin DBX707 interior",
+                search: "Aston Martin DBX707",
+                colors: [
+                    { name: "Stirling Green", hex: "#1B4332", search: "Aston Martin DBX707 Stirling Green" },
+                    { name: "Ultramarine Black", hex: "#0C1445", search: "Aston Martin DBX707 Ultramarine Black" },
+                    { name: "Cosmos Orange", hex: "#D35400", search: "Aston Martin DBX707 orange" }
+                ]
+            },
+            {
+                name: "Mercedes-AMG GLE 63 S Coupe",
+                brand: "Mercedes-AMG",
+                price: "$121,000",
+                desc: "The coupe-SUV that started the trend, dialed to max. 603 HP AMG V8, sleek sloping roofline, and cutting-edge MBUX tech.",
+                tags: ["603 HP", "Coupe Styling", "AMG Handcrafted V8"],
+                wiki: "Mercedes-Benz GLE-Class",
+                wikiAlt: "Mercedes-Benz GLE Coupé",
+                interiorSearch: "Mercedes AMG GLE 63 S Coupe interior",
+                search: "Mercedes AMG GLE 63 S Coupe",
+                colors: [
+                    { name: "Obsidian Black", hex: "#1C1C1E", search: "Mercedes GLE 63 S Coupe black" },
+                    { name: "Polar White", hex: "#F5F5F0", search: "Mercedes GLE 63 S Coupe white" },
+                    { name: "Hyacinth Red", hex: "#8B1A1A", search: "Mercedes GLE 63 S Coupe red" }
+                ]
+            },
+            {
+                name: "Maserati Grecale Trofeo",
+                brand: "Maserati",
+                price: "$95,000",
+                desc: "Italian flair in a compact luxury SUV. 523 HP Nettuno twin-turbo V6 with racing heritage and an unmistakable exhaust note.",
+                tags: ["523 HP Nettuno V6", "Italian Exotic", "Racing Heritage"],
+                wiki: "Maserati Grecale",
+                wikiAlt: null,
+                interiorSearch: "Maserati Grecale Trofeo interior",
+                search: "Maserati Grecale Trofeo",
+                colors: [
+                    { name: "Rosso Vincitore", hex: "#C41E3A", search: "Maserati Grecale Trofeo red" },
+                    { name: "Bianco Astro", hex: "#F0F0EC", search: "Maserati Grecale Trofeo white" },
+                    { name: "Blu Nobile", hex: "#1E3A5F", search: "Maserati Grecale Trofeo blue" }
+                ]
+            },
+            {
+                name: "Porsche Cayenne GTS",
+                brand: "Porsche",
+                price: "$112,000",
+                desc: "The sweet spot of the Cayenne lineup. 4.0L twin-turbo V8, sport exhaust, sport-tuned chassis, and an interior that wraps you like a cockpit.",
+                tags: ["453 HP V8", "Sport Exhaust", "Driver's SUV"],
+                wiki: "Porsche Cayenne",
+                wikiAlt: null,
+                interiorSearch: "Porsche Cayenne GTS interior 2025",
+                search: "2025 Porsche Cayenne GTS",
+                colors: [
+                    { name: "Chalk", hex: "#E8E4DA", search: "Porsche Cayenne GTS chalk white" },
+                    { name: "Mahogany Metallic", hex: "#4E2728", search: "Porsche Cayenne GTS mahogany brown" },
+                    { name: "Night Blue Metallic", hex: "#1A2744", search: "Porsche Cayenne GTS night blue" }
+                ]
+            },
+            {
+                name: "Audi RS Q8",
+                brand: "Audi",
+                price: "$125,000",
+                desc: "The ultimate Audi SUV. 591 HP twin-turbo V8, Quattro all-wheel drive, and a refined interior that hides a savage performance beast.",
+                tags: ["591 HP V8", "Quattro AWD", "German Precision"],
+                wiki: "Audi RS Q8",
+                wikiAlt: "Audi Q8",
+                interiorSearch: "Audi RS Q8 interior 2025",
+                search: "2025 Audi RS Q8",
+                colors: [
+                    { name: "Nardo Grey", hex: "#6E6E6E", search: "Audi RS Q8 Nardo Grey" },
+                    { name: "Mythos Black", hex: "#0E0E0E", search: "Audi RS Q8 Mythos Black" },
+                    { name: "Navarra Blue", hex: "#1B3A6B", search: "Audi RS Q8 Navarra Blue" }
+                ]
+            },
+            {
+                name: "Lotus Eletre R",
+                brand: "Lotus",
+                price: "$120,000",
+                desc: "905 HP from the brand that built the lightest sports cars on earth. The Eletre R is Lotus's first SUV — electric, ferocious, and unlike anything else on the road.",
+                tags: ["905 HP Electric", "Exotic Brand", "0-60 in 2.9s"],
+                wiki: "Lotus Eletre",
+                wikiAlt: null,
+                interiorSearch: "Lotus Eletre R interior",
+                search: "Lotus Eletre R",
+                colors: [
+                    { name: "Stellar Black", hex: "#111111", search: "Lotus Eletre R black" },
+                    { name: "Galloway Green", hex: "#2D5A3D", search: "Lotus Eletre R green" },
+                    { name: "Natron Red", hex: "#A52019", search: "Lotus Eletre R red" }
+                ]
+            },
+            {
+                name: "Alfa Romeo Stelvio Quadrifoglio",
+                brand: "Alfa Romeo",
+                price: "$92,000",
+                desc: "Italian passion with a Ferrari-derived 505 HP twin-turbo V6. The Stelvio QV drives like a sports car, looks like sculpture, and sounds like a symphony.",
+                tags: ["Ferrari-Derived V6", "505 HP", "Italian Soul"],
+                wiki: "Alfa Romeo Stelvio",
+                wikiAlt: "Alfa Romeo Stelvio (949)",
+                interiorSearch: "Alfa Romeo Stelvio Quadrifoglio interior",
+                search: "Alfa Romeo Stelvio Quadrifoglio",
+                colors: [
+                    { name: "Rosso Competizione", hex: "#CC0000", search: "Alfa Romeo Stelvio Quadrifoglio red" },
+                    { name: "Lunare White", hex: "#F0EDE6", search: "Alfa Romeo Stelvio Quadrifoglio white" },
+                    { name: "Vulcano Black", hex: "#1A1A1A", search: "Alfa Romeo Stelvio Quadrifoglio black" }
+                ]
+            }
+        ];
+
+        // ═══════════════════════════════════════════════════════════════
+        // APP STATE
+        // ═══════════════════════════════════════════════════════════════
+        let currentIndex = 0;
+        let liked = [];
+        let passed = [];
+        let history = [];
+        let currentPhotoIndex = 0;
+        let vehiclePhotos = {};
+        let isAnimating = false;
+
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        let deck = shuffle(VEHICLES);
+
+        // ═══════════════════════════════════════════════════════════════
+        // FETCH PHOTOS
+        // ═══════════════════════════════════════════════════════════════
+        async function loadVehiclePhotos(vehicle) {
+            if (vehiclePhotos[vehicle.name]) return vehiclePhotos[vehicle.name];
+
+            const [wikiExterior, commonsExteriorResults, interiorResults] = await Promise.all([
+                fetchWikiImage(vehicle.wiki, vehicle.wikiAlt),
+                vehicle.commonsExterior ? fetchCommonsImages(vehicle.commonsExterior, 1) : Promise.resolve([]),
+                fetchCommonsImages(vehicle.interiorSearch, 2)
+            ]);
+
+            const photos = [];
+
+            const exterior = commonsExteriorResults[0] || wikiExterior;
+            if (exterior) {
+                photos.push({ url: exterior, label: "Exterior" });
+            }
+
+            if (interiorResults.length > 0) {
+                photos.push({ url: interiorResults[0], label: "Interior" });
+            }
+
+            if (interiorResults.length > 1) {
+                photos.push({ url: interiorResults[1], label: "Interior Detail" });
+            }
+
+            vehiclePhotos[vehicle.name] = photos;
+            return photos;
+        }
+
+        async function prefetchUpcoming() {
+            const upcoming = deck.slice(currentIndex, currentIndex + 2);
+            await Promise.allSettled(upcoming.map(v => loadVehiclePhotos(v)));
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // RENDER
+        // ═══════════════════════════════════════════════════════════════
+        async function renderWelcome() {
+            const app = document.getElementById('app');
+            const previewVehicles = deck.slice(0, 6);
+            const imgPromises = previewVehicles.map(v => fetchWikiImage(v.wiki, v.wikiAlt));
+            const imgs = await Promise.all(imgPromises);
+
+            const gridHTML = imgs.map((src, i) => `
+                <div class="welcome-grid-img">
+                    ${src ? `<img src="${src}" alt="${previewVehicles[i].name}" onerror="this.parentElement.style.background='var(--card-bg)'">` : ''}
+                </div>
+            `).join('');
+
+            app.innerHTML = `
+                <header>
+                    <h1>Luxury SUV Finder</h1>
+                </header>
+                <div class="welcome">
+                    <div class="welcome-grid">${gridHTML}</div>
+                    <h2>Find Your Dream SUV</h2>
+                    <p>We'll show you <strong>${deck.length} luxury SUVs</strong> one at a time. Tap <strong>YES</strong> if you love it or <strong>NO</strong> to pass.</p>
+                    <p style="font-size:0.85rem">Tap left/right on photos to see exterior, interior, and more angles.</p>
+                    <button class="start-btn" onclick="startSwiping()">Let's Go</button>
+                </div>
+            `;
+        }
+
+        function startSwiping() {
+            currentIndex = 0;
+            liked = [];
+            passed = [];
+            history = [];
+            prefetchUpcoming();
+            renderCard();
+        }
+
+        async function renderCard() {
+            const app = document.getElementById('app');
+            const vehicle = deck[currentIndex];
+            currentPhotoIndex = 0;
+
+            const photos = await loadVehiclePhotos(vehicle);
+            prefetchUpcoming();
+
+            const photoCount = photos.length || 1;
+            const tabsHTML = `<div class="photo-tabs">${Array.from({length: photoCount}, (_, i) => `<div class="photo-tab ${i === 0 ? 'active' : ''}" id="ptab${i}"></div>`).join('')}</div>`;
+            const labelText = photos.length > 0 ? photos[0].label : 'Loading...';
+            const imgSrc = photos.length > 0 ? photos[0].url : '';
+
+            const colorsHTML = vehicle.colors.map(c => {
+                const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(c.search)}&tbm=isch`;
+                return `<a class="color-option" href="${searchUrl}" target="_blank" rel="noopener">
+                    <span class="color-dot" style="background:${c.hex}"></span>
+                    <span class="color-name">${c.name}</span>
+                </a>`;
+            }).join('');
+
+            app.innerHTML = `
+                <header>
+                    <h1>Luxury SUV Finder</h1>
+                    <div class="subtitle">Tap left/right on photo to see more views</div>
+                </header>
+                <div class="progress">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: ${(currentIndex / deck.length) * 100}%"></div>
+                    </div>
+                    <span class="progress-text">${currentIndex + 1} / ${deck.length}</span>
+                </div>
+                <div class="card-container">
+                    <div class="card" id="card">
+                        <div class="stamp like" id="stampLike">LIKE</div>
+                        <div class="stamp nope" id="stampNope">NOPE</div>
+                        <div class="card-photo" id="cardPhoto">
+                            ${tabsHTML}
+                            <div class="photo-tap-left" onclick="prevPhoto(event)"></div>
+                            <div class="photo-tap-right" onclick="nextPhoto(event)"></div>
+                            <div class="photo-label" id="photoLabel">${labelText}</div>
+                            ${imgSrc ? `<img id="photoImg" src="${imgSrc}" alt="${vehicle.name}" onerror="this.style.display='none'">` : `<div class="photo-loading"><div class="spinner"></div><div class="loading-text">Loading photo...</div></div>`}
+                        </div>
+                        <div class="card-info">
+                            <div class="card-name">${vehicle.name}</div>
+                            <div class="card-brand-price">${vehicle.brand} &middot; Starting at ${vehicle.price}</div>
+                            <div class="card-desc">${vehicle.desc}</div>
+                            <div class="card-colors">${colorsHTML}</div>
+                            <div class="card-tags">
+                                ${vehicle.tags.map(t => `<span class="card-tag">${t}</span>`).join('')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button class="action-btn btn-undo" onclick="undo()" title="Undo" ${history.length === 0 ? 'style="opacity:0.3;pointer-events:none"' : ''}>&#8630;</button>
+                    <button class="action-btn btn-no" onclick="swipe('no')" title="Pass">&#10007;</button>
+                    <button class="action-btn btn-yes" onclick="swipe('yes')" title="Love it">&#10003;</button>
+                </div>
+                <div class="key-hint">
+                    <kbd>&larr;</kbd> pass &nbsp;&middot;&nbsp; <kbd>&rarr;</kbd> like &nbsp;&middot;&nbsp; <kbd>Z</kbd> undo
+                </div>
+            `;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // PHOTO NAVIGATION
+        // ═══════════════════════════════════════════════════════════════
+        function nextPhoto(e) {
+            if (e) e.stopPropagation();
+            const vehicle = deck[currentIndex];
+            const photos = vehiclePhotos[vehicle.name] || [];
+            if (photos.length <= 1) return;
+            currentPhotoIndex = (currentPhotoIndex + 1) % photos.length;
+            updatePhoto(photos);
+        }
+
+        function prevPhoto(e) {
+            if (e) e.stopPropagation();
+            const vehicle = deck[currentIndex];
+            const photos = vehiclePhotos[vehicle.name] || [];
+            if (photos.length <= 1) return;
+            currentPhotoIndex = (currentPhotoIndex - 1 + photos.length) % photos.length;
+            updatePhoto(photos);
+        }
+
+        function updatePhoto(photos) {
+            const img = document.getElementById('photoImg');
+            const label = document.getElementById('photoLabel');
+            if (img && photos[currentPhotoIndex]) {
+                img.src = photos[currentPhotoIndex].url;
+                label.textContent = photos[currentPhotoIndex].label;
+            }
+            photos.forEach((_, i) => {
+                const tab = document.getElementById(`ptab${i}`);
+                if (tab) tab.className = `photo-tab ${i === currentPhotoIndex ? 'active' : ''}`;
+            });
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SWIPE ACTIONS
+        // ═══════════════════════════════════════════════════════════════
+        function swipe(direction) {
+            if (isAnimating) return;
+            if (currentIndex >= deck.length) return;
+            isAnimating = true;
+
+            const card = document.getElementById('card');
+            const vehicle = deck[currentIndex];
+
+            if (direction === 'yes') {
+                document.getElementById('stampLike').classList.add('visible');
+                card.classList.add('swipe-right');
+                liked.push(vehicle);
+            } else {
+                document.getElementById('stampNope').classList.add('visible');
+                card.classList.add('swipe-left');
+                passed.push(vehicle);
+            }
+
+            history.push({ index: currentIndex, direction });
+
+            setTimeout(() => {
+                currentIndex++;
+                isAnimating = false;
+                if (currentIndex >= deck.length) {
+                    renderResults();
+                } else {
+                    renderCard();
+                }
+            }, 400);
+        }
+
+        function undo() {
+            if (history.length === 0 || isAnimating) return;
+            const last = history.pop();
+            if (last.direction === 'yes') liked.pop();
+            else passed.pop();
+            currentIndex = last.index;
+            renderCard();
+        }
+
+        document.addEventListener('keydown', e => {
+            if (document.getElementById('lightbox')?.classList.contains('open')) return;
+            if (currentIndex >= deck.length || currentIndex < 0) return;
+            if (e.key === 'ArrowRight' || e.key === 'l') swipe('yes');
+            else if (e.key === 'ArrowLeft' || e.key === 'h') swipe('no');
+            else if (e.key === 'z' || e.key === 'Z') undo();
+        });
+
+        // ═══════════════════════════════════════════════════════════════
+        // RESULTS
+        // ═══════════════════════════════════════════════════════════════
+        async function renderResults() {
+            const app = document.getElementById('app');
+
+            app.innerHTML = `
+                <header><h1>Luxury SUV Finder</h1></header>
+                <div class="results-header">
+                    <h2>Building your results...</h2>
+                    <p><span class="photo-loading" style="position:static;background:none;display:inline-flex"><span class="spinner"></span></span></p>
+                </div>
+            `;
+
+            await Promise.allSettled([...liked, ...passed].map(v => loadVehiclePhotos(v)));
+
+            const likedHTML = liked.map((v, i) => {
+                const photos = vehiclePhotos[v.name] || [];
+                const imgSrc = photos[0]?.url || '';
+                const year = new Date().getFullYear();
+                const imgSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(v.search)}&tbm=isch`;
+                const interiorUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + year + ' interior')}&tbm=isch`;
+                const videoUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(v.name + ' ' + year + ' review')}`;
+                const reviewUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' ' + year + ' review test drive')}`;
+                const dealerUrl = `https://www.google.com/search?q=${encodeURIComponent(v.name + ' dealer near me test drive')}`;
+
+                const colorsHTML = v.colors.map(c => {
+                    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(c.search)}&tbm=isch`;
+                    return `<a class="color-option" href="${searchUrl}" target="_blank" rel="noopener" style="text-decoration:none">
+                        <span class="color-dot" style="background:${c.hex}"></span>
+                        <span class="color-name">${c.name}</span>
+                    </a>`;
+                }).join('');
+
+                return `
+                    <div class="result-card ${i === 0 ? 'top-pick' : ''}">
+                        <div class="result-card-img" onclick="${imgSrc ? `openLightbox('${imgSrc}')` : ''}">
+                            ${imgSrc ? `<img src="${imgSrc}" alt="${v.name}" onerror="this.style.display='none'">` : ''}
+                            <div class="rank-badge">${i === 0 ? '&#9829; #1 Favorite' : `#${i + 1}`}</div>
+                        </div>
+                        <div class="result-card-body">
+                            <h3>${v.name}</h3>
+                            <div class="brand-price">${v.brand} &middot; Starting at ${v.price}</div>
+                            <div class="desc">${v.desc}</div>
+                            <div class="card-colors" style="margin-bottom:10px">${colorsHTML}</div>
+                            <div class="tags">
+                                ${v.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                            </div>
+                            <div class="result-links">
+                                <a class="result-link" href="${imgSearchUrl}" target="_blank" rel="noopener">Photos</a>
+                                <a class="result-link" href="${interiorUrl}" target="_blank" rel="noopener">Interior</a>
+                                <a class="result-link" href="${videoUrl}" target="_blank" rel="noopener">Videos</a>
+                                <a class="result-link" href="${reviewUrl}" target="_blank" rel="noopener">Reviews</a>
+                                <a class="result-link" href="${dealerUrl}" target="_blank" rel="noopener" style="border-color:var(--yes);color:var(--yes)">Find Dealer</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const passedHTML = passed.map(v => {
+                const photos = vehiclePhotos[v.name] || [];
+                const imgSrc = photos[0]?.url || '';
+                return `
+                    <div class="passed-card">
+                        <div class="passed-card-img">
+                            ${imgSrc ? `<img src="${imgSrc}" alt="${v.name}">` : ''}
+                        </div>
+                        <div class="passed-card-info">
+                            <h4>${v.name}</h4>
+                            <p>${v.brand} &middot; ${v.price}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const likedCount = liked.length;
+            const passedCount = passed.length;
+
+            app.innerHTML = `
+                <header><h1>Luxury SUV Finder</h1></header>
+                <div class="results">
+                    <div class="results-header">
+                        <h2>Results Summary</h2>
+                        <p>Liked ${likedCount} &middot; Passed on ${passedCount} &middot; ${deck.length} total</p>
+                    </div>
+
+                    ${likedCount > 0 ? `
+                        <div class="section-label liked">
+                            Schedule Test Drives <span class="count">${likedCount}</span>
+                        </div>
+                        ${likedHTML}
+                    ` : `
+                        <div class="results-empty">
+                            <h3>No favorites this time</h3>
+                            <p>She didn't fall in love with any — maybe try again?</p>
+                        </div>
+                    `}
+
+                    ${passedCount > 0 ? `
+                        <div class="section-label passed">
+                            Passed On <span class="count">${passedCount}</span>
+                        </div>
+                        ${passedHTML}
+                    ` : ''}
+
+                    ${likedCount > 0 ? `<button class="send-btn" onclick="sendToTrevor()">Send to Trevor</button>` : ''}
+                    <button class="restart-btn" onclick="startSwiping()">Start Over</button>
+                </div>
+            `;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // SEND TO TREVOR
+        // ═══════════════════════════════════════════════════════════════
+        function sendToTrevor() {
+            const likedList = liked.map((v, i) => `${i + 1}. ${v.name} (${v.brand}) — ${v.price}`).join('\n');
+            const passedList = passed.map((v, i) => `${i + 1}. ${v.name} (${v.brand}) — ${v.price}`).join('\n');
+            const subject = `My Luxury SUV Picks — ${liked.length} Favorites!`;
+            const body = `Hi Trevor!\n\nI just finished the Luxury SUV Finder and here are my results:\n\n` +
+                `═══ LOVED THESE (${liked.length}) ═══\n${likedList}\n\n` +
+                (passed.length > 0 ? `═══ PASSED ON (${passed.length}) ═══\n${passedList}\n\n` : '') +
+                `Let's go test drive the ones I liked!\n`;
+            const mailtoUrl = `mailto:Trevormartin11@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoUrl;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // INIT
+        // ═══════════════════════════════════════════════════════════════
+        renderWelcome();
+    </script>
+</body>
+</html>
