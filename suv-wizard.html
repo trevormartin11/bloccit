@@ -789,6 +789,7 @@ const VEHICLES = [
     desc: "The most powerful Range Rover Sport ever. 626 HP twin-turbo V8, carbon fiber body kit, and track-tuned suspension in a stunning athletic body.",
     tags: ["626 HP", "Carbon Fiber", "Track Tuned"],
     wiki: "Range Rover Sport", wikiAlt: "Range Rover Sport (L461)",
+    commonsExterior: "Range Rover Sport white 2023 2024",
     interiorSearch: "Range Rover Sport SV interior",
     search: "2025 Range Rover Sport SV",
     colors: [
@@ -909,6 +910,7 @@ const VEHICLES = [
     desc: "The Super SUV turned even more extreme. 666 HP, 47 lbs lighter, carbon fiber everywhere, and a Nurburgring SUV lap record. Outrageously fast.",
     tags: ["666 HP", "Record Breaker", "Carbon Fiber"],
     wiki: "Lamborghini Urus", wikiAlt: null,
+    commonsExterior: "Lamborghini Urus Performante grey gray",
     interiorSearch: "Lamborghini Urus Performante interior",
     search: "Lamborghini Urus Performante",
     colors: [
@@ -1067,15 +1069,18 @@ let deck = shuffle(VEHICLES);
 async function loadVehiclePhotos(vehicle) {
   if (vehiclePhotos[vehicle.name]) return vehiclePhotos[vehicle.name];
 
-  // Start both fetches in parallel
-  const [exterior, interiorResults] = await Promise.all([
-    fetchWikiImage(vehicle.wiki, vehicle.wikiAlt),
+  // Start fetches in parallel — use Commons override if specified
+  const useCommonsExterior = !!vehicle.commonsExterior;
+  const [wikiExterior, commonsExteriorResults, interiorResults] = await Promise.all([
+    useCommonsExterior ? Promise.resolve(null) : fetchWikiImage(vehicle.wiki, vehicle.wikiAlt),
+    useCommonsExterior ? fetchCommonsImages(vehicle.commonsExterior, 1) : Promise.resolve([]),
     fetchCommonsImages(vehicle.interiorSearch, 2)
   ]);
 
   const photos = [];
 
-  // Exterior
+  // Exterior — prefer Commons override, fall back to Wikipedia
+  const exterior = commonsExteriorResults[0] || wikiExterior;
   if (exterior) {
     photos.push({ url: exterior, label: "Exterior" });
   }
