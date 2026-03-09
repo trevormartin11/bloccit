@@ -606,7 +606,7 @@
 
   .restart-btn {
     display: block;
-    margin: 24px auto;
+    margin: 16px auto;
     padding: 14px 40px;
     background: transparent;
     color: var(--gold);
@@ -620,6 +620,30 @@
   .restart-btn:hover {
     background: var(--gold);
     color: var(--dark);
+  }
+
+  .send-btn {
+    display: block;
+    width: 100%;
+    margin: 24px auto 8px;
+    padding: 18px 40px;
+    background: linear-gradient(135deg, var(--yes), #2E7D32);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+  }
+  .send-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(76, 175, 80, 0.4);
+  }
+  .send-btn:active {
+    transform: scale(0.98);
   }
 
   /* Lightbox */
@@ -890,7 +914,7 @@ const VEHICLES = [
     colors: [
       { name: "Giallo Auge", hex: "#F5C518", search: "Lamborghini Urus Performante yellow" },
       { name: "Blu Eleos", hex: "#1B3F8B", search: "Lamborghini Urus Performante blue" },
-      { name: "Grigio Telesto", hex: "#7B8794", search: "Lamborghini Urus Performante grey" }
+      { name: "Grigio Keres (Matte)", hex: "#5A5A5A", search: "Lamborghini Urus Performante Grigio Keres matte grey" }
     ]
   },
   {
@@ -1343,9 +1367,27 @@ async function renderResults() {
         ${passedHTML}
       ` : ''}
 
+      ${likedCount > 0 ? `<button class="send-btn" onclick="sendToTrevor()">Send to Trevor</button>` : ''}
       <button class="restart-btn" onclick="startSwiping()">Start Over</button>
     </div>
   `;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SEND TO TREVOR — compose email with results
+// ═══════════════════════════════════════════════════════════════
+function sendToTrevor() {
+  const likedList = liked.map((v, i) => `${i + 1}. ${v.name} (${v.brand}) — ${v.price}`).join('\n');
+  const passedList = passed.map((v, i) => `${i + 1}. ${v.name} (${v.brand}) — ${v.price}`).join('\n');
+
+  const subject = `My Luxury SUV Picks — ${liked.length} Favorites!`;
+  const body = `Hi Trevor!\n\nI just finished the Luxury SUV Finder and here are my results:\n\n` +
+    `═══ LOVED THESE (${liked.length}) ═══\n${likedList}\n\n` +
+    (passed.length > 0 ? `═══ PASSED ON (${passed.length}) ═══\n${passedList}\n\n` : '') +
+    `Let's go test drive the ones I liked!\n`;
+
+  const mailtoUrl = `mailto:Trevormartin11@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailtoUrl;
 }
 
 // ═══════════════════════════════════════════════════════════════
