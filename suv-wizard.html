@@ -774,7 +774,7 @@ const VEHICLES = [
     desc: "The ultimate Range Rover. SV trim adds bespoke ceramic controls, semi-aniline leather, and exclusive paint options to the icon of luxury SUVs.",
     tags: ["British Heritage", "SV Bespoke", "Supreme Comfort"],
     wiki: "Range Rover (L460)", wikiAlt: "Range Rover",
-    commonsExterior: "Range Rover L460 white 2023 2024",
+    commonsExterior: "Range Rover L460 Fuji White",
     interiorSearch: "Range Rover SV interior leather",
     search: "2025 Range Rover SV luxury",
     colors: [
@@ -1070,11 +1070,10 @@ let deck = shuffle(VEHICLES);
 async function loadVehiclePhotos(vehicle) {
   if (vehiclePhotos[vehicle.name]) return vehiclePhotos[vehicle.name];
 
-  // Start fetches in parallel — use Commons override if specified
-  const useCommonsExterior = !!vehicle.commonsExterior;
+  // Start fetches in parallel — always fetch Wikipedia as fallback
   const [wikiExterior, commonsExteriorResults, interiorResults] = await Promise.all([
-    useCommonsExterior ? Promise.resolve(null) : fetchWikiImage(vehicle.wiki, vehicle.wikiAlt),
-    useCommonsExterior ? fetchCommonsImages(vehicle.commonsExterior, 1) : Promise.resolve([]),
+    fetchWikiImage(vehicle.wiki, vehicle.wikiAlt),
+    vehicle.commonsExterior ? fetchCommonsImages(vehicle.commonsExterior, 1) : Promise.resolve([]),
     fetchCommonsImages(vehicle.interiorSearch, 2)
   ]);
 
