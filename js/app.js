@@ -438,7 +438,7 @@
       `;
     } else {
       body.innerHTML = `
-        <strong>Static-only host detected.</strong> Automatic MLS data import and nightly
+        <strong>Static-only host detected.</strong> Automatic MLS data import and weekly
         Sold-Price checks need a serverless backend — deploy to Netlify to enable them.
         <a href="#settings" data-view="settings">Open Settings</a> if you just want to wire up Supabase team sync.
       `;

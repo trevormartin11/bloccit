@@ -1,7 +1,7 @@
 # FlipCRM
 
 A property-pipeline CRM for real-estate investors. Static SPA — works on GitHub
-Pages for free, upgrades to Netlify for automatic MLS data and nightly sold-price
+Pages for free, upgrades to Netlify for automatic MLS data and weekly sold-price
 syncs.
 
 **Live demo:** https://trevormartin11.github.io/bloccit/
@@ -16,9 +16,10 @@ syncs.
   auto-calculated **Potential Profit** (`ARV − Offer − Rehab − 10% holding`).
 - **MLS / Zillow Import** — paste a listing URL or an address; the serverless
   function pulls beds/baths/sqft/year/owner/AVM via RentCast.
-- **Nightly Sold-Price sync** — Netlify scheduled function runs at 07:00 UTC,
-  checks each active listing, and marks sold when a recent sale is detected.
-  Also exposed as a manual "Check Sold Prices" button.
+- **Weekly Sold-Price sync** — Netlify scheduled function runs every Monday at
+  07:00 UTC, checks each active listing, and marks sold when a recent sale is
+  detected. Weekly (not nightly) to stay within RentCast's 50-call free tier.
+  Also exposed as a manual "Check Sold Prices" button for on-demand refresh.
 - **Team sync (optional)** — point the app at a free Supabase project and your
   partner's browser sees the same deal list in real time.
 - **Local-first** — works with no backend at all; your data lives in `localStorage`
@@ -34,7 +35,7 @@ js/storage.js                    Pluggable store (local + optional remote)
 js/supabase.js                   Optional Supabase sync adapter
 js/mls.js                        MLS import client (with URL-parse fallback)
 netlify/functions/mls-import.js  RentCast-backed import endpoint
-netlify/functions/check-sold.js  Nightly + on-demand sold-price check
+netlify/functions/check-sold.js  Weekly + on-demand sold-price check
 netlify.toml                     Deploy & schedule config
 supabase-schema.sql              One-click SQL to enable team sync
 tests/test.html                  Browser-based unit tests
@@ -61,7 +62,7 @@ Everything else works — it's still a fully usable CRM.
 2. Pick this repo. Build settings are auto-detected from `netlify.toml`.
 3. **Site settings → Environment variables → Add**:
    - `RENTCAST_API_KEY` → sign up at <https://www.rentcast.io/api>
-4. Trigger a redeploy. MLS Import and nightly sold-price sync are now live.
+4. Trigger a redeploy. MLS Import and weekly sold-price sync are now live.
 
 ## Team sync (Supabase)
 

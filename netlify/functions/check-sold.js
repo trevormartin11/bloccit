@@ -1,7 +1,9 @@
-// Nightly sold-price checker.
+// Weekly sold-price checker.
 //
-// Runs on a schedule (see netlify.toml) to look up every tracked property
-// and mark it "Sold" when a recent sale is detected.
+// Runs on a schedule (see exports.config below) to look up every tracked
+// property and mark it "Sold" when a recent sale is detected. Runs weekly
+// (Monday 07:00 UTC) rather than nightly to stay within RentCast's 50-call
+// free tier — a ~10-property pipeline costs ~40 calls/mo this way.
 //
 // Architecture note: this function is stateless — Netlify scheduled functions
 // can't reach the user's browser-localStorage data directly. Two modes:
@@ -58,8 +60,8 @@ exports.handler = async (event) => {
 };
 
 // Config for Netlify scheduled function.
-// Runs every day at 07:00 UTC (~2-3 AM in US timezones).
-exports.config = { schedule: '0 7 * * *' };
+// Runs every Monday at 07:00 UTC (~2-3 AM US). Cron: min hr dom mon dow.
+exports.config = { schedule: '0 7 * * 1' };
 
 // ---- Core logic -------------------------------------------------------
 
