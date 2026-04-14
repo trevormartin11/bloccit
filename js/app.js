@@ -24,16 +24,15 @@
   let sortDir = -1;
   let currentView = 'dashboard';
 
-  const STAGES = ['New', 'Cold', 'Warm', 'Hot', 'Follow Up', 'Under Contract', 'Sold', 'Archived'];
+  const STAGES = ['New', 'Analyzed', 'Property Visit', 'Offer Submitted', 'Accepted Contract', 'Offer Lost', 'Bad Deal'];
   const STAGE_COLORS = {
-    'New': '#64748b',
-    'Cold': '#0ea5e9',
-    'Warm': '#f97316',
-    'Hot': '#ef4444',
-    'Follow Up': '#f59e0b',
-    'Under Contract': '#7c3aed',
-    'Sold': '#10b981',
-    'Archived': '#94a3b8'
+    'New':               '#64748b',
+    'Analyzed':          '#0ea5e9',
+    'Property Visit':    '#f59e0b',
+    'Offer Submitted':   '#7c3aed',
+    'Accepted Contract': '#10b981',
+    'Offer Lost':        '#94a3b8',
+    'Bad Deal':          '#e11d48'
   };
 
   // ---- Utilities --------------------------------------------------------
@@ -112,13 +111,14 @@
 
   function renderKpis() {
     const all = Store.all();
-    const active = all.filter(p => p.status !== 'Sold' && p.status !== 'Archived');
+    const terminalStates = new Set(['Offer Lost', 'Bad Deal']);
+    const active = all.filter(p => !terminalStates.has(p.status));
     $('#kpi-count').textContent = all.length;
-    $('#kpi-count-sub').textContent = `${active.length} active · ${all.length - active.length} closed/archived`;
-    $('#kpi-hot').textContent = all.filter(p => p.status === 'Hot').length;
+    $('#kpi-count-sub').textContent = `${active.length} active · ${all.length - active.length} dropped`;
+    $('#kpi-hot').textContent = all.filter(p => p.status === 'Offer Submitted').length;
     $('#kpi-arv').textContent = fmtMoney(active.reduce((s, p) => s + (Number(p.arv) || 0), 0));
     $('#kpi-profit').textContent = fmtMoney(active.reduce((s, p) => s + (potentialProfit(p) || 0), 0));
-    $('#kpi-sold').textContent = all.filter(p => p.status === 'Sold' || p.soldPrice).length;
+    $('#kpi-sold').textContent = all.filter(p => p.status === 'Accepted Contract').length;
 
     // Sidebar counts
     $('#nav-count-pipeline').textContent = active.length;
@@ -209,8 +209,9 @@
       source = source.filter(p => [p.address, p.ownerName, p.notes]
         .some(v => v && v.toLowerCase().includes(q)));
     }
-    // Show 5 most-used stages in the board; leave Sold + Archived for list view.
-    const boardStages = ['New', 'Warm', 'Hot', 'Under Contract', 'Sold'];
+    // All 7 stages appear as columns; terminal ones (Offer Lost / Bad Deal)
+    // are still draggable but positioned at the far right.
+    const boardStages = STAGES;
     el.innerHTML = boardStages.map(stage => {
       const items = source.filter(p => p.status === stage);
       return `
@@ -556,8 +557,11 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { updated = [] } = await res.json();
       if (updated.length) {
-        await Store.bulkUpdate(updated.map(u => ({ id: u.id, patch: { soldPrice: u.soldPrice, status: 'Sold' } })));
-        showToast(`${updated.length} propert${updated.length === 1 ? 'y' : 'ies'} marked sold`, 'success');
+        // Only populate the soldPrice — don't change the user's pipeline
+        // status. They decide whether to move the card to Accepted Contract
+        // (we bought it) or Offer Lost (someone else bought it).
+        await Store.bulkUpdate(updated.map(u => ({ id: u.id, patch: { soldPrice: u.soldPrice } })));
+        showToast(`Sold price found for ${updated.length} propert${updated.length === 1 ? 'y' : 'ies'}`, 'success');
       } else {
         showToast('No new sold listings found', 'success');
       }

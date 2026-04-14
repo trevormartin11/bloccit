@@ -48,7 +48,7 @@ exports.handler = async (event) => {
     if (updated.length) {
       const patched = list.map(p => {
         const u = updated.find(x => x.id === p.id);
-        return u ? { ...p, soldPrice: u.soldPrice, status: 'Sold', soldCheckedAt: new Date().toISOString() } : p;
+        return u ? { ...p, soldPrice: u.soldPrice, soldCheckedAt: new Date().toISOString() } : p;
       });
       await store.setJSON('properties', patched);
     }
@@ -70,7 +70,7 @@ async function findSoldUpdates(properties, apiKey) {
   // Only check ones that are still in the pipeline, not already sold/archived.
   const candidates = properties.filter(p =>
     p && p.address && !p.soldPrice &&
-    p.status !== 'Sold' && p.status !== 'Archived'
+    !['Offer Lost', 'Bad Deal', 'Accepted Contract'].includes(p.status)
   );
 
   // Throttle — at most N concurrent lookups.

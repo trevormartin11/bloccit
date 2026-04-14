@@ -101,11 +101,11 @@
 
             <div class="kpi-card kpi-rose">
               <div class="kpi-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s7 5 7 12a7 7 0 0 1-14 0c0-7 7-12 7-12Z"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M9 17V9M13 17v-5M17 17v-3"/></svg>
               </div>
-              <div class="kpi-label">Hot Leads</div>
+              <div class="kpi-label">Offers Out</div>
               <div class="kpi-value" id="kpi-hot">0</div>
-              <div class="kpi-sub">high-priority now</div>
+              <div class="kpi-sub">awaiting response</div>
             </div>
 
             <div class="kpi-card kpi-violet">
@@ -130,9 +130,9 @@
               <div class="kpi-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
               </div>
-              <div class="kpi-label">Closed (Sold)</div>
+              <div class="kpi-label">Deals Won</div>
               <div class="kpi-value" id="kpi-sold">0</div>
-              <div class="kpi-sub">deals completed</div>
+              <div class="kpi-sub">accepted contracts</div>
             </div>
           </div>
 
@@ -189,13 +189,12 @@
               <select id="filter-status" class="select">
                 <option value="">All statuses</option>
                 <option>New</option>
-                <option>Cold</option>
-                <option>Warm</option>
-                <option>Hot</option>
-                <option>Follow Up</option>
-                <option>Under Contract</option>
-                <option>Sold</option>
-                <option>Archived</option>
+                <option>Analyzed</option>
+                <option>Property Visit</option>
+                <option>Offer Submitted</option>
+                <option>Accepted Contract</option>
+                <option>Offer Lost</option>
+                <option>Bad Deal</option>
               </select>
               <select id="filter-strategy" class="select">
                 <option value="">All strategies</option>
@@ -334,8 +333,9 @@
             <label>
               <span>Status</span>
               <select name="status">
-                <option>New</option><option>Cold</option><option>Warm</option><option>Hot</option>
-                <option>Follow Up</option><option>Under Contract</option><option>Sold</option><option>Archived</option>
+                <option>New</option><option>Analyzed</option><option>Property Visit</option>
+                <option>Offer Submitted</option><option>Accepted Contract</option>
+                <option>Offer Lost</option><option>Bad Deal</option>
               </select>
             </label>
             <label>
