@@ -115,12 +115,15 @@ function humanizeAddressSlug(slug) {
 }
 
 // RentCast: GET /properties?address=...
+// Verified response shape (April 2025): formattedAddress, propertyType,
+// bedrooms, bathrooms, squareFootage, yearBuilt, owner {names:[], type}.
+// lastSalePrice is NOT top-level — it lives in history[date].price where
+// event === 'Sale' (and only for some properties).
 async function lookupRentcast(address, apiKey) {
   if (!address) throw new Error('No address to look up');
 
-  const url = 'https://api.rentcast.io/v1/properties?' +
-              new URLSearchParams({ address });
-  const res = await fetch(url, {
+  const res = await fetch('https://api.rentcast.io/v1/properties?' +
+    new URLSearchParams({ address }), {
     headers: { 'X-Api-Key': apiKey, 'Accept': 'application/json', 'User-Agent': UA }
   });
   if (!res.ok) throw new Error(`RentCast ${res.status}`);
@@ -128,18 +131,15 @@ async function lookupRentcast(address, apiKey) {
   const hit = Array.isArray(body) ? body[0] : body;
   if (!hit) throw new Error('No matching property found');
 
-  // Also fetch an ARV-ish value estimate.
-  let arv = null;
-  try {
-    const valRes = await fetch('https://api.rentcast.io/v1/avm/value?' +
-      new URLSearchParams({ address }), {
-      headers: { 'X-Api-Key': apiKey, 'Accept': 'application/json', 'User-Agent': UA }
-    });
-    if (valRes.ok) {
-      const v = await valRes.json();
-      arv = v?.price || v?.value || null;
-    }
-  } catch (_) {}
+  // Parallel: fetch AVM value estimate (for ARV) and the most recent listing
+  // (so we can surface the original asking price).
+  const [avm, listing] = await Promise.all([
+    fetchJson('https://api.rentcast.io/v1/avm/value?' + new URLSearchParams({ address }), apiKey),
+    fetchJson('https://api.rentcast.io/v1/listings/sale?' + new URLSearchParams({ address, limit: '1' }), apiKey)
+  ]);
+
+  const arv = avm?.price || avm?.value || null;
+  const latestListing = Array.isArray(listing) ? listing[0] : listing;
 
   return {
     address: hit.formattedAddress || address,
@@ -148,24 +148,52 @@ async function lookupRentcast(address, apiKey) {
     baths: hit.bathrooms || null,
     sqft: hit.squareFootage || null,
     yearBuilt: hit.yearBuilt || null,
-    askingPrice: hit.lastSalePrice || null,
+    askingPrice: latestListing?.price || latestSalePrice(hit) || null,
     arv: arv,
-    ownerName: hit.owner?.names?.[0] || null,
-    ownerType: hit.owner?.type === 'Company' ? 'Corporate' : hit.owner ? 'Individual' : null,
+    ownerName: (hit.owner?.names || []).join(' & ') || null,
+    ownerType: mapOwnerType(hit.owner?.type),
     status: 'New',
     dealType: 'MLS',
     strategy: 'Flip'
   };
 }
 
+async function fetchJson(url, apiKey) {
+  try {
+    const r = await fetch(url, {
+      headers: { 'X-Api-Key': apiKey, 'Accept': 'application/json', 'User-Agent': UA }
+    });
+    if (!r.ok) return null;
+    return r.json();
+  } catch { return null; }
+}
+
+// Walk the property's sale history and return the most recent priced sale.
+function latestSalePrice(property) {
+  const hist = property?.history;
+  if (!hist || typeof hist !== 'object') return null;
+  const entries = Object.entries(hist)
+    .filter(([, v]) => v?.event === 'Sale' && typeof v.price === 'number')
+    .sort(([a], [b]) => (a < b ? 1 : -1)); // newest first by date key
+  return entries[0]?.[1].price || null;
+}
+
 function mapPropertyType(t) {
   if (!t) return 'SFR';
   const s = String(t).toLowerCase();
   if (s.includes('single')) return 'SFR';
-  if (s.includes('multi')) return 'Multi-Family';
-  if (s.includes('condo')) return 'Condo';
+  if (s.includes('multi') || s.includes('duplex') || s.includes('triplex') || s.includes('fourplex')) return 'Multi-Family';
+  if (s.includes('condo') || s.includes('apartment')) return 'Condo';
   if (s.includes('town')) return 'Townhome';
-  if (s.includes('land')) return 'Land';
+  if (s.includes('land') || s.includes('vacant')) return 'Land';
   if (s.includes('commerc')) return 'Commercial';
   return 'SFR';
+}
+
+function mapOwnerType(t) {
+  if (!t) return null;
+  const s = String(t).toLowerCase();
+  if (s.includes('company') || s.includes('corp') || s.includes('llc')) return 'Corporate';
+  if (s.includes('trust')) return 'Trust';
+  return 'Individual';
 }

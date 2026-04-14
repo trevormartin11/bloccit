@@ -89,21 +89,28 @@ async function findSoldUpdates(properties, apiKey) {
 
 async function lookupSoldPrice(address, apiKey) {
   if (!apiKey) return null;
-  // RentCast "sale listings" endpoint — returns recent sales if any.
+  // RentCast /listings/sale returns the most recent listing for the address.
+  // When status === 'Inactive' and the removedDate is recent, the listing
+  // was de-listed (typically because it sold). The free API doesn't expose
+  // the actual closing price, so we use the final list price as the best
+  // available proxy.
   try {
     const url = 'https://api.rentcast.io/v1/listings/sale?' +
-                new URLSearchParams({ address, status: 'Inactive', limit: '1' });
+                new URLSearchParams({ address, limit: '1' });
     const res = await fetch(url, {
       headers: { 'X-Api-Key': apiKey, 'Accept': 'application/json' }
     });
     if (!res.ok) return null;
     const arr = await res.json();
     const hit = Array.isArray(arr) ? arr[0] : null;
-    // Only consider recent sales (last 90 days).
-    if (!hit || !hit.lastSeenDate) return null;
-    const days = (Date.now() - new Date(hit.lastSeenDate).getTime()) / 86400000;
-    if (days > 90) return null;
-    return hit.price || hit.lastSalePrice || null;
+    if (!hit) return null;
+    // Only treat as "sold" if inactive AND removed in the last 180 days.
+    if (hit.status !== 'Inactive') return null;
+    const endDate = hit.removedDate || hit.lastSeenDate;
+    if (!endDate) return null;
+    const days = (Date.now() - new Date(endDate).getTime()) / 86400000;
+    if (days < 0 || days > 180) return null;
+    return hit.price || null;
   } catch {
     return null;
   }
