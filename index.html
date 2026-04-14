@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlipCRM — Property Pipeline</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">FC</span>
+      <div>
+        <h1>FlipCRM</h1>
+        <p class="tagline">Property Pipeline &amp; Deal Tracker</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="btn-import" class="btn btn-secondary" title="Import a property from an MLS listing or Zillow URL">
+        <span class="icon">⬇</span> MLS Import
+      </button>
+      <button id="btn-add" class="btn btn-primary">
+        <span class="icon">+</span> Add Property
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- KPI Dashboard -->
+    <section class="kpis">
+      <div class="kpi">
+        <div class="kpi-label">Properties</div>
+        <div class="kpi-value" id="kpi-count">0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Hot Leads</div>
+        <div class="kpi-value" id="kpi-hot">0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Pipeline ARV</div>
+        <div class="kpi-value" id="kpi-arv">$0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Potential Profit</div>
+        <div class="kpi-value" id="kpi-profit">$0</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Closed (Sold)</div>
+        <div class="kpi-value" id="kpi-sold">0</div>
+      </div>
+    </section>
+
+    <!-- Filters & Search -->
+    <section class="toolbar">
+      <input id="search" type="search" placeholder="Search address, owner, notes..." />
+      <select id="filter-status">
+        <option value="">All statuses</option>
+        <option>New</option>
+        <option>Cold</option>
+        <option>Warm</option>
+        <option>Hot</option>
+        <option>Follow Up</option>
+        <option>Under Contract</option>
+        <option>Sold</option>
+        <option>Archived</option>
+      </select>
+      <select id="filter-strategy">
+        <option value="">All strategies</option>
+        <option>Flip</option>
+        <option>BRRRR</option>
+        <option>Wholesale</option>
+        <option>Buy &amp; Hold</option>
+      </select>
+      <div class="toolbar-spacer"></div>
+      <button id="btn-check-sold" class="btn btn-ghost" title="Manually trigger a sold-price check for all listings">
+        <span class="icon">↻</span> Check Sold Prices
+      </button>
+      <button id="btn-export" class="btn btn-ghost">Export CSV</button>
+    </section>
+
+    <!-- Properties Table -->
+    <section class="table-wrap">
+      <table class="props">
+        <thead>
+          <tr>
+            <th data-sort="address">Address</th>
+            <th data-sort="status">Status</th>
+            <th data-sort="strategy">Strategy</th>
+            <th data-sort="askingPrice" class="num">Asking</th>
+            <th data-sort="arv" class="num">ARV</th>
+            <th data-sort="rehabEstimate" class="num">Rehab</th>
+            <th data-sort="maxOffer" class="num">Max Offer</th>
+            <th data-sort="soldPrice" class="num">Sold Price</th>
+            <th data-sort="profit" class="num">Profit</th>
+            <th class="actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="props-body">
+          <!-- rows injected -->
+        </tbody>
+      </table>
+      <div id="empty-state" class="empty-state">
+        <p>No properties yet. Click <strong>MLS Import</strong> to pull one from Zillow/MLS, or <strong>Add Property</strong> to enter one manually.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Add/Edit Modal -->
+  <div id="modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <header class="modal-header">
+        <h2 id="modal-title">Add Property</h2>
+        <button class="modal-close" data-close>&times;</button>
+      </header>
+      <form id="prop-form" class="form">
+        <input type="hidden" name="id" />
+
+        <fieldset>
+          <legend>Property</legend>
+          <label class="full">
+            <span>Address</span>
+            <input name="address" required placeholder="123 Main St, Austin, TX 78701" />
+          </label>
+          <label>
+            <span>Status</span>
+            <select name="status">
+              <option>New</option>
+              <option>Cold</option>
+              <option>Warm</option>
+              <option>Hot</option>
+              <option>Follow Up</option>
+              <option>Under Contract</option>
+              <option>Sold</option>
+              <option>Archived</option>
+            </select>
+          </label>
+          <label>
+            <span>Type</span>
+            <select name="propertyType">
+              <option>SFR</option>
+              <option>Multi-Family</option>
+              <option>Condo</option>
+              <option>Townhome</option>
+              <option>Commercial</option>
+              <option>Land</option>
+            </select>
+          </label>
+          <label>
+            <span>Deal Type</span>
+            <select name="dealType">
+              <option>MLS</option>
+              <option>Wholesaler</option>
+              <option>FSBO</option>
+              <option>Foreclosure</option>
+              <option>Auction</option>
+              <option>Off-Market</option>
+            </select>
+          </label>
+          <label>
+            <span>Strategy</span>
+            <select name="strategy">
+              <option>Flip</option>
+              <option>BRRRR</option>
+              <option>Wholesale</option>
+              <option>Buy &amp; Hold</option>
+            </select>
+          </label>
+          <label>
+            <span>Beds</span>
+            <input name="beds" type="number" min="0" step="1" />
+          </label>
+          <label>
+            <span>Baths</span>
+            <input name="baths" type="number" min="0" step="0.5" />
+          </label>
+          <label>
+            <span>Sq Ft</span>
+            <input name="sqft" type="number" min="0" step="1" />
+          </label>
+          <label>
+            <span>Year Built</span>
+            <input name="yearBuilt" type="number" min="1800" max="2100" step="1" />
+          </label>
+          <label class="full">
+            <span>Listing URL</span>
+            <input name="listingUrl" type="url" placeholder="https://www.zillow.com/homedetails/..." />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Deal Numbers</legend>
+          <label>
+            <span>Asking Price</span>
+            <input name="askingPrice" type="number" min="0" step="1000" />
+          </label>
+          <label>
+            <span>ARV (After Repair Value)</span>
+            <input name="arv" type="number" min="0" step="1000" />
+          </label>
+          <label>
+            <span>Rehab Estimate</span>
+            <input name="rehabEstimate" type="number" min="0" step="500" placeholder="Estimated repair cost" />
+          </label>
+          <label>
+            <span>
+              Max Offer
+              <button type="button" id="btn-calc-max" class="mini-btn" title="Auto-calc using 70% rule: ARV × 0.70 − Rehab">70% Rule</button>
+            </span>
+            <input name="maxOffer" type="number" min="0" step="500" placeholder="Walk-away number" />
+          </label>
+          <label>
+            <span>Offer Submitted</span>
+            <input name="offerAmount" type="number" min="0" step="500" />
+          </label>
+          <label>
+            <span>Sold Price <small class="muted">(auto-updated nightly)</small></span>
+            <input name="soldPrice" type="number" min="0" step="1000" readonly />
+          </label>
+          <div class="calc-note full" id="calc-note" hidden></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Owner &amp; Contact</legend>
+          <label>
+            <span>Owner Name</span>
+            <input name="ownerName" />
+          </label>
+          <label>
+            <span>Owner Type</span>
+            <select name="ownerType">
+              <option value="">—</option>
+              <option>Individual</option>
+              <option>Corporate</option>
+              <option>Trust</option>
+            </select>
+          </label>
+          <label>
+            <span>Phone</span>
+            <input name="ownerPhone" type="tel" />
+          </label>
+          <label>
+            <span>Email</span>
+            <input name="ownerEmail" type="email" />
+          </label>
+          <label>
+            <span>Last Contact</span>
+            <input name="lastContact" type="date" />
+          </label>
+          <label class="full">
+            <span>Notes</span>
+            <textarea name="notes" rows="3" placeholder="Condition, motivation, next steps..."></textarea>
+          </label>
+        </fieldset>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Property</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <!-- MLS Import Modal -->
+  <div id="import-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card modal-sm">
+      <header class="modal-header">
+        <h2>MLS / Zillow Import</h2>
+        <button class="modal-close" data-close-import>&times;</button>
+      </header>
+      <div class="form">
+        <p class="muted">
+          Paste a Zillow, Redfin, or Realtor.com listing URL — or type an address.
+          We'll pull the fields automatically.
+        </p>
+        <label class="full">
+          <span>Listing URL or Address</span>
+          <input id="import-input" placeholder="https://www.zillow.com/homedetails/... or 123 Main St, Austin, TX" />
+        </label>
+        <div id="import-status" class="import-status" hidden></div>
+        <footer class="modal-footer">
+          <button type="button" class="btn btn-ghost" data-close-import>Cancel</button>
+          <button type="button" id="btn-do-import" class="btn btn-primary">Fetch &amp; Import</button>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/js/storage.js"></script>
+  <script src="/js/mls.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
