@@ -15,7 +15,6 @@
   const importInput = $('#import-input');
   const importStatus = $('#import-status');
   const toast = $('#toast');
-  const calcNote = $('#calc-note');
   const searchInput = $('#search');
   const filterStatus = $('#filter-status');
   const filterStrategy = $('#filter-strategy');
@@ -57,13 +56,6 @@
     const rehab = Number(p.rehabEstimate) || 0;
     if (!arv || !maxOffer) return null;
     return Math.round(arv - maxOffer - rehab - arv * 0.1);
-  }
-
-  function seventyPercentRule(arv, rehab) {
-    const a = Number(arv) || 0;
-    const r = Number(rehab) || 0;
-    if (!a) return null;
-    return Math.max(0, Math.round(a * 0.7 - r));
   }
 
   function timeAgo(iso) {
@@ -348,7 +340,6 @@
   // ---- Modal (add/edit) -------------------------------------------------
   function openModal(prop) {
     form.reset();
-    calcNote.hidden = true;
     if (prop) {
       modalTitle.textContent = 'Edit Property';
       Object.entries(prop).forEach(([k, v]) => {
@@ -372,13 +363,8 @@
       const el = form.elements.namedItem(k);
       if (el && v !== null && v !== undefined && v !== '') el.value = v;
     });
-    if (data.arv) {
-      const m = seventyPercentRule(data.arv, data.rehabEstimate || 0);
-      const maxEl = form.elements.namedItem('maxOffer');
-      if (!maxEl.value) maxEl.value = m;
-      calcNote.hidden = false;
-      calcNote.innerHTML = `Auto-suggested Max Offer using the <strong>70% rule</strong>: ARV × 0.70 − Rehab = ${fmtMoneyFull(m)}.`;
-    }
+    // ARV and Max Offer are never auto-filled — they're deal-specific judgment
+    // calls that depend on the investor's rehab scope and market take.
     if (data._warning) showToast(data._warning, 'error');
   }
 

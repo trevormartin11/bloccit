@@ -155,14 +155,14 @@ async function lookupRentcast(address, apiKey) {
   const hit = Array.isArray(body) ? body[0] : body;
   if (!hit) throw new Error('No matching property found');
 
-  // Parallel: fetch AVM value estimate (for ARV) and the most recent listing
-  // (so we can surface the original asking price).
-  const [avm, listing] = await Promise.all([
-    fetchJson('https://api.rentcast.io/v1/avm/value?' + new URLSearchParams({ address }), apiKey),
-    fetchJson('https://api.rentcast.io/v1/listings/sale?' + new URLSearchParams({ address, limit: '1' }), apiKey)
-  ]);
-
-  const arv = avm?.price || avm?.value || null;
+  // Fetch the most recent listing for asking-price. We deliberately do NOT
+  // call /v1/avm/value — ARV is a human decision that factors in the rehab
+  // scope, and pulling the AVM was costing an API token per import without
+  // adding real value. User fills ARV + Max Offer manually.
+  const listing = await fetchJson(
+    'https://api.rentcast.io/v1/listings/sale?' + new URLSearchParams({ address, limit: '1' }),
+    apiKey
+  );
   const latestListing = Array.isArray(listing) ? listing[0] : listing;
 
   return {
@@ -173,7 +173,6 @@ async function lookupRentcast(address, apiKey) {
     sqft: hit.squareFootage || null,
     yearBuilt: hit.yearBuilt || null,
     askingPrice: latestListing?.price || latestSalePrice(hit) || null,
-    arv: arv,
     ownerName: (hit.owner?.names || []).join(' & ') || null,
     ownerType: mapOwnerType(hit.owner?.type),
     status: 'New',
