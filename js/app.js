@@ -49,12 +49,45 @@
   };
   const num = v => (v === '' || v === null || v === undefined ? null : Number(v));
 
+  // Financing cost assumes a hard-money-style loan that covers Purchase +
+  // Rehab + accrued interest at 10% annual + 1% origination. Because the
+  // interest itself is financed, the loan balance is self-referential:
+  //   Base  = Purchase + Rehab
+  //   Loan  = Base / (1 − rate × days/365)
+  //   Intr  = Loan − Base
+  //   Orig  = Loan × 0.01
+  //   Total = Intr + Orig
+  const ANNUAL_RATE = 0.10;
+  const ORIGINATION = 0.01;
+  const SELLING_COST_RATE = 0.06; // agent commission on resale
+  const DEFAULT_DAYS_HELD = 180;
+
+  function financing(p) {
+    const purchase = Number(p.offerAmount) || Number(p.maxOffer) || 0;
+    const rehab = Number(p.rehabEstimate) || 0;
+    const days = Number(p.daysHeld) || DEFAULT_DAYS_HELD;
+    const base = purchase + rehab;
+    if (!base) return null;
+    const iFrac = ANNUAL_RATE * (days / 365);
+    if (iFrac >= 1) return null;
+    const loan = base / (1 - iFrac);
+    const interest = loan - base;
+    const origination = loan * ORIGINATION;
+    return {
+      purchase, rehab, days, base,
+      loan: Math.round(loan),
+      interest: Math.round(interest),
+      origination: Math.round(origination),
+      total: Math.round(interest + origination)
+    };
+  }
+
   function potentialProfit(p) {
     const arv = Number(p.arv) || 0;
-    const maxOffer = Number(p.maxOffer) || 0;
-    const rehab = Number(p.rehabEstimate) || 0;
-    if (!arv || !maxOffer) return null;
-    return Math.round(arv - maxOffer - rehab - arv * 0.1);
+    const fin = financing(p);
+    if (!arv || !fin) return null;
+    const sellingCost = arv * SELLING_COST_RATE;
+    return Math.round(arv - fin.purchase - fin.rehab - fin.total - sellingCost);
   }
 
   function timeAgo(iso) {
@@ -347,15 +380,65 @@
         const el = form.elements.namedItem(k);
         if (el) el.value = v ?? '';
       });
+      if (!form.elements.namedItem('daysHeld').value) {
+        form.elements.namedItem('daysHeld').value = DEFAULT_DAYS_HELD;
+      }
     } else {
       modalTitle.textContent = 'Add Property';
       form.elements.namedItem('id').value = '';
       form.elements.namedItem('status').value = 'New';
+      form.elements.namedItem('daysHeld').value = DEFAULT_DAYS_HELD;
     }
+    updateFinancePanel();
     modal.classList.remove('hidden');
     setTimeout(() => form.elements.namedItem('address').focus(), 50);
   }
   function closeModal() { modal.classList.add('hidden'); }
+
+  // Reads current form values and renders the Financing & Profit panel.
+  function updateFinancePanel() {
+    const el = $('#finance-panel');
+    const read = name => {
+      const v = form.elements.namedItem(name)?.value;
+      return v === '' || v == null ? null : Number(v);
+    };
+    const p = {
+      arv: read('arv'),
+      rehabEstimate: read('rehabEstimate'),
+      maxOffer: read('maxOffer'),
+      offerAmount: read('offerAmount'),
+      daysHeld: read('daysHeld')
+    };
+    const fin = financing(p);
+    const arv = Number(p.arv) || 0;
+    if (!fin) {
+      el.innerHTML = `<p class="finance-empty">Enter a Purchase (Max Offer or Offer Submitted) and Rehab to see financing costs.</p>`;
+      return;
+    }
+    const sellingCost = Math.round(arv * SELLING_COST_RATE);
+    const profit = arv ? arv - fin.purchase - fin.rehab - fin.total - sellingCost : null;
+    const profitClass = profit == null ? '' : profit >= 0 ? 'positive' : 'negative';
+
+    el.innerHTML = `
+      <div class="finance-grid">
+        <div class="finance-row"><span>Purchase price</span><span>${fmtMoneyFull(fin.purchase)}</span></div>
+        <div class="finance-row"><span>Rehab</span><span>${fmtMoneyFull(fin.rehab)}</span></div>
+        <div class="finance-row"><span>Days held</span><span>${fin.days}</span></div>
+        <div class="finance-divider"></div>
+        <div class="finance-row"><span>Loan amount <small>(Purchase + Rehab + Interest)</small></span><span>${fmtMoneyFull(fin.loan)}</span></div>
+        <div class="finance-row muted-row"><span>Interest (10% annual, capitalized)</span><span>${fmtMoneyFull(fin.interest)}</span></div>
+        <div class="finance-row muted-row"><span>Origination (1% of loan)</span><span>${fmtMoneyFull(fin.origination)}</span></div>
+        <div class="finance-row total-row"><span>Total financing cost</span><span>${fmtMoneyFull(fin.total)}</span></div>
+        <div class="finance-divider"></div>
+        <div class="finance-row"><span>Est. ARV</span><span>${fmtMoneyFull(arv || null)}</span></div>
+        <div class="finance-row muted-row"><span>Selling cost (6% of ARV)</span><span>${fmtMoneyFull(sellingCost || null)}</span></div>
+        <div class="finance-row profit-row ${profitClass}">
+          <span>Projected profit</span>
+          <span>${profit == null ? '—' : fmtMoneyFull(profit)}</span>
+        </div>
+      </div>
+    `;
+  }
 
   function prefillFromImport(data) {
     openModal(null);
@@ -465,13 +548,18 @@
     if (e.key === 'Escape') { closeModal(); importModal.classList.add('hidden'); }
   });
 
+  // Live-update the Financing panel whenever any of its inputs change.
+  ['arv', 'rehabEstimate', 'maxOffer', 'offerAmount', 'daysHeld'].forEach(name => {
+    form.elements.namedItem(name)?.addEventListener('input', updateFinancePanel);
+  });
+
   // Form submit
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = {};
     const numericFields = new Set([
       'beds', 'baths', 'sqft', 'yearBuilt',
-      'askingPrice', 'arv', 'rehabEstimate', 'maxOffer', 'offerAmount', 'soldPrice'
+      'askingPrice', 'arv', 'rehabEstimate', 'maxOffer', 'offerAmount', 'daysHeld', 'soldPrice'
     ]);
     new FormData(form).forEach((v, k) => {
       if (numericFields.has(k)) data[k] = v === '' ? null : Number(v);

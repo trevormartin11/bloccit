@@ -408,9 +408,23 @@
               <input name="offerAmount" type="number" min="0" step="500" />
             </label>
             <label>
+              <span>Days Held <small class="muted">(for financing calc)</small></span>
+              <input name="daysHeld" type="number" min="1" step="1" placeholder="180" />
+            </label>
+            <label>
               <span>Sold Price <small class="muted">(auto-updated weekly)</small></span>
               <input name="soldPrice" type="number" min="0" step="1000" readonly />
             </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 4 4 5-5"/></svg>
+            <h3>Financing &amp; profit projection</h3>
+          </div>
+          <div id="finance-panel" class="finance-panel">
+            <p class="finance-empty">Enter a Purchase (Max Offer or Offer Submitted), Rehab, and ARV to see financing costs and projected profit.</p>
           </div>
         </div>
 

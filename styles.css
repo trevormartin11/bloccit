@@ -893,14 +893,71 @@ table.props tbody tr:hover { background: var(--panel-alt); cursor: pointer; }
   font-family: 'SFMono-Regular', Consolas, monospace;
 }
 
-.calc-note {
-  padding: 10px 12px;
-  background: var(--primary-soft);
-  border: 1px solid #c7d2fe;
-  border-radius: var(--radius-sm);
-  color: #3730a3;
+/* Financing & profit projection panel */
+.finance-panel {
+  background: linear-gradient(180deg, #fafbfc 0%, #f3f4f6 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+}
+.finance-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  padding: 8px 0;
+}
+.finance-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.finance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  padding: 4px 0;
+  gap: 12px;
+}
+.finance-row > span:first-child {
+  color: var(--text);
+  font-weight: 500;
+}
+.finance-row > span:first-child small {
+  color: var(--text-subtle);
+  font-weight: 400;
+  font-size: 11px;
+  margin-left: 4px;
+}
+.finance-row > span:last-child {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text);
+}
+.finance-row.muted-row {
+  padding-left: 12px;
   font-size: 12px;
-  line-height: 1.5;
+}
+.finance-row.muted-row > span { color: var(--text-muted); font-weight: 500; }
+.finance-row.total-row {
+  font-weight: 600;
+  padding-top: 6px;
+}
+.finance-row.profit-row {
+  padding-top: 8px;
+  padding-bottom: 4px;
+  margin-top: 4px;
+  border-top: 2px solid var(--border);
+  font-size: 15px;
+}
+.finance-row.profit-row > span { font-weight: 700; font-size: 15px; }
+.finance-row.profit-row.positive > span:last-child { color: var(--success); }
+.finance-row.profit-row.negative > span:last-child { color: var(--danger); }
+.finance-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
 }
 
 .import-status {
