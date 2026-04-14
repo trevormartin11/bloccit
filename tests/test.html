@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>FlipCRM tests</title>
+  <style>
+    body { font-family: ui-monospace, Menlo, monospace; padding: 24px; background: #f8fafc; }
+    .pass { color: #10b981; }
+    .fail { color: #e11d48; font-weight: bold; }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    h2 { font-size: 14px; margin: 16px 0 8px; }
+    pre { margin: 4px 0 12px 20px; font-size: 12px; color: #b91c1c; }
+    .line { padding: 4px 0; }
+    .summary { margin-top: 16px; padding: 12px; background: #fff; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>FlipCRM tests</h1>
+  <p><a href="../">← back to app</a></p>
+  <div id="out">Running...</div>
+
+  <script src="../js/storage.js"></script>
+  <script>
+    const results = [];
+    async function test(name, fn) {
+      try { await fn(); results.push({ name, ok: true }); }
+      catch (err) { results.push({ name, ok: false, err }); }
+    }
+    function assert(cond, msg) { if (!cond) throw new Error(msg || 'assertion failed'); }
+    function eq(a, b, msg) { if (a !== b) throw new Error((msg || 'not equal') + `: got ${JSON.stringify(a)}, want ${JSON.stringify(b)}`); }
+
+    // Pure money-math helpers (mirror of app.js; tested independently).
+    function potentialProfit(p) {
+      const arv = Number(p.arv) || 0;
+      const maxOffer = Number(p.maxOffer) || 0;
+      const rehab = Number(p.rehabEstimate) || 0;
+      if (!arv || !maxOffer) return null;
+      return Math.round(arv - maxOffer - rehab - arv * 0.1);
+    }
+    function seventyPercentRule(arv, rehab) {
+      const a = Number(arv) || 0;
+      const r = Number(rehab) || 0;
+      if (!a) return null;
+      return Math.max(0, Math.round(a * 0.7 - r));
+    }
+
+    (async () => {
+      // 70% rule
+      await test('70% rule: classic 300k ARV, 50k rehab -> 160k', () =>
+        eq(seventyPercentRule(300000, 50000), 160000));
+      await test('70% rule: no rehab -> ARV × 0.7', () =>
+        eq(seventyPercentRule(400000, 0), 280000));
+      await test('70% rule: rehab > 70% of ARV -> floored at 0', () =>
+        eq(seventyPercentRule(200000, 500000), 0));
+      await test('70% rule: missing ARV -> null', () => {
+        eq(seventyPercentRule(0, 50000), null);
+        eq(seventyPercentRule(null, 50000), null);
+      });
+
+      // potential profit
+      await test('profit: classic flip (300k/160k/50k) -> 60k', () =>
+        eq(potentialProfit({ arv: 300000, maxOffer: 160000, rehabEstimate: 50000 }), 60000));
+      await test('profit: missing maxOffer -> null', () =>
+        eq(potentialProfit({ arv: 300000 }), null));
+      await test('profit: missing ARV -> null', () =>
+        eq(potentialProfit({ maxOffer: 100000 }), null));
+      await test('profit: bad deal is negative', () => {
+        const p = potentialProfit({ arv: 300000, maxOffer: 290000, rehabEstimate: 50000 });
+        assert(p < 0, `expected negative, got ${p}`);
+      });
+
+      // Store round-trip
+      await test('Store: add / update / remove round-trip', async () => {
+        localStorage.clear();
+        const rec = await Store.add({ address: '1 Test St', status: 'New' });
+        assert(rec.id, 'should assign id');
+        eq(Store.get(rec.id).address, '1 Test St');
+        await Store.update(rec.id, { status: 'Hot' });
+        eq(Store.get(rec.id).status, 'Hot');
+        await Store.remove(rec.id);
+        eq(Store.get(rec.id), undefined);
+      });
+
+      await test('Store: export / import JSON preserves data', async () => {
+        localStorage.clear();
+        await Store.add({ address: '1 Export Rd', status: 'Warm', arv: 250000 });
+        const json = Store.exportJSON();
+        Store.clearAll();
+        eq(Store.all().length, 0);
+        Store.importJSON(json);
+        eq(Store.all().length, 1);
+        eq(Store.all()[0].address, '1 Export Rd');
+        eq(Store.all()[0].arv, 250000);
+        localStorage.clear();
+      });
+
+      await test('Store: activity log tracks mutations', async () => {
+        localStorage.clear();
+        const rec = await Store.add({ address: '2 Logger Ln' });
+        await Store.update(rec.id, { status: 'Hot' });
+        const act = Store.activity();
+        assert(act.length >= 2, 'expected activity entries');
+        assert(act[0].title.includes('Hot'), 'most recent entry should mention new status');
+        localStorage.clear();
+      });
+
+      // Render
+      const passed = results.filter(r => r.ok).length;
+      const failed = results.filter(r => !r.ok).length;
+      const summary = `${passed} passed, ${failed} failed`;
+      document.title = (failed ? '✗ ' : '✓ ') + summary;
+      document.getElementById('out').innerHTML = `
+        <div class="summary"><strong>${summary}</strong></div>
+        ${results.map(r =>
+          `<div class="line ${r.ok ? 'pass' : 'fail'}">
+            ${r.ok ? '✓' : '✗'} ${r.name}
+            ${r.err ? `<pre>${r.err.stack || r.err.message}</pre>` : ''}
+          </div>`
+        ).join('')}
+      `;
+    })();
+  </script>
+</body>
+</html>

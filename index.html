@@ -4,250 +4,452 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FlipCRM — Property Pipeline</title>
-  <link rel="stylesheet" href="/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='50%25' y='55%25' font-family='Inter,sans-serif' font-size='16' font-weight='700' fill='white' text-anchor='middle' dominant-baseline='middle'%3EFC%3C/text%3E%3C/svg%3E" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="logo">FC</span>
-      <div>
-        <h1>FlipCRM</h1>
-        <p class="tagline">Property Pipeline &amp; Deal Tracker</p>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo"></div>
+        <div>
+          <div class="brand-name">FlipCRM</div>
+          <div class="brand-sub">Deal Pipeline</div>
+        </div>
       </div>
+
+      <nav class="nav">
+        <a href="#dashboard" class="nav-item active" data-view="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="#pipeline" class="nav-item" data-view="pipeline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          <span>Pipeline</span>
+          <span class="nav-count" id="nav-count-pipeline">0</span>
+        </a>
+        <a href="#properties" class="nav-item" data-view="properties">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z"/></svg>
+          <span>Properties</span>
+          <span class="nav-count" id="nav-count-properties">0</span>
+        </a>
+        <a href="#settings" class="nav-item" data-view="settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sync-pill" id="sync-pill">
+          <span class="dot"></span>
+          <span id="sync-label">Local only</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="search" type="search" placeholder="Search by address, owner, notes..." />
+        </div>
+        <div class="topbar-actions">
+          <button id="btn-import" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>MLS Import</span>
+          </button>
+          <button id="btn-add" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>Add Property</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Demo-mode banner (visible when serverless functions aren't available) -->
+      <div id="demo-banner" class="demo-banner hidden">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        <div>
+          <strong>Demo mode.</strong> You're running on GitHub Pages, so automatic MLS data import and nightly Sold Price checks are disabled.
+          <a href="#settings" data-view="settings">Open Settings</a> to wire up Supabase sync + API keys, or deploy to Netlify for the full experience.
+        </div>
+        <button class="banner-close" id="dismiss-banner" aria-label="Dismiss">&times;</button>
+      </div>
+
+      <main class="content">
+        <!-- ======================== DASHBOARD VIEW ======================== -->
+        <section class="view" data-view="dashboard">
+          <div class="view-header">
+            <div>
+              <h1>Dashboard</h1>
+              <p class="view-sub">Your deal pipeline at a glance.</p>
+            </div>
+          </div>
+
+          <div class="kpi-grid">
+            <div class="kpi-card kpi-indigo">
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z"/></svg>
+              </div>
+              <div class="kpi-label">Properties</div>
+              <div class="kpi-value" id="kpi-count">0</div>
+              <div class="kpi-sub" id="kpi-count-sub">across your pipeline</div>
+            </div>
+
+            <div class="kpi-card kpi-rose">
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s7 5 7 12a7 7 0 0 1-14 0c0-7 7-12 7-12Z"/></svg>
+              </div>
+              <div class="kpi-label">Hot Leads</div>
+              <div class="kpi-value" id="kpi-hot">0</div>
+              <div class="kpi-sub">high-priority now</div>
+            </div>
+
+            <div class="kpi-card kpi-violet">
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-4 4 4 5-5"/></svg>
+              </div>
+              <div class="kpi-label">Pipeline ARV</div>
+              <div class="kpi-value" id="kpi-arv">$0</div>
+              <div class="kpi-sub">total potential value</div>
+            </div>
+
+            <div class="kpi-card kpi-emerald">
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div class="kpi-label">Potential Profit</div>
+              <div class="kpi-value" id="kpi-profit">$0</div>
+              <div class="kpi-sub">ARV − Offer − Rehab − 10%</div>
+            </div>
+
+            <div class="kpi-card kpi-sky">
+              <div class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+              </div>
+              <div class="kpi-label">Closed (Sold)</div>
+              <div class="kpi-value" id="kpi-sold">0</div>
+              <div class="kpi-sub">deals completed</div>
+            </div>
+          </div>
+
+          <div class="dash-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Pipeline by stage</h2>
+                <button class="link-btn" data-view="pipeline">View board →</button>
+              </div>
+              <div id="funnel" class="funnel">
+                <!-- populated by JS -->
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Recent activity</h2>
+              </div>
+              <ul id="activity" class="activity-list">
+                <li class="activity-empty">No activity yet — add a property to get started.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================== PIPELINE (KANBAN) VIEW ======================== -->
+        <section class="view hidden" data-view="pipeline">
+          <div class="view-header">
+            <div>
+              <h1>Pipeline</h1>
+              <p class="view-sub">Drag properties between columns to update their status.</p>
+            </div>
+            <div class="view-actions">
+              <button id="btn-check-sold" class="btn btn-ghost" title="Check if any listings have sold">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-9-9 9 9 0 0 1 9-9 9 9 0 0 1 7.5 4"/><path d="M21 3v5h-5"/></svg>
+                <span>Check Sold Prices</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="kanban" class="kanban">
+            <!-- columns injected by JS -->
+          </div>
+        </section>
+
+        <!-- ======================== PROPERTIES (TABLE) VIEW ======================== -->
+        <section class="view hidden" data-view="properties">
+          <div class="view-header">
+            <div>
+              <h1>Properties</h1>
+              <p class="view-sub">Full list of every deal you're tracking.</p>
+            </div>
+            <div class="view-actions">
+              <select id="filter-status" class="select">
+                <option value="">All statuses</option>
+                <option>New</option>
+                <option>Cold</option>
+                <option>Warm</option>
+                <option>Hot</option>
+                <option>Follow Up</option>
+                <option>Under Contract</option>
+                <option>Sold</option>
+                <option>Archived</option>
+              </select>
+              <select id="filter-strategy" class="select">
+                <option value="">All strategies</option>
+                <option>Flip</option>
+                <option>BRRRR</option>
+                <option>Wholesale</option>
+                <option>Buy &amp; Hold</option>
+              </select>
+              <button id="btn-export" class="btn btn-ghost">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="panel no-pad">
+            <div class="table-wrap">
+              <table class="props">
+                <thead>
+                  <tr>
+                    <th data-sort="address">Property</th>
+                    <th data-sort="status">Status</th>
+                    <th data-sort="strategy">Strategy</th>
+                    <th data-sort="askingPrice" class="num">Asking</th>
+                    <th data-sort="arv" class="num">ARV</th>
+                    <th data-sort="rehabEstimate" class="num">Rehab</th>
+                    <th data-sort="maxOffer" class="num">Max Offer</th>
+                    <th data-sort="soldPrice" class="num">Sold</th>
+                    <th data-sort="profit" class="num">Profit</th>
+                    <th class="actions"></th>
+                  </tr>
+                </thead>
+                <tbody id="props-body"></tbody>
+              </table>
+              <div id="empty-state" class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z"/></svg>
+                <h3>No properties yet</h3>
+                <p>Click <strong>MLS Import</strong> to pull one from Zillow, or <strong>Add Property</strong> to enter one manually.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ======================== SETTINGS VIEW ======================== -->
+        <section class="view hidden" data-view="settings">
+          <div class="view-header">
+            <div>
+              <h1>Settings</h1>
+              <p class="view-sub">Configure data sync, integrations, and preferences.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Team sync (Supabase)</h2>
+            </div>
+            <div class="panel-body">
+              <p class="muted-text">
+                Enable shared data so you and your partner see the same deal pipeline.
+                Create a free project at <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a>,
+                run the <code>schema.sql</code> in the SQL editor, then paste your project URL and anon key below.
+                <a href="https://github.com/trevormartin11/bloccit#team-sync-supabase" target="_blank" rel="noopener">Full instructions →</a>
+              </p>
+              <div class="setting-row">
+                <label>
+                  <span>Supabase URL</span>
+                  <input id="cfg-supabase-url" placeholder="https://xxxx.supabase.co" />
+                </label>
+                <label>
+                  <span>Supabase anon key</span>
+                  <input id="cfg-supabase-key" placeholder="eyJhbGci..." type="password" />
+                </label>
+              </div>
+              <div class="settings-actions">
+                <button id="btn-save-sync" class="btn btn-primary">Save &amp; connect</button>
+                <button id="btn-disable-sync" class="btn btn-ghost">Disable sync</button>
+              </div>
+              <div id="sync-status" class="sync-status"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Data</h2>
+            </div>
+            <div class="panel-body">
+              <p class="muted-text">All your property data lives in this browser by default. Export before clearing.</p>
+              <div class="settings-actions">
+                <button id="btn-settings-export" class="btn btn-secondary">Export JSON backup</button>
+                <button id="btn-settings-import" class="btn btn-secondary">Import JSON</button>
+                <input type="file" id="import-file" accept="application/json" hidden />
+                <button id="btn-settings-clear" class="btn btn-danger">Delete all local data</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>About</h2>
+            </div>
+            <div class="panel-body">
+              <p class="muted-text">
+                FlipCRM is a lightweight deal-pipeline tracker. It works offline, syncs optionally via Supabase, and pulls listing
+                data via RentCast when deployed to Netlify with an API key.
+                <a href="https://github.com/trevormartin11/bloccit" target="_blank" rel="noopener">Source on GitHub →</a>
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
-    <div class="topbar-actions">
-      <button id="btn-import" class="btn btn-secondary" title="Import a property from an MLS listing or Zillow URL">
-        <span class="icon">⬇</span> MLS Import
-      </button>
-      <button id="btn-add" class="btn btn-primary">
-        <span class="icon">+</span> Add Property
-      </button>
-    </div>
-  </header>
+  </div>
 
-  <main class="container">
-    <!-- KPI Dashboard -->
-    <section class="kpis">
-      <div class="kpi">
-        <div class="kpi-label">Properties</div>
-        <div class="kpi-value" id="kpi-count">0</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Hot Leads</div>
-        <div class="kpi-value" id="kpi-hot">0</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Pipeline ARV</div>
-        <div class="kpi-value" id="kpi-arv">$0</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Potential Profit</div>
-        <div class="kpi-value" id="kpi-profit">$0</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Closed (Sold)</div>
-        <div class="kpi-value" id="kpi-sold">0</div>
-      </div>
-    </section>
-
-    <!-- Filters & Search -->
-    <section class="toolbar">
-      <input id="search" type="search" placeholder="Search address, owner, notes..." />
-      <select id="filter-status">
-        <option value="">All statuses</option>
-        <option>New</option>
-        <option>Cold</option>
-        <option>Warm</option>
-        <option>Hot</option>
-        <option>Follow Up</option>
-        <option>Under Contract</option>
-        <option>Sold</option>
-        <option>Archived</option>
-      </select>
-      <select id="filter-strategy">
-        <option value="">All strategies</option>
-        <option>Flip</option>
-        <option>BRRRR</option>
-        <option>Wholesale</option>
-        <option>Buy &amp; Hold</option>
-      </select>
-      <div class="toolbar-spacer"></div>
-      <button id="btn-check-sold" class="btn btn-ghost" title="Manually trigger a sold-price check for all listings">
-        <span class="icon">↻</span> Check Sold Prices
-      </button>
-      <button id="btn-export" class="btn btn-ghost">Export CSV</button>
-    </section>
-
-    <!-- Properties Table -->
-    <section class="table-wrap">
-      <table class="props">
-        <thead>
-          <tr>
-            <th data-sort="address">Address</th>
-            <th data-sort="status">Status</th>
-            <th data-sort="strategy">Strategy</th>
-            <th data-sort="askingPrice" class="num">Asking</th>
-            <th data-sort="arv" class="num">ARV</th>
-            <th data-sort="rehabEstimate" class="num">Rehab</th>
-            <th data-sort="maxOffer" class="num">Max Offer</th>
-            <th data-sort="soldPrice" class="num">Sold Price</th>
-            <th data-sort="profit" class="num">Profit</th>
-            <th class="actions">Actions</th>
-          </tr>
-        </thead>
-        <tbody id="props-body">
-          <!-- rows injected -->
-        </tbody>
-      </table>
-      <div id="empty-state" class="empty-state">
-        <p>No properties yet. Click <strong>MLS Import</strong> to pull one from Zillow/MLS, or <strong>Add Property</strong> to enter one manually.</p>
-      </div>
-    </section>
-  </main>
-
-  <!-- Add/Edit Modal -->
+  <!-- ======================== ADD/EDIT MODAL ======================== -->
   <div id="modal" class="modal hidden" aria-hidden="true">
     <div class="modal-card">
       <header class="modal-header">
         <h2 id="modal-title">Add Property</h2>
-        <button class="modal-close" data-close>&times;</button>
+        <button class="modal-close" data-close aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </header>
-      <form id="prop-form" class="form">
+      <form id="prop-form" class="form" novalidate>
         <input type="hidden" name="id" />
 
-        <fieldset>
-          <legend>Property</legend>
-          <label class="full">
-            <span>Address</span>
-            <input name="address" required placeholder="123 Main St, Austin, TX 78701" />
-          </label>
-          <label>
-            <span>Status</span>
-            <select name="status">
-              <option>New</option>
-              <option>Cold</option>
-              <option>Warm</option>
-              <option>Hot</option>
-              <option>Follow Up</option>
-              <option>Under Contract</option>
-              <option>Sold</option>
-              <option>Archived</option>
-            </select>
-          </label>
-          <label>
-            <span>Type</span>
-            <select name="propertyType">
-              <option>SFR</option>
-              <option>Multi-Family</option>
-              <option>Condo</option>
-              <option>Townhome</option>
-              <option>Commercial</option>
-              <option>Land</option>
-            </select>
-          </label>
-          <label>
-            <span>Deal Type</span>
-            <select name="dealType">
-              <option>MLS</option>
-              <option>Wholesaler</option>
-              <option>FSBO</option>
-              <option>Foreclosure</option>
-              <option>Auction</option>
-              <option>Off-Market</option>
-            </select>
-          </label>
-          <label>
-            <span>Strategy</span>
-            <select name="strategy">
-              <option>Flip</option>
-              <option>BRRRR</option>
-              <option>Wholesale</option>
-              <option>Buy &amp; Hold</option>
-            </select>
-          </label>
-          <label>
-            <span>Beds</span>
-            <input name="beds" type="number" min="0" step="1" />
-          </label>
-          <label>
-            <span>Baths</span>
-            <input name="baths" type="number" min="0" step="0.5" />
-          </label>
-          <label>
-            <span>Sq Ft</span>
-            <input name="sqft" type="number" min="0" step="1" />
-          </label>
-          <label>
-            <span>Year Built</span>
-            <input name="yearBuilt" type="number" min="1800" max="2100" step="1" />
-          </label>
-          <label class="full">
-            <span>Listing URL</span>
-            <input name="listingUrl" type="url" placeholder="https://www.zillow.com/homedetails/..." />
-          </label>
-        </fieldset>
+        <div class="form-section">
+          <div class="form-section-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z"/></svg>
+            <h3>Property</h3>
+          </div>
+          <div class="form-grid">
+            <label class="full">
+              <span>Address</span>
+              <input name="address" required placeholder="123 Main St, Austin, TX 78701" />
+            </label>
+            <label>
+              <span>Status</span>
+              <select name="status">
+                <option>New</option><option>Cold</option><option>Warm</option><option>Hot</option>
+                <option>Follow Up</option><option>Under Contract</option><option>Sold</option><option>Archived</option>
+              </select>
+            </label>
+            <label>
+              <span>Type</span>
+              <select name="propertyType">
+                <option>SFR</option><option>Multi-Family</option><option>Condo</option>
+                <option>Townhome</option><option>Commercial</option><option>Land</option>
+              </select>
+            </label>
+            <label>
+              <span>Deal Type</span>
+              <select name="dealType">
+                <option>MLS</option><option>Wholesaler</option><option>FSBO</option>
+                <option>Foreclosure</option><option>Auction</option><option>Off-Market</option>
+              </select>
+            </label>
+            <label>
+              <span>Strategy</span>
+              <select name="strategy">
+                <option>Flip</option><option>BRRRR</option><option>Wholesale</option><option>Buy &amp; Hold</option>
+              </select>
+            </label>
+            <label>
+              <span>Beds</span>
+              <input name="beds" type="number" min="0" step="1" />
+            </label>
+            <label>
+              <span>Baths</span>
+              <input name="baths" type="number" min="0" step="0.5" />
+            </label>
+            <label>
+              <span>Sq Ft</span>
+              <input name="sqft" type="number" min="0" step="1" />
+            </label>
+            <label>
+              <span>Year Built</span>
+              <input name="yearBuilt" type="number" min="1800" max="2100" step="1" />
+            </label>
+            <label class="full">
+              <span>Listing URL</span>
+              <input name="listingUrl" type="url" placeholder="https://www.zillow.com/homedetails/..." />
+            </label>
+          </div>
+        </div>
 
-        <fieldset>
-          <legend>Deal Numbers</legend>
-          <label>
-            <span>Asking Price</span>
-            <input name="askingPrice" type="number" min="0" step="1000" />
-          </label>
-          <label>
-            <span>ARV (After Repair Value)</span>
-            <input name="arv" type="number" min="0" step="1000" />
-          </label>
-          <label>
-            <span>Rehab Estimate</span>
-            <input name="rehabEstimate" type="number" min="0" step="500" placeholder="Estimated repair cost" />
-          </label>
-          <label>
-            <span>Max Offer</span>
-            <input name="maxOffer" type="number" min="0" step="500" placeholder="Walk-away number" />
-          </label>
-          <label>
-            <span>Offer Submitted</span>
-            <input name="offerAmount" type="number" min="0" step="500" />
-          </label>
-          <label>
-            <span>Sold Price <small class="muted">(auto-updated nightly)</small></span>
-            <input name="soldPrice" type="number" min="0" step="1000" readonly />
-          </label>
-          <div class="calc-note full" id="calc-note" hidden></div>
-        </fieldset>
+        <div class="form-section">
+          <div class="form-section-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <h3>Deal numbers</h3>
+          </div>
+          <div class="form-grid">
+            <label>
+              <span>Asking Price</span>
+              <input name="askingPrice" type="number" min="0" step="1000" />
+            </label>
+            <label>
+              <span>ARV (After Repair Value)</span>
+              <input name="arv" type="number" min="0" step="1000" />
+            </label>
+            <label>
+              <span>Rehab Estimate</span>
+              <input name="rehabEstimate" type="number" min="0" step="500" placeholder="Estimated repair cost" />
+            </label>
+            <label>
+              <span>Max Offer</span>
+              <input name="maxOffer" type="number" min="0" step="500" placeholder="Walk-away number" />
+            </label>
+            <label>
+              <span>Offer Submitted</span>
+              <input name="offerAmount" type="number" min="0" step="500" />
+            </label>
+            <label>
+              <span>Sold Price <small class="muted">(auto-updated nightly)</small></span>
+              <input name="soldPrice" type="number" min="0" step="1000" readonly />
+            </label>
+            <div class="calc-note full" id="calc-note" hidden></div>
+          </div>
+        </div>
 
-        <fieldset>
-          <legend>Owner &amp; Contact</legend>
-          <label>
-            <span>Owner Name</span>
-            <input name="ownerName" />
-          </label>
-          <label>
-            <span>Owner Type</span>
-            <select name="ownerType">
-              <option value="">—</option>
-              <option>Individual</option>
-              <option>Corporate</option>
-              <option>Trust</option>
-            </select>
-          </label>
-          <label>
-            <span>Phone</span>
-            <input name="ownerPhone" type="tel" />
-          </label>
-          <label>
-            <span>Email</span>
-            <input name="ownerEmail" type="email" />
-          </label>
-          <label>
-            <span>Last Contact</span>
-            <input name="lastContact" type="date" />
-          </label>
-          <label class="full">
-            <span>Notes</span>
-            <textarea name="notes" rows="3" placeholder="Condition, motivation, next steps..."></textarea>
-          </label>
-        </fieldset>
+        <div class="form-section">
+          <div class="form-section-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <h3>Owner &amp; contact</h3>
+          </div>
+          <div class="form-grid">
+            <label>
+              <span>Owner Name</span>
+              <input name="ownerName" />
+            </label>
+            <label>
+              <span>Owner Type</span>
+              <select name="ownerType">
+                <option value="">—</option><option>Individual</option><option>Corporate</option><option>Trust</option>
+              </select>
+            </label>
+            <label>
+              <span>Phone</span>
+              <input name="ownerPhone" type="tel" />
+            </label>
+            <label>
+              <span>Email</span>
+              <input name="ownerEmail" type="email" />
+            </label>
+            <label>
+              <span>Last Contact</span>
+              <input name="lastContact" type="date" />
+            </label>
+            <label class="full">
+              <span>Notes</span>
+              <textarea name="notes" rows="3" placeholder="Condition, motivation, next steps..."></textarea>
+            </label>
+          </div>
+        </div>
 
         <footer class="modal-footer">
           <button type="button" class="btn btn-ghost" data-close>Cancel</button>
@@ -257,26 +459,33 @@
     </div>
   </div>
 
-  <!-- MLS Import Modal -->
+  <!-- ======================== MLS IMPORT MODAL ======================== -->
   <div id="import-modal" class="modal hidden" aria-hidden="true">
     <div class="modal-card modal-sm">
       <header class="modal-header">
         <h2>MLS / Zillow Import</h2>
-        <button class="modal-close" data-close-import>&times;</button>
+        <button class="modal-close" data-close-import aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </header>
       <div class="form">
-        <p class="muted">
-          Paste a Zillow, Redfin, or Realtor.com listing URL — or type an address.
-          We'll pull the fields automatically.
-        </p>
-        <label class="full">
-          <span>Listing URL or Address</span>
-          <input id="import-input" placeholder="https://www.zillow.com/homedetails/... or 123 Main St, Austin, TX" />
-        </label>
-        <div id="import-status" class="import-status" hidden></div>
+        <div class="form-section">
+          <p class="muted-text">
+            Paste a Zillow, Redfin, or Realtor.com listing URL — or type an address.
+            We'll pull the fields automatically.
+          </p>
+          <label class="full">
+            <span>Listing URL or address</span>
+            <input id="import-input" placeholder="https://www.zillow.com/homedetails/... or 123 Main St" />
+          </label>
+          <div id="import-status" class="import-status" hidden></div>
+        </div>
         <footer class="modal-footer">
           <button type="button" class="btn btn-ghost" data-close-import>Cancel</button>
-          <button type="button" id="btn-do-import" class="btn btn-primary">Fetch &amp; Import</button>
+          <button type="button" id="btn-do-import" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Fetch &amp; Import
+          </button>
         </footer>
       </div>
     </div>
@@ -285,8 +494,9 @@
   <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
 
-  <script src="/js/storage.js"></script>
-  <script src="/js/mls.js"></script>
-  <script src="/js/app.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/mls.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

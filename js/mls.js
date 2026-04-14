@@ -1,11 +1,19 @@
 // MLS / Zillow import client.
+//
 // Calls the Netlify serverless function at /.netlify/functions/mls-import
-// which proxies to a real estate data API (RentCast / ATTOM / etc.) when
-// an API key is configured. If the function is unavailable (e.g. local
-// preview without a backend), falls back to a best-effort URL parser + demo.
+// which proxies to a real estate data API (RentCast). If the function
+// is unavailable (e.g. GitHub Pages deploy), falls back to extracting an
+// address from the pasted URL so the user still gets something.
 
 (function (global) {
   const ENDPOINT = '/.netlify/functions/mls-import';
+
+  async function probeBackend() {
+    try {
+      const res = await fetch(ENDPOINT, { method: 'OPTIONS' });
+      return res.status < 500;
+    } catch { return false; }
+  }
 
   async function fetchFromServer(query) {
     const res = await fetch(ENDPOINT, {
@@ -20,45 +28,55 @@
     return res.json();
   }
 
-  // Very lightweight Zillow URL address extractor (used as a fallback
-  // demo when the serverless function isn't available).
-  function parseZillowUrl(url) {
+  function parseListingUrl(url) {
     try {
       const u = new URL(url);
-      if (!/zillow\.com/i.test(u.hostname)) return null;
-      // e.g. /homedetails/123-Main-St-Austin-TX-78701/12345_zpid/
-      const m = u.pathname.match(/\/homedetails\/([^/]+)/);
-      if (!m) return null;
-      const slug = m[1].replace(/-/g, ' ');
-      // Try to split "123 Main St Austin TX 78701" -> "123 Main St, Austin, TX 78701"
-      const zip = slug.match(/\b(\d{5})\b/);
-      const state = slug.match(/\b([A-Z]{2})\b/);
-      return { address: slug, zip: zip?.[1], state: state?.[1] };
-    } catch {
-      return null;
-    }
+      const host = u.hostname.toLowerCase();
+      let slug = '';
+      if (host.includes('zillow.com')) {
+        const m = u.pathname.match(/\/homedetails\/([^/]+)/);
+        slug = m ? m[1] : '';
+      } else if (host.includes('redfin.com')) {
+        const parts = u.pathname.split('/').filter(Boolean);
+        const homeIdx = parts.indexOf('home');
+        if (homeIdx > 2) slug = parts.slice(0, homeIdx).join('-');
+      } else if (host.includes('realtor.com')) {
+        const m = u.pathname.match(/realestateandhomes-detail\/([^/]+)/);
+        slug = m ? m[1].split('_M')[0] : '';
+      }
+      if (!slug) return null;
+      const cleaned = slug.replace(/_/g, '-');
+      const parts = cleaned.split('-');
+      const stateIdx = parts.findIndex(p => /^[A-Z]{2}$/.test(p));
+      if (stateIdx > 0 && stateIdx < parts.length - 1) {
+        const street = parts.slice(0, stateIdx - 1).join(' ');
+        const city = parts[stateIdx - 1];
+        const state = parts[stateIdx];
+        const zip = parts.slice(stateIdx + 1).join(' ');
+        return { address: `${street}, ${city}, ${state} ${zip}`.trim() };
+      }
+      return { address: parts.join(' ') };
+    } catch { return null; }
   }
 
   async function importListing(query) {
-    // Prefer the serverless function (real data).
     try {
       const data = await fetchFromServer(query);
       return { ...data, source: data.source || 'api' };
     } catch (err) {
-      // Fallback: attempt to at least populate an address from a Zillow URL.
-      const parsed = parseZillowUrl(query);
+      // No backend — try URL parsing.
+      const parsed = parseListingUrl(query);
       if (parsed) {
         return {
           address: parsed.address,
-          listingUrl: query,
+          listingUrl: /^https?:\/\//i.test(query) ? query : null,
           source: 'url-parse',
-          _warning: 'Backend unavailable — populated address only. ' +
-                    'Deploy to Netlify with an API key for full field import.'
+          _warning: 'Backend unavailable — filled address only. Deploy to Netlify with RENTCAST_API_KEY for full auto-import.'
         };
       }
       throw err;
     }
   }
 
-  global.MLS = { importListing };
+  global.MLS = { importListing, probeBackend };
 })(window);
