@@ -406,11 +406,43 @@
   // ---- Demo banner ------------------------------------------------------
   async function maybeShowDemoBanner() {
     if (sessionStorage.getItem('flipcrm.dismissBanner') === '1') return;
-    // Backend = Netlify functions reachable?
+    const body = $('#demo-banner-body');
+
+    // Probe the serverless function. Three possible states:
+    //   - reachable + API key configured    => don't show banner
+    //   - reachable + no API key (demo)     => show "add RENTCAST_API_KEY" banner
+    //   - unreachable (GH Pages / file://)  => show "static-only host" banner
+    let state = 'static';
     try {
-      const res = await fetch('/.netlify/functions/mls-import', { method: 'OPTIONS' });
-      if (res.ok || res.status === 405 || res.status === 200) return; // Netlify serves
-    } catch {}
+      const res = await fetch('/.netlify/functions/mls-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: '__probe__' })
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        state = data.source === 'demo' || data._warning ? 'no-api-key' : 'ok';
+      } else if (res.status < 500) {
+        state = 'no-api-key'; // function alive but complained
+      }
+    } catch { state = 'static'; }
+
+    if (state === 'ok') return;
+
+    if (state === 'no-api-key') {
+      body.innerHTML = `
+        <strong>Almost there.</strong> Netlify is running, but no
+        <code>RENTCAST_API_KEY</code> is set — MLS Import will only return the address.
+        Add the env var in <strong>Netlify → Site configuration → Environment variables</strong>,
+        then redeploy.
+      `;
+    } else {
+      body.innerHTML = `
+        <strong>Static-only host detected.</strong> Automatic MLS data import and nightly
+        Sold-Price checks need a serverless backend — deploy to Netlify to enable them.
+        <a href="#settings" data-view="settings">Open Settings</a> if you just want to wire up Supabase team sync.
+      `;
+    }
     demoBanner.classList.remove('hidden');
   }
 

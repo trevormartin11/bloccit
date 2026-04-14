@@ -70,12 +70,11 @@
         </div>
       </header>
 
-      <!-- Demo-mode banner (visible when serverless functions aren't available) -->
+      <!-- Demo-mode banner (visible when MLS import / sold-check can't run) -->
       <div id="demo-banner" class="demo-banner hidden">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-        <div>
-          <strong>Demo mode.</strong> You're running on GitHub Pages, so automatic MLS data import and nightly Sold Price checks are disabled.
-          <a href="#settings" data-view="settings">Open Settings</a> to wire up Supabase sync + API keys, or deploy to Netlify for the full experience.
+        <div id="demo-banner-body">
+          <!-- populated by app.js -->
         </div>
         <button class="banner-close" id="dismiss-banner" aria-label="Dismiss">&times;</button>
       </div>
