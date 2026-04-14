@@ -1,36 +1,22 @@
-# Netlify build & deployment config for FlipCRM.
+# Netlify config for FlipCRM.
 #
-# This is a pure static site (no build step) with serverless functions.
-# Deploy by connecting this repo in the Netlify UI, or running `netlify deploy`.
+# Pure static site (no build step) + two serverless functions.
+# Deploy: connect this repo in the Netlify UI, or run `netlify deploy`.
 #
-# To enable MLS import + nightly sold-price checks, set env vars in Netlify:
-#   RENTCAST_API_KEY  - Your RentCast API key (https://www.rentcast.io/api)
+# Env vars to set in Netlify:
+#   RENTCAST_API_KEY   Your RentCast API key — https://www.rentcast.io/api
 
 [build]
   publish = "."
   functions = "netlify/functions"
 
-# Ensure the Rails/bloccit folders don't get picked up as part of the publish.
-[build.processing]
-  skip_processing = false
+[functions]
+  node_bundler = "esbuild"
 
-# Don't include server-side Rails directories in the published static bundle.
-[[redirects]]
-  from = "/app/*"
-  to = "/index.html"
-  status = 200
-  force = false
-
-# SPA fallback — any unknown route serves the dashboard.
+# SPA fallback — unknown routes serve the dashboard. Netlify processes
+# /.netlify/functions/* and static files BEFORE this catch-all, so the
+# functions still route correctly.
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-# Scheduled function declaration (Netlify also reads exports.config.schedule
-# inside the function file; this is here for visibility/documentation).
-[functions."check-sold"]
-  schedule = "0 7 * * *"
-
-[functions]
-  node_bundler = "esbuild"
