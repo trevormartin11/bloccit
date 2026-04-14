@@ -233,20 +233,6 @@
     render();
   });
 
-  // 70% rule button
-  $('#btn-calc-max').addEventListener('click', () => {
-    const arv = num(form.elements.namedItem('arv').value);
-    const rehab = num(form.elements.namedItem('rehabEstimate').value) || 0;
-    const m = seventyPercentRule(arv, rehab);
-    if (m == null) {
-      showToast('Enter an ARV first', 'error');
-      return;
-    }
-    form.elements.namedItem('maxOffer').value = m;
-    calcNote.hidden = false;
-    calcNote.innerHTML = `70% rule: ARV (${fmtMoney(arv)}) × 0.70 − Rehab (${fmtMoney(rehab)}) = <strong>${fmtMoney(m)}</strong>`;
-  });
-
   // Row actions
   tbody.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
