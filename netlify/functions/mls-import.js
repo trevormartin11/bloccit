@@ -99,19 +99,43 @@ function extractAddressFromInput(input) {
   }
 }
 
+// Common US street suffixes — used to find the street/city boundary so
+// multi-word cities ("San Antonio", "Los Angeles", "New York") don't get
+// broken up.
+const STREET_SUFFIXES = new Set([
+  'st', 'street', 'ave', 'avenue', 'rd', 'road', 'dr', 'drive',
+  'blvd', 'boulevard', 'ln', 'lane', 'ct', 'court', 'pl', 'place',
+  'way', 'cir', 'circle', 'ter', 'terrace', 'pkwy', 'parkway',
+  'hwy', 'highway', 'trl', 'trail', 'cv', 'cove', 'ridge', 'run',
+  'path', 'row', 'walk', 'plaza', 'sq', 'square', 'loop'
+]);
+
 function humanizeAddressSlug(slug) {
-  const cleaned = slug.replace(/_/g, '-');
-  // Split "123-Main-St-Austin-TX-78701" by finding the state code.
-  const parts = cleaned.split('-');
+  const parts = slug.replace(/_/g, '-').split('-');
+
+  // Locate the state (two uppercase letters) — last hop before the zip.
   const stateIdx = parts.findIndex(p => /^[A-Z]{2}$/.test(p));
-  if (stateIdx > 0 && stateIdx < parts.length - 1) {
-    const street = parts.slice(0, stateIdx - 1).join(' ');
-    const city = parts[stateIdx - 1];
-    const state = parts[stateIdx];
-    const zip = parts.slice(stateIdx + 1).join(' ');
-    return `${street}, ${city}, ${state} ${zip}`.trim();
+  if (stateIdx < 2 || stateIdx >= parts.length) return parts.join(' ');
+
+  const state = parts[stateIdx];
+  const zip = parts.slice(stateIdx + 1).join(' ');
+
+  // Find the last street suffix *before* the state; city = everything
+  // between it and the state, street = everything up through the suffix.
+  let suffixIdx = -1;
+  for (let i = stateIdx - 1; i >= 0; i--) {
+    if (STREET_SUFFIXES.has(parts[i].toLowerCase())) { suffixIdx = i; break; }
   }
-  return parts.join(' ');
+  let street, city;
+  if (suffixIdx >= 0 && suffixIdx < stateIdx - 1) {
+    street = parts.slice(0, suffixIdx + 1).join(' ');
+    city = parts.slice(suffixIdx + 1, stateIdx).join(' ');
+  } else {
+    // Fallback: assume last token before state is the city.
+    street = parts.slice(0, stateIdx - 1).join(' ');
+    city = parts[stateIdx - 1];
+  }
+  return `${street}, ${city}, ${state} ${zip}`.trim();
 }
 
 // RentCast: GET /properties?address=...
