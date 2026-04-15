@@ -258,25 +258,43 @@
               <h2>Team sync (Supabase)</h2>
             </div>
             <div class="panel-body">
-              <p class="muted-text">
-                Enable shared data so you and your partner see the same deal pipeline.
-                Create a free project at <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a>,
-                run the <code>schema.sql</code> in the SQL editor, then paste your project URL and anon key below.
-                <a href="https://github.com/trevormartin11/bloccit#team-sync-supabase" target="_blank" rel="noopener">Full instructions →</a>
-              </p>
-              <div class="setting-row">
-                <label>
-                  <span>Supabase URL</span>
-                  <input id="cfg-supabase-url" placeholder="https://xxxx.supabase.co" />
-                </label>
-                <label>
-                  <span>Supabase anon key</span>
-                  <input id="cfg-supabase-key" placeholder="eyJhbGci..." type="password" />
-                </label>
+              <!-- Server-managed mode: env vars are set on Netlify, so every -->
+              <!-- visitor auto-connects and sees the same data. No action needed. -->
+              <div id="sync-managed-panel" style="display:none;">
+                <p class="muted-text" style="margin-bottom:8px;">
+                  <strong>Team sync is active for everyone who visits this URL.</strong>
+                  Data is shared across all devices &amp; users automatically — no
+                  setup required. Managed by the site's environment variables.
+                </p>
+                <p class="muted-text">
+                  To change which Supabase project this site uses, update
+                  <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> in Netlify's
+                  environment variables and redeploy.
+                </p>
               </div>
-              <div class="settings-actions">
-                <button id="btn-save-sync" class="btn btn-primary">Save &amp; connect</button>
-                <button id="btn-disable-sync" class="btn btn-ghost">Disable sync</button>
+
+              <!-- Manual mode: no env vars, user pastes their own creds here. -->
+              <div id="sync-manual-panel">
+                <p class="muted-text">
+                  Enable shared data so you and your partner see the same deal pipeline.
+                  Create a free project at <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a>,
+                  run the <code>schema.sql</code> in the SQL editor, then paste your project URL and anon key below.
+                  <a href="https://github.com/trevormartin11/bloccit#team-sync-supabase" target="_blank" rel="noopener">Full instructions →</a>
+                </p>
+                <div class="setting-row">
+                  <label>
+                    <span>Supabase URL</span>
+                    <input id="cfg-supabase-url" placeholder="https://xxxx.supabase.co" />
+                  </label>
+                  <label>
+                    <span>Supabase anon key</span>
+                    <input id="cfg-supabase-key" placeholder="eyJhbGci..." type="password" />
+                  </label>
+                </div>
+                <div class="settings-actions">
+                  <button id="btn-save-sync" class="btn btn-primary">Save &amp; connect</button>
+                  <button id="btn-disable-sync" class="btn btn-ghost">Disable sync</button>
+                </div>
               </div>
               <div id="sync-status" class="sync-status"></div>
             </div>

@@ -637,17 +637,34 @@
     const pill = $('#sync-pill');
     const label = $('#sync-label');
     const status = $('#sync-status');
-    if (Supa.isConfigured()) {
+    const manualPanel = $('#sync-manual-panel');
+    const managedPanel = $('#sync-managed-panel');
+
+    if (Supa.isServerManaged()) {
+      // Site-wide config: everyone who visits this URL auto-connects.
       pill.classList.add('synced');
       label.textContent = 'Team sync on';
+      if (manualPanel) manualPanel.style.display = 'none';
+      if (managedPanel) managedPanel.style.display = '';
+      status.className = 'sync-status ok';
+      status.textContent = '';
+    } else if (Supa.isConfigured()) {
+      // User pasted credentials manually in Settings.
+      pill.classList.add('synced');
+      label.textContent = 'Team sync on';
+      if (manualPanel) manualPanel.style.display = '';
+      if (managedPanel) managedPanel.style.display = 'none';
       const cfg = Supa.config();
       $('#cfg-supabase-url').value = cfg.url;
       $('#cfg-supabase-key').value = cfg.key;
       status.className = 'sync-status ok';
       status.textContent = `Connected to ${cfg.url}`;
     } else {
+      // No sync at all.
       pill.classList.remove('synced');
       label.textContent = 'Local only';
+      if (manualPanel) manualPanel.style.display = '';
+      if (managedPanel) managedPanel.style.display = 'none';
       status.textContent = 'Not connected — data lives in this browser only.';
       status.className = 'sync-status';
     }
@@ -1046,11 +1063,11 @@
 
   // ---- Boot -------------------------------------------------------------
   (async function boot() {
-    // Reconnect Supabase if it was previously configured.
-    if (Supa.isConfigured()) {
-      Supa.reconnect();
-      try { await Store.hydrate(); } catch (e) { console.warn(e); }
-    }
+    // Prefer server-managed Supabase config so every visitor auto-syncs
+    // without touching Settings. Falls back to per-user manual config if
+    // the env vars aren't set on Netlify.
+    try { await Supa.autoConnect(); } catch (e) { console.warn(e); }
+
     // Show banner if backend unavailable.
     maybeShowDemoBanner();
     // Initial view from hash.

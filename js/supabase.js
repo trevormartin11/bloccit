@@ -65,16 +65,22 @@
     };
   }
 
+  // Tracks whether the active connection came from the server-managed
+  // config endpoint (true) vs a user's manual paste in Settings (false).
+  // Used by the Settings UI to hide manual inputs when server-managed.
+  let _serverManaged = false;
+
   const Supa = {
     config() { return loadCfg(); },
     isConfigured() { return !!loadCfg(); },
+    isServerManaged() { return _serverManaged; },
 
-    async connect(url, key) {
+    async connect(url, key, { persist = true } = {}) {
       if (!url || !key) throw new Error('Both URL and anon key are required');
       const cfg = { url: url.trim(), key: key.trim() };
       const adapter = makeAdapter(cfg);
       await adapter.ping(); // validate before saving
-      saveCfg(cfg);
+      if (persist) saveCfg(cfg);
       Store.setRemote(adapter);
       await Store.hydrate();
       return adapter;
@@ -91,6 +97,46 @@
     disconnect() {
       saveCfg(null);
       Store.setRemote(null);
+      _serverManaged = false;
+    },
+
+    // Fetch the site-wide Supabase config from /.netlify/functions/config.
+    // Returns null if the endpoint is unreachable or the env vars aren't set.
+    async loadServerConfig() {
+      try {
+        const res = await fetch('/.netlify/functions/config');
+        if (!res.ok) return null;
+        const { supabaseUrl, supabaseAnonKey } = await res.json();
+        if (supabaseUrl && supabaseAnonKey) {
+          return { url: supabaseUrl, key: supabaseAnonKey };
+        }
+      } catch { /* offline, local dev, whatever — fall through */ }
+      return null;
+    },
+
+    // Boot-time helper: prefer the server-managed config so every visitor
+    // auto-connects to the same Supabase project without setup. Falls back
+    // to any user-saved config from Settings. Returns 'server' | 'user' | null.
+    async autoConnect() {
+      const server = await this.loadServerConfig();
+      if (server) {
+        try {
+          // Don't overwrite the user's local cfg with the server copy —
+          // if admin later changes it, we want the new value to win on next load.
+          await this.connect(server.url, server.key, { persist: false });
+          _serverManaged = true;
+          return 'server';
+        } catch (err) {
+          console.warn('Server-managed Supabase sync failed:', err);
+        }
+      }
+      _serverManaged = false;
+      if (this.isConfigured()) {
+        this.reconnect();
+        try { await Store.hydrate(); } catch (e) { console.warn(e); }
+        return 'user';
+      }
+      return null;
     }
   };
 
