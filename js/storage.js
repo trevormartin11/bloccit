@@ -53,17 +53,58 @@
     backend() { return backend; },
 
     async hydrate() {
-      // Pull from remote if configured, else return local.
-      if (remoteAdapter) {
-        try {
-          const remote = await remoteAdapter.list();
+      // Reconcile local cache with the remote Supabase table. Rules:
+      //   - Remote empty, local has data   → push local up (first-time sync)
+      //   - Remote has data, local empty   → pull remote down
+      //   - Both have data                 → merge by updatedAt per id
+      //                                       (newer-wins; push locally-only
+      //                                        records up)
+      // Never blindly overwrite local with an empty remote — that was the
+      // v1 behavior and it caused silent data loss on first connect.
+      if (!remoteAdapter) return cache;
+      try {
+        const remote = await remoteAdapter.list();
+
+        if (remote.length === 0 && cache.length > 0) {
+          // First-time sync: push everything up.
+          await Promise.all(cache.map(rec => remoteAdapter.upsert(rec)));
+          emit('hydrated');
+          return cache;
+        }
+
+        if (cache.length === 0) {
+          // Local empty, pull down as-is.
           cache = remote;
-          saveLocal(remote); // keep a local mirror for offline
+          saveLocal(remote);
           emit('hydrated');
           return remote;
-        } catch (err) {
-          console.warn('Remote hydrate failed, using local cache:', err);
         }
+
+        // Both have data — merge by updatedAt (newer wins per id) and
+        // push any local-only records up so Supabase becomes canonical.
+        const byId = new Map();
+        for (const r of remote) byId.set(r.id, r);
+        const localOnly = [];
+        for (const l of cache) {
+          const r = byId.get(l.id);
+          if (!r) {
+            byId.set(l.id, l);
+            localOnly.push(l);
+          } else if (new Date(l.updatedAt || 0) > new Date(r.updatedAt || 0)) {
+            byId.set(l.id, l);
+            localOnly.push(l); // newer local version should be pushed
+          }
+        }
+        const merged = Array.from(byId.values());
+        cache = merged;
+        saveLocal(merged);
+        if (localOnly.length) {
+          await Promise.all(localOnly.map(rec => remoteAdapter.upsert(rec)));
+        }
+        emit('hydrated');
+        return merged;
+      } catch (err) {
+        console.warn('Remote hydrate failed, using local cache:', err);
       }
       return cache;
     },
