@@ -49,30 +49,54 @@
   };
   const num = v => (v === '' || v === null || v === undefined ? null : Number(v));
 
-  // Financing cost assumes a hard-money-style loan that covers Purchase +
-  // Rehab + accrued interest at 10% annual + 1% origination. Because the
-  // interest itself is financed, the loan balance is self-referential:
+  // Financing assumptions are user-configurable in Settings → Financing defaults.
+  // Stored as a single object in localStorage; callers read via financeCfg().
+  //
+  // Math (self-referential because the interest itself is financed):
   //   Base  = Purchase + Rehab
   //   Loan  = Base / (1 − rate × days/365)
   //   Intr  = Loan − Base
-  //   Orig  = Loan × 0.01
+  //   Orig  = Loan × origination
   //   Total = Intr + Orig
-  const ANNUAL_RATE = 0.10;
-  const ORIGINATION = 0.01;
-  const SELLING_COST_RATE = 0.06; // agent commission on resale
-  const DEFAULT_DAYS_HELD = 180;
+  const FINANCE_CFG_KEY = 'flipcrm.finance.cfg.v1';
+  const FINANCE_DEFAULTS = Object.freeze({
+    annualRate: 0.10,      // 10% hard-money interest
+    origination: 0.01,     // 1% points
+    sellingCost: 0.06,     // 6% agent commission on resale
+    daysHeld: 180
+  });
+
+  function financeCfg() {
+    try {
+      const raw = localStorage.getItem(FINANCE_CFG_KEY);
+      const saved = raw ? JSON.parse(raw) : {};
+      return { ...FINANCE_DEFAULTS, ...saved };
+    } catch {
+      return { ...FINANCE_DEFAULTS };
+    }
+  }
+  function saveFinanceCfg(cfg) {
+    const merged = { ...FINANCE_DEFAULTS, ...cfg };
+    localStorage.setItem(FINANCE_CFG_KEY, JSON.stringify(merged));
+    return merged;
+  }
+  function resetFinanceCfg() {
+    localStorage.removeItem(FINANCE_CFG_KEY);
+    return { ...FINANCE_DEFAULTS };
+  }
 
   function financing(p) {
+    const cfg = financeCfg();
     const purchase = Number(p.offerAmount) || Number(p.maxOffer) || 0;
     const rehab = Number(p.rehabEstimate) || 0;
-    const days = Number(p.daysHeld) || DEFAULT_DAYS_HELD;
+    const days = Number(p.daysHeld) || cfg.daysHeld;
     const base = purchase + rehab;
     if (!base) return null;
-    const iFrac = ANNUAL_RATE * (days / 365);
+    const iFrac = cfg.annualRate * (days / 365);
     if (iFrac >= 1) return null;
     const loan = base / (1 - iFrac);
     const interest = loan - base;
-    const origination = loan * ORIGINATION;
+    const origination = loan * cfg.origination;
     return {
       purchase, rehab, days, base,
       loan: Math.round(loan),
@@ -86,7 +110,7 @@
     const arv = Number(p.arv) || 0;
     const fin = financing(p);
     if (!arv || !fin) return null;
-    const sellingCost = arv * SELLING_COST_RATE;
+    const sellingCost = arv * financeCfg().sellingCost;
     return Math.round(arv - fin.purchase - fin.rehab - fin.total - sellingCost);
   }
 
@@ -368,6 +392,7 @@
       renderTable();
     } else if (currentView === 'settings') {
       renderSyncStatus();
+      renderFinanceCfgForm();
     }
   }
 
@@ -381,13 +406,13 @@
         if (el) el.value = v ?? '';
       });
       if (!form.elements.namedItem('daysHeld').value) {
-        form.elements.namedItem('daysHeld').value = DEFAULT_DAYS_HELD;
+        form.elements.namedItem('daysHeld').value = financeCfg().daysHeld;
       }
     } else {
       modalTitle.textContent = 'Add Property';
       form.elements.namedItem('id').value = '';
       form.elements.namedItem('status').value = 'New';
-      form.elements.namedItem('daysHeld').value = DEFAULT_DAYS_HELD;
+      form.elements.namedItem('daysHeld').value = financeCfg().daysHeld;
     }
     updateFinancePanel();
     modal.classList.remove('hidden');
@@ -415,7 +440,8 @@
       el.innerHTML = `<p class="finance-empty">Enter a Purchase (Max Offer or Offer Submitted) and Rehab to see financing costs.</p>`;
       return;
     }
-    const sellingCost = Math.round(arv * SELLING_COST_RATE);
+    const cfg = financeCfg();
+    const sellingCost = Math.round(arv * cfg.sellingCost);
     const profit = arv ? arv - fin.purchase - fin.rehab - fin.total - sellingCost : null;
     const profitClass = profit == null ? '' : profit >= 0 ? 'positive' : 'negative';
 
@@ -426,12 +452,12 @@
         <div class="finance-row"><span>Days held</span><span>${fin.days}</span></div>
         <div class="finance-divider"></div>
         <div class="finance-row"><span>Loan amount <small>(Purchase + Rehab + Interest)</small></span><span>${fmtMoneyFull(fin.loan)}</span></div>
-        <div class="finance-row muted-row"><span>Interest (10% annual, capitalized)</span><span>${fmtMoneyFull(fin.interest)}</span></div>
-        <div class="finance-row muted-row"><span>Origination (1% of loan)</span><span>${fmtMoneyFull(fin.origination)}</span></div>
+        <div class="finance-row muted-row"><span>Interest (${(cfg.annualRate * 100).toFixed(2).replace(/\.?0+$/, '')}% annual, capitalized)</span><span>${fmtMoneyFull(fin.interest)}</span></div>
+        <div class="finance-row muted-row"><span>Origination (${(cfg.origination * 100).toFixed(2).replace(/\.?0+$/, '')}% of loan)</span><span>${fmtMoneyFull(fin.origination)}</span></div>
         <div class="finance-row total-row"><span>Total financing cost</span><span>${fmtMoneyFull(fin.total)}</span></div>
         <div class="finance-divider"></div>
         <div class="finance-row"><span>Est. ARV</span><span>${fmtMoneyFull(arv || null)}</span></div>
-        <div class="finance-row muted-row"><span>Selling cost (6% of ARV)</span><span>${fmtMoneyFull(sellingCost || null)}</span></div>
+        <div class="finance-row muted-row"><span>Selling cost (${(cfg.sellingCost * 100).toFixed(2).replace(/\.?0+$/, '')}% of ARV)</span><span>${fmtMoneyFull(sellingCost || null)}</span></div>
         <div class="finance-row profit-row ${profitClass}">
           <span>Projected profit</span>
           <span>${profit == null ? '—' : fmtMoneyFull(profit)}</span>
@@ -450,6 +476,15 @@
     // ARV and Max Offer are never auto-filled — they're deal-specific judgment
     // calls that depend on the investor's rehab scope and market take.
     if (data._warning) showToast(data._warning, 'error');
+  }
+
+  // ---- Settings / financing defaults ------------------------------------
+  function renderFinanceCfgForm() {
+    const cfg = financeCfg();
+    $('#cfg-rate').value        = (cfg.annualRate * 100);
+    $('#cfg-origination').value = (cfg.origination * 100);
+    $('#cfg-selling').value     = (cfg.sellingCost * 100);
+    $('#cfg-days').value        = cfg.daysHeld;
   }
 
   // ---- Settings / sync --------------------------------------------------
@@ -702,6 +737,45 @@
       status.textContent = `Connection failed: ${err.message}`;
       showToast('Sync connection failed', 'error');
     }
+  });
+
+  // Financing defaults
+  $('#btn-save-finance').addEventListener('click', () => {
+    const pct = id => {
+      const v = $(id).value;
+      if (v === '') return null;
+      const n = Number(v);
+      return isNaN(n) ? null : n / 100;
+    };
+    const int = id => {
+      const v = $(id).value;
+      if (v === '') return null;
+      const n = parseInt(v, 10);
+      return isNaN(n) ? null : n;
+    };
+    const next = {
+      annualRate:  pct('#cfg-rate')        ?? FINANCE_DEFAULTS.annualRate,
+      origination: pct('#cfg-origination') ?? FINANCE_DEFAULTS.origination,
+      sellingCost: pct('#cfg-selling')     ?? FINANCE_DEFAULTS.sellingCost,
+      daysHeld:    int('#cfg-days')        ?? FINANCE_DEFAULTS.daysHeld
+    };
+    saveFinanceCfg(next);
+    const status = $('#finance-cfg-status');
+    status.className = 'sync-status ok';
+    status.textContent = `Saved — ${(next.annualRate * 100).toFixed(2).replace(/\.?0+$/, '')}% interest, ${(next.origination * 100).toFixed(2).replace(/\.?0+$/, '')}% origination, ${(next.sellingCost * 100).toFixed(2).replace(/\.?0+$/, '')}% selling, ${next.daysHeld} days default.`;
+    renderFinanceCfgForm();
+    renderAll();
+    showToast('Financing defaults saved', 'success');
+  });
+
+  $('#btn-reset-finance').addEventListener('click', () => {
+    resetFinanceCfg();
+    renderFinanceCfgForm();
+    renderAll();
+    const status = $('#finance-cfg-status');
+    status.className = 'sync-status';
+    status.textContent = 'Reset to defaults (10% / 1% / 6% / 180 days).';
+    showToast('Financing defaults reset');
   });
 
   $('#btn-disable-sync').addEventListener('click', () => {

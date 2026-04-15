@@ -278,6 +278,43 @@
 
           <div class="panel">
             <div class="panel-header">
+              <h2>Financing defaults</h2>
+            </div>
+            <div class="panel-body">
+              <p class="muted-text">
+                Used by the Financing &amp; Profit calculator on every property. Change these if your
+                lender's terms differ, or if you want a different resale-cost assumption.
+              </p>
+              <div class="setting-row">
+                <label>
+                  <span>Annual interest rate (%)</span>
+                  <input id="cfg-rate" type="number" min="0" max="50" step="0.1" placeholder="10" />
+                </label>
+                <label>
+                  <span>Origination fee (%)</span>
+                  <input id="cfg-origination" type="number" min="0" max="10" step="0.1" placeholder="1" />
+                </label>
+              </div>
+              <div class="setting-row">
+                <label>
+                  <span>Selling cost on resale (%)</span>
+                  <input id="cfg-selling" type="number" min="0" max="20" step="0.1" placeholder="6" />
+                </label>
+                <label>
+                  <span>Default Days Held</span>
+                  <input id="cfg-days" type="number" min="1" max="1095" step="1" placeholder="180" />
+                </label>
+              </div>
+              <div class="settings-actions">
+                <button id="btn-save-finance" class="btn btn-primary">Save financing defaults</button>
+                <button id="btn-reset-finance" class="btn btn-ghost">Reset to defaults</button>
+              </div>
+              <div id="finance-cfg-status" class="sync-status"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
               <h2>Data</h2>
             </div>
             <div class="panel-body">
