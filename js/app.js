@@ -916,6 +916,22 @@
     }
   });
 
+  // Mobile sidebar drawer
+  const sidebarEl = $('#sidebar');
+  const backdropEl = $('#sidebar-backdrop');
+  function openSidebar() {
+    sidebarEl.classList.add('open');
+    backdropEl.classList.add('open');
+  }
+  function closeSidebar() {
+    sidebarEl.classList.remove('open');
+    backdropEl.classList.remove('open');
+  }
+  $('#mobile-menu-btn').addEventListener('click', openSidebar);
+  backdropEl.addEventListener('click', closeSidebar);
+  // Tapping a nav item on mobile should also close the drawer.
+  $$('.nav-item').forEach(el => el.addEventListener('click', closeSidebar));
+
   // Demo banner dismiss
   $('#dismiss-banner').addEventListener('click', () => {
     demoBanner.classList.add('hidden');
