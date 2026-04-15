@@ -307,8 +307,18 @@
               </div>
               <div class="setting-row">
                 <label>
-                  <span>Holding costs / PIUH (% of purchase)</span>
-                  <input id="cfg-holding" type="number" min="0" max="10" step="0.1" placeholder="1.5" />
+                  <span>Default property tax rate (% / yr) <small class="muted">used when MLS data missing</small></span>
+                  <input id="cfg-tax-rate" type="number" min="0" max="5" step="0.05" placeholder="1.1" />
+                </label>
+                <label>
+                  <span>Insurance (% of purchase / yr)</span>
+                  <input id="cfg-insurance" type="number" min="0" max="5" step="0.05" placeholder="0.35" />
+                </label>
+              </div>
+              <div class="setting-row">
+                <label>
+                  <span>Utilities ($ / month)</span>
+                  <input id="cfg-utilities" type="number" min="0" max="2000" step="25" placeholder="300" />
                 </label>
                 <label>
                   <span>Default Days Held</span>
@@ -461,6 +471,22 @@
             <label>
               <span>Sold Price <small class="muted">(auto-updated weekly)</small></span>
               <input name="soldPrice" type="number" min="0" step="1000" readonly />
+            </label>
+            <label>
+              <span>Annual Property Tax <small class="muted">(auto from MLS)</small></span>
+              <input name="annualPropertyTax" type="number" min="0" step="100" placeholder="uses default tax rate if blank" />
+            </label>
+            <label>
+              <span>Monthly HOA <small class="muted">(auto from MLS)</small></span>
+              <input name="monthlyHOA" type="number" min="0" step="10" placeholder="0 if not in HOA" />
+            </label>
+            <label>
+              <span>Annual Insurance <small class="muted">(optional override)</small></span>
+              <input name="insuranceAnnual" type="number" min="0" step="100" placeholder="uses default % if blank" />
+            </label>
+            <label>
+              <span>Monthly Utilities <small class="muted">(optional override)</small></span>
+              <input name="utilitiesMonthly" type="number" min="0" step="25" placeholder="uses default if blank" />
             </label>
           </div>
         </div>

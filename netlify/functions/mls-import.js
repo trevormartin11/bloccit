@@ -173,12 +173,28 @@ async function lookupRentcast(address, apiKey) {
     sqft: hit.squareFootage || null,
     yearBuilt: hit.yearBuilt || null,
     askingPrice: latestListing?.price || latestSalePrice(hit) || null,
+    annualPropertyTax: latestPropertyTax(hit),
+    monthlyHOA: hit.hoa?.fee || null,
     ownerName: (hit.owner?.names || []).join(' & ') || null,
     ownerType: mapOwnerType(hit.owner?.type),
     status: 'New',
     dealType: 'MLS',
     strategy: 'Flip'
   };
+}
+
+// Walks property.propertyTaxes (keyed by year) and returns the most-recent
+// year's total tax amount. RentCast typically uses { "2024": { year, total } }.
+function latestPropertyTax(property) {
+  const taxes = property?.propertyTaxes;
+  if (!taxes || typeof taxes !== 'object') return null;
+  const years = Object.keys(taxes).sort().reverse();
+  for (const y of years) {
+    const v = taxes[y];
+    const amount = v?.total || v?.amount || v?.value;
+    if (typeof amount === 'number' && amount > 0) return amount;
+  }
+  return null;
 }
 
 async function fetchJson(url, apiKey) {

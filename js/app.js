@@ -60,12 +60,14 @@
   //   Total = Intr + Orig
   const FINANCE_CFG_KEY = 'flipcrm.finance.cfg.v1';
   const FINANCE_DEFAULTS = Object.freeze({
-    annualRate:   0.10,    // 10% hard-money interest
-    origination:  0.01,    // 1% points
-    buyCC:        0.005,   // 0.5% buy-side closing costs (% of purchase)
-    sellCC:       0.03,    // 3% all-in sell-side closing (% of ARV; incl. commission)
-    holdingCosts: 0.015,   // 1.5% PIUH over 180 days (% of purchase)
-    daysHeld:     180
+    annualRate:       0.10,     // 10% hard-money interest
+    origination:      0.01,     // 1% points
+    buyCC:            0.005,    // 0.5% buy-side closing costs (% of purchase)
+    sellCC:           0.03,     // 3% all-in sell-side closing (% of ARV)
+    defaultTaxRate:   0.011,    // 1.1% annual property tax (US avg; used when MLS data unknown)
+    insuranceAnnual:  0.0035,   // 0.35% of purchase per year (vacant-dwelling policy estimate)
+    utilitiesMonthly: 300,      // $300/mo vacant-rehab utilities estimate
+    daysHeld:         180
   });
 
   function financeCfg() {
@@ -108,13 +110,50 @@
     };
   }
 
+  // Detailed holding-cost breakdown, supporting per-property overrides and
+  // falling back to the Settings defaults otherwise. Returns each component
+  // prorated to the hold period.
+  function holdingBreakdown(p) {
+    const cfg = financeCfg();
+    const purchase = Number(p.offerAmount) || Number(p.maxOffer) || 0;
+    const days = Number(p.daysHeld) || cfg.daysHeld;
+    if (!purchase || !days) return null;
+
+    const explicitTax  = Number(p.annualPropertyTax);
+    const explicitHOA  = Number(p.monthlyHOA);
+    const explicitIns  = Number(p.insuranceAnnual);
+    const explicitUtil = Number(p.utilitiesMonthly);
+
+    const annualTax   = explicitTax  || purchase * cfg.defaultTaxRate;
+    const monthlyHOA  = explicitHOA  || 0;
+    const annualIns   = explicitIns  || purchase * cfg.insuranceAnnual;
+    const monthlyUtil = explicitUtil || cfg.utilitiesMonthly;
+
+    return {
+      tax:       Math.round(annualTax   * days / 365),
+      hoa:       Math.round(monthlyHOA  * days / 30),
+      insurance: Math.round(annualIns   * days / 365),
+      utilities: Math.round(monthlyUtil * days / 30),
+      taxSource:       explicitTax  ? 'actual' : 'est',
+      hoaSource:       explicitHOA  ? 'actual' : (monthlyHOA ? 'est' : 'none'),
+      insuranceSource: explicitIns  ? 'actual' : 'est',
+      utilitiesSource: explicitUtil ? 'actual' : 'est',
+      annualTax, monthlyHOA, annualIns, monthlyUtil, days
+    };
+  }
+  function holdingTotal(p) {
+    const b = holdingBreakdown(p);
+    if (!b) return 0;
+    return b.tax + b.hoa + b.insurance + b.utilities;
+  }
+
   function potentialProfit(p) {
     const arv = Number(p.arv) || 0;
     const fin = financing(p);
     if (!arv || !fin) return null;
     const cfg = financeCfg();
     const buyCC   = fin.purchase * cfg.buyCC;
-    const holding = fin.purchase * cfg.holdingCosts;
+    const holding = holdingTotal(p);
     const sellCC  = arv * cfg.sellCC;
     return Math.round(arv - fin.purchase - buyCC - fin.rehab - holding - fin.total - sellCC);
   }
@@ -446,14 +485,22 @@
       return;
     }
     const cfg = financeCfg();
-    const buyCC   = Math.round(fin.purchase * cfg.buyCC);
-    const holding = Math.round(fin.purchase * cfg.holdingCosts);
-    const sellCC  = Math.round(arv * cfg.sellCC);
+    const buyCC  = Math.round(fin.purchase * cfg.buyCC);
+    const hold   = holdingBreakdown(p);
+    const holdTot = hold ? hold.tax + hold.hoa + hold.insurance + hold.utilities : 0;
+    const sellCC = Math.round(arv * cfg.sellCC);
     const profit = arv
-      ? arv - fin.purchase - buyCC - fin.rehab - holding - fin.total - sellCC
+      ? arv - fin.purchase - buyCC - fin.rehab - holdTot - fin.total - sellCC
       : null;
     const profitClass = profit == null ? '' : profit >= 0 ? 'positive' : 'negative';
     const pct = x => (x * 100).toFixed(2).replace(/\.?0+$/, '');
+    const tag = src => src === 'actual' ? '<span class="src-tag src-actual">actual</span>'
+                    : src === 'est'    ? '<span class="src-tag src-est">est</span>'
+                    : '';
+
+    const hoaRow = hold && hold.hoaSource !== 'none'
+      ? `<div class="finance-row muted-row"><span>HOA ($${hold.monthlyHOA}/mo × ${(hold.days/30).toFixed(1)}) ${tag(hold.hoaSource)}</span><span>${fmtMoneyFull(hold.hoa)}</span></div>`
+      : '';
 
     el.innerHTML = `
       <div class="finance-grid">
@@ -467,7 +514,13 @@
         <div class="finance-row muted-row"><span>Origination (${pct(cfg.origination)}% of loan)</span><span>${fmtMoneyFull(fin.origination)}</span></div>
         <div class="finance-row total-row"><span>Total financing cost</span><span>${fmtMoneyFull(fin.total)}</span></div>
         <div class="finance-divider"></div>
-        <div class="finance-row muted-row"><span>Holding costs / PIUH (${pct(cfg.holdingCosts)}% of purchase)</span><span>${fmtMoneyFull(holding)}</span></div>
+        ${hold ? `
+        <div class="finance-row muted-row"><span>Property tax ($${Math.round(hold.annualTax).toLocaleString()}/yr × ${hold.days}/365) ${tag(hold.taxSource)}</span><span>${fmtMoneyFull(hold.tax)}</span></div>
+        ${hoaRow}
+        <div class="finance-row muted-row"><span>Insurance ($${Math.round(hold.annualIns).toLocaleString()}/yr × ${hold.days}/365) ${tag(hold.insuranceSource)}</span><span>${fmtMoneyFull(hold.insurance)}</span></div>
+        <div class="finance-row muted-row"><span>Utilities ($${hold.monthlyUtil}/mo × ${(hold.days/30).toFixed(1)}) ${tag(hold.utilitiesSource)}</span><span>${fmtMoneyFull(hold.utilities)}</span></div>
+        <div class="finance-row total-row"><span>Total holding costs</span><span>${fmtMoneyFull(holdTot)}</span></div>
+        ` : ''}
         <div class="finance-divider"></div>
         <div class="finance-row"><span>Est. ARV</span><span>${fmtMoneyFull(arv || null)}</span></div>
         <div class="finance-row muted-row"><span>Sell-side closing all-in (${pct(cfg.sellCC)}% of ARV)</span><span>${fmtMoneyFull(sellCC || null)}</span></div>
@@ -494,11 +547,13 @@
   // ---- Settings / financing defaults ------------------------------------
   function renderFinanceCfgForm() {
     const cfg = financeCfg();
-    $('#cfg-rate').value        = (cfg.annualRate * 100);
-    $('#cfg-origination').value = (cfg.origination * 100);
-    $('#cfg-buy-cc').value      = (cfg.buyCC * 100);
-    $('#cfg-sell-cc').value     = (cfg.sellCC * 100);
-    $('#cfg-holding').value     = (cfg.holdingCosts * 100);
+    $('#cfg-rate').value        = (cfg.annualRate       * 100);
+    $('#cfg-origination').value = (cfg.origination      * 100);
+    $('#cfg-buy-cc').value      = (cfg.buyCC            * 100);
+    $('#cfg-sell-cc').value     = (cfg.sellCC           * 100);
+    $('#cfg-tax-rate').value    = (cfg.defaultTaxRate   * 100);
+    $('#cfg-insurance').value   = (cfg.insuranceAnnual  * 100);
+    $('#cfg-utilities').value   = cfg.utilitiesMonthly;
     $('#cfg-days').value        = cfg.daysHeld;
   }
 
@@ -599,7 +654,8 @@
   });
 
   // Live-update the Financing panel whenever any of its inputs change.
-  ['arv', 'rehabEstimate', 'maxOffer', 'offerAmount', 'daysHeld'].forEach(name => {
+  ['arv', 'rehabEstimate', 'maxOffer', 'offerAmount', 'daysHeld',
+   'annualPropertyTax', 'monthlyHOA', 'insuranceAnnual', 'utilitiesMonthly'].forEach(name => {
     form.elements.namedItem(name)?.addEventListener('input', updateFinancePanel);
   });
 
@@ -609,7 +665,8 @@
     const data = {};
     const numericFields = new Set([
       'beds', 'baths', 'sqft', 'yearBuilt',
-      'askingPrice', 'arv', 'rehabEstimate', 'maxOffer', 'offerAmount', 'daysHeld', 'soldPrice'
+      'askingPrice', 'arv', 'rehabEstimate', 'maxOffer', 'offerAmount', 'daysHeld', 'soldPrice',
+      'annualPropertyTax', 'monthlyHOA', 'insuranceAnnual', 'utilitiesMonthly'
     ]);
     new FormData(form).forEach((v, k) => {
       if (numericFields.has(k)) data[k] = v === '' ? null : Number(v);
@@ -769,18 +826,20 @@
       return isNaN(n) ? null : n;
     };
     const next = {
-      annualRate:   pct('#cfg-rate')        ?? FINANCE_DEFAULTS.annualRate,
-      origination:  pct('#cfg-origination') ?? FINANCE_DEFAULTS.origination,
-      buyCC:        pct('#cfg-buy-cc')      ?? FINANCE_DEFAULTS.buyCC,
-      sellCC:       pct('#cfg-sell-cc')     ?? FINANCE_DEFAULTS.sellCC,
-      holdingCosts: pct('#cfg-holding')     ?? FINANCE_DEFAULTS.holdingCosts,
-      daysHeld:     int('#cfg-days')        ?? FINANCE_DEFAULTS.daysHeld
+      annualRate:       pct('#cfg-rate')        ?? FINANCE_DEFAULTS.annualRate,
+      origination:      pct('#cfg-origination') ?? FINANCE_DEFAULTS.origination,
+      buyCC:            pct('#cfg-buy-cc')      ?? FINANCE_DEFAULTS.buyCC,
+      sellCC:           pct('#cfg-sell-cc')     ?? FINANCE_DEFAULTS.sellCC,
+      defaultTaxRate:   pct('#cfg-tax-rate')    ?? FINANCE_DEFAULTS.defaultTaxRate,
+      insuranceAnnual:  pct('#cfg-insurance')   ?? FINANCE_DEFAULTS.insuranceAnnual,
+      utilitiesMonthly: int('#cfg-utilities')   ?? FINANCE_DEFAULTS.utilitiesMonthly,
+      daysHeld:         int('#cfg-days')        ?? FINANCE_DEFAULTS.daysHeld
     };
     saveFinanceCfg(next);
     const fmt = x => (x * 100).toFixed(2).replace(/\.?0+$/, '');
     const status = $('#finance-cfg-status');
     status.className = 'sync-status ok';
-    status.textContent = `Saved — ${fmt(next.annualRate)}% rate · ${fmt(next.origination)}% orig · ${fmt(next.buyCC)}% buy · ${fmt(next.sellCC)}% sell · ${fmt(next.holdingCosts)}% holding · ${next.daysHeld}d default.`;
+    status.textContent = `Saved — ${fmt(next.annualRate)}% rate · ${fmt(next.buyCC)}% buy · ${fmt(next.sellCC)}% sell · tax ${fmt(next.defaultTaxRate)}% · ins ${fmt(next.insuranceAnnual)}% · util $${next.utilitiesMonthly}/mo · ${next.daysHeld}d default.`;
     renderFinanceCfgForm();
     renderAll();
     showToast('Financing defaults saved', 'success');
@@ -792,7 +851,7 @@
     renderAll();
     const status = $('#finance-cfg-status');
     status.className = 'sync-status';
-    status.textContent = 'Reset to defaults (10% rate, 1% orig, 0.5% buy, 3% sell, 1.5% holding, 180d).';
+    status.textContent = 'Reset to defaults (10% rate, 1% orig, 0.5% buy, 3% sell, 1.1% tax, 0.35% ins, $300 util, 180d).';
     showToast('Financing defaults reset');
   });
 
