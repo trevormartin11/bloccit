@@ -552,18 +552,84 @@
     `).join('');
   }
 
+  // Downscale an image file in-browser before uploading. Returns the
+  // original file unchanged if resize isn't applicable or fails.
+  //
+  // Strategy:
+  //   - Skip non-images and GIFs (preserve animation)
+  //   - Skip tiny files (<200KB — no meaningful savings)
+  //   - Fit the longest edge to MAX_EDGE, preserve aspect ratio
+  //   - Re-encode as JPEG at PHOTO_QUALITY
+  //   - Respect EXIF orientation via createImageBitmap({ imageOrientation })
+  //   - Keep the original if the "downscaled" result is larger
+  const MAX_EDGE = 1600;        // pixels — plenty for viewing on any screen
+  const PHOTO_QUALITY = 0.8;    // JPEG quality 0-1
+  const SKIP_UNDER   = 200 * 1024; // don't bother resizing anything <200KB
+
+  async function downscaleImage(file) {
+    if (!file || !file.type || !file.type.startsWith('image/')) return file;
+    if (file.type === 'image/gif') return file;
+    if (file.size < SKIP_UNDER) return file;
+    if (typeof createImageBitmap !== 'function') return file;
+
+    try {
+      const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      const scale = Math.min(1, MAX_EDGE / Math.max(bmp.width, bmp.height));
+      const w = Math.max(1, Math.round(bmp.width * scale));
+      const h = Math.max(1, Math.round(bmp.height * scale));
+
+      let canvas, ctx;
+      if (typeof OffscreenCanvas !== 'undefined') {
+        canvas = new OffscreenCanvas(w, h);
+      } else {
+        canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+      }
+      ctx = canvas.getContext('2d');
+      ctx.drawImage(bmp, 0, 0, w, h);
+      bmp.close?.();
+
+      const blob = canvas.convertToBlob
+        ? await canvas.convertToBlob({ type: 'image/jpeg', quality: PHOTO_QUALITY })
+        : await new Promise(res => canvas.toBlob(res, 'image/jpeg', PHOTO_QUALITY));
+
+      if (!blob || blob.size >= file.size) return file;
+
+      const baseName = (file.name || 'photo').replace(/\.[^.]+$/, '');
+      return new File([blob], baseName + '.jpg', {
+        type: 'image/jpeg', lastModified: Date.now()
+      });
+    } catch (err) {
+      console.warn('Image downscale failed, using original:', err);
+      return file;
+    }
+  }
+
+  function fmtSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
   async function handlePhotoUpload(files) {
     if (!files || !files.length) return;
     const statusEl = $('#photo-status');
     const pending = Array.from(files);
-    statusEl.textContent = `Uploading ${pending.length} photo${pending.length === 1 ? '' : 's'}...`;
+    statusEl.textContent = `Processing ${pending.length} photo${pending.length === 1 ? '' : 's'}...`;
     statusEl.className = 'photo-status loading';
 
     const propId = currentFormPropId || 'draft-' + Date.now().toString(36);
     let ok = 0, failed = 0;
+    let originalBytes = 0, uploadedBytes = 0;
+
     for (const file of pending) {
       try {
-        const url = await Supa.uploadPhoto(file, propId);
+        originalBytes += file.size;
+        statusEl.textContent = `Resizing photo ${ok + failed + 1} of ${pending.length}...`;
+        const compressed = await downscaleImage(file);
+        uploadedBytes += compressed.size;
+        statusEl.textContent = `Uploading photo ${ok + failed + 1} of ${pending.length}...`;
+        const url = await Supa.uploadPhoto(compressed, propId);
         currentFormPhotos.push({ url, uploadedAt: new Date().toISOString() });
         ok++;
         renderPhotoGallery();
@@ -572,14 +638,20 @@
         failed++;
       }
     }
+
+    const saved = originalBytes - uploadedBytes;
+    const savedPct = originalBytes ? Math.round((saved / originalBytes) * 100) : 0;
+    const sizeNote = saved > 0
+      ? ` (resized: ${fmtSize(originalBytes)} → ${fmtSize(uploadedBytes)}, saved ${savedPct}%)`
+      : '';
     if (failed === 0) {
-      statusEl.textContent = `${ok} photo${ok === 1 ? '' : 's'} uploaded.`;
+      statusEl.textContent = `${ok} photo${ok === 1 ? '' : 's'} uploaded${sizeNote}.`;
       statusEl.className = 'photo-status ok';
     } else {
-      statusEl.textContent = `${ok} uploaded, ${failed} failed (see console).`;
+      statusEl.textContent = `${ok} uploaded, ${failed} failed (see console)${sizeNote}.`;
       statusEl.className = 'photo-status err';
     }
-    setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'photo-status'; }, 3500);
+    setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'photo-status'; }, 5000);
   }
 
   // Wire up the photo-uploader UI once.
