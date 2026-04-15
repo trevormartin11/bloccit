@@ -900,6 +900,30 @@ table.props tbody tr:hover { background: var(--panel-alt); cursor: pointer; }
   border-radius: var(--radius);
   padding: 16px 18px;
 }
+.auto-hint {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.src-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.src-actual { background: #dcfce7; color: #15803d; }
+.src-est    { background: #f1f5f9; color: #64748b; }
+
 .finance-empty {
   margin: 0;
   color: var(--text-muted);

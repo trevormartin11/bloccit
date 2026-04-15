@@ -325,6 +325,12 @@
                   <input id="cfg-days" type="number" min="1" max="1095" step="1" placeholder="180" />
                 </label>
               </div>
+              <div class="setting-row">
+                <label>
+                  <span>Target profit per deal ($) <small class="muted">used to back-solve Max Offer</small></span>
+                  <input id="cfg-target-profit" type="number" min="0" step="1000" placeholder="50000" />
+                </label>
+              </div>
               <div class="settings-actions">
                 <button id="btn-save-finance" class="btn btn-primary">Save financing defaults</button>
                 <button id="btn-reset-finance" class="btn btn-ghost">Reset to defaults</button>
@@ -458,7 +464,8 @@
             </label>
             <label>
               <span>Max Offer</span>
-              <input name="maxOffer" type="number" min="0" step="500" placeholder="Walk-away number" />
+              <input name="maxOffer" type="number" min="0" step="500" placeholder="auto-calc when ARV + Rehab filled" />
+              <small id="max-offer-hint" class="auto-hint" hidden></small>
             </label>
             <label>
               <span>Offer Submitted</span>

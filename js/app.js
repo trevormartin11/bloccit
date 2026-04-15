@@ -65,8 +65,9 @@
     buyCC:            0.005,    // 0.5% buy-side closing costs (% of purchase)
     sellCC:           0.03,     // 3% all-in sell-side closing (% of ARV)
     defaultTaxRate:   0.011,    // 1.1% annual property tax (US avg; used when MLS data unknown)
-    insuranceAnnual:  0.0035,   // 0.35% of purchase per year (vacant-dwelling policy estimate)
-    utilitiesMonthly: 300,      // $300/mo vacant-rehab utilities estimate
+    insuranceAnnual:  0.005,    // 0.5% of purchase per year (vacant-dwelling/builder's risk for a 6-mo flip)
+    utilitiesMonthly: 300,      // $300/mo vacant-rehab utilities
+    targetProfit:     50000,    // back-solve Max Offer to hit this profit
     daysHeld:         180
   });
 
@@ -145,6 +146,48 @@
     const b = holdingBreakdown(p);
     if (!b) return 0;
     return b.tax + b.hoa + b.insurance + b.utilities;
+  }
+
+  // Back-solve for the Max Offer that yields cfg.targetProfit, given an ARV,
+  // Rehab, Days Held, and any per-property overrides. Returns null if the
+  // ARV doesn't support the target profit (i.e. P would be ≤ 0).
+  //
+  // Derivation: Profit = ARV(1-s) − P − P·a − R(1+k) − H(P) − target
+  //   where k = financing factor (P+R)·k = total financing cost
+  //         H(P) = hvr·P + hf  (variable holding scales with P, fixed doesn't)
+  //   Solve for P → P = [ARV(1-s) − R(1+k) − hf − target] / (1 + a + hvr + k)
+  function backsolveMaxOffer(p) {
+    const cfg = financeCfg();
+    const arv = Number(p.arv) || 0;
+    const rehab = Number(p.rehabEstimate) || 0;
+    const days = Number(p.daysHeld) || cfg.daysHeld;
+    const target = cfg.targetProfit;
+    if (!arv || !days) return null;
+
+    const explicitTax = Number(p.annualPropertyTax) || 0;
+    const explicitIns = Number(p.insuranceAnnual)   || 0;
+    const monthlyHOA  = Number(p.monthlyHOA)        || 0;
+    const monthlyUtil = Number(p.utilitiesMonthly)  || cfg.utilitiesMonthly;
+
+    // Variable holding rate: portion of holding cost that scales with P.
+    let hvr = 0;
+    if (!explicitTax) hvr += cfg.defaultTaxRate  * days / 365;
+    if (!explicitIns) hvr += cfg.insuranceAnnual * days / 365;
+
+    // Fixed holding cost (independent of P).
+    let hf = monthlyHOA * days / 30 + monthlyUtil * days / 30;
+    if (explicitTax) hf += explicitTax * days / 365;
+    if (explicitIns) hf += explicitIns * days / 365;
+
+    const iFrac = cfg.annualRate * days / 365;
+    if (iFrac >= 1) return null;
+    const k = (iFrac + cfg.origination) / (1 - iFrac);
+
+    const numerator   = arv * (1 - cfg.sellCC) - rehab * (1 + k) - hf - target;
+    const denominator = 1 + cfg.buyCC + hvr + k;
+    const P = numerator / denominator;
+    if (!isFinite(P) || P <= 0) return null;
+    return Math.round(P / 500) * 500; // round to nearest $500
   }
 
   function potentialProfit(p) {
@@ -443,6 +486,12 @@
   // ---- Modal (add/edit) -------------------------------------------------
   function openModal(prop) {
     form.reset();
+    // Reset Max Offer auto-state for the fresh open.
+    const maxEl = form.elements.namedItem('maxOffer');
+    delete maxEl.dataset.userEdited;
+    delete maxEl.dataset.auto;
+    $('#max-offer-hint').hidden = true;
+
     if (prop) {
       modalTitle.textContent = 'Edit Property';
       Object.entries(prop).forEach(([k, v]) => {
@@ -452,12 +501,16 @@
       if (!form.elements.namedItem('daysHeld').value) {
         form.elements.namedItem('daysHeld').value = financeCfg().daysHeld;
       }
+      // If editing and Max Offer already has a saved value, treat it as
+      // user-owned (don't overwrite their decision).
+      if (maxEl.value) maxEl.dataset.userEdited = '1';
     } else {
       modalTitle.textContent = 'Add Property';
       form.elements.namedItem('id').value = '';
       form.elements.namedItem('status').value = 'New';
       form.elements.namedItem('daysHeld').value = financeCfg().daysHeld;
     }
+    tryAutoPopulateMaxOffer();
     updateFinancePanel();
     modal.classList.remove('hidden');
     setTimeout(() => form.elements.namedItem('address').focus(), 50);
@@ -547,14 +600,15 @@
   // ---- Settings / financing defaults ------------------------------------
   function renderFinanceCfgForm() {
     const cfg = financeCfg();
-    $('#cfg-rate').value        = (cfg.annualRate       * 100);
-    $('#cfg-origination').value = (cfg.origination      * 100);
-    $('#cfg-buy-cc').value      = (cfg.buyCC            * 100);
-    $('#cfg-sell-cc').value     = (cfg.sellCC           * 100);
-    $('#cfg-tax-rate').value    = (cfg.defaultTaxRate   * 100);
-    $('#cfg-insurance').value   = (cfg.insuranceAnnual  * 100);
-    $('#cfg-utilities').value   = cfg.utilitiesMonthly;
-    $('#cfg-days').value        = cfg.daysHeld;
+    $('#cfg-rate').value          = (cfg.annualRate       * 100);
+    $('#cfg-origination').value   = (cfg.origination      * 100);
+    $('#cfg-buy-cc').value        = (cfg.buyCC            * 100);
+    $('#cfg-sell-cc').value       = (cfg.sellCC           * 100);
+    $('#cfg-tax-rate').value      = (cfg.defaultTaxRate   * 100);
+    $('#cfg-insurance').value     = (cfg.insuranceAnnual  * 100);
+    $('#cfg-utilities').value     = cfg.utilitiesMonthly;
+    $('#cfg-target-profit').value = cfg.targetProfit;
+    $('#cfg-days').value          = cfg.daysHeld;
   }
 
   // ---- Settings / sync --------------------------------------------------
@@ -576,6 +630,42 @@
       status.textContent = 'Not connected — data lives in this browser only.';
       status.className = 'sync-status';
     }
+  }
+
+  // ---- Max Offer auto-populate ------------------------------------------
+  // The Max Offer field auto-fills with a back-solved value once ARV and
+  // Rehab are present, targeting cfg.targetProfit (default $50k). It stops
+  // auto-updating the moment the user types into Max Offer manually.
+  function tryAutoPopulateMaxOffer() {
+    const maxEl = form.elements.namedItem('maxOffer');
+    const hint = $('#max-offer-hint');
+    if (!maxEl) return;
+    if (maxEl.dataset.userEdited === '1') return; // user took control
+
+    const read = name => {
+      const v = form.elements.namedItem(name)?.value;
+      return v === '' || v == null ? null : Number(v);
+    };
+    const candidate = backsolveMaxOffer({
+      arv: read('arv'),
+      rehabEstimate: read('rehabEstimate'),
+      daysHeld: read('daysHeld'),
+      annualPropertyTax: read('annualPropertyTax'),
+      monthlyHOA: read('monthlyHOA'),
+      insuranceAnnual: read('insuranceAnnual'),
+      utilitiesMonthly: read('utilitiesMonthly')
+    });
+    if (candidate == null) {
+      // Not enough data yet — only clear if WE put something there
+      if (maxEl.dataset.auto === '1') { maxEl.value = ''; }
+      hint.hidden = true;
+      return;
+    }
+    maxEl.value = candidate;
+    maxEl.dataset.auto = '1';
+    const target = financeCfg().targetProfit;
+    hint.hidden = false;
+    hint.textContent = `Auto-calculated for $${target.toLocaleString()} target profit — editable.`;
   }
 
   // ---- Demo banner ------------------------------------------------------
@@ -657,6 +747,20 @@
   ['arv', 'rehabEstimate', 'maxOffer', 'offerAmount', 'daysHeld',
    'annualPropertyTax', 'monthlyHOA', 'insuranceAnnual', 'utilitiesMonthly'].forEach(name => {
     form.elements.namedItem(name)?.addEventListener('input', updateFinancePanel);
+  });
+
+  // Auto-populate Max Offer when the inputs that feed the back-solve change.
+  ['arv', 'rehabEstimate', 'daysHeld',
+   'annualPropertyTax', 'monthlyHOA', 'insuranceAnnual', 'utilitiesMonthly'].forEach(name => {
+    form.elements.namedItem(name)?.addEventListener('input', tryAutoPopulateMaxOffer);
+  });
+
+  // User typing in Max Offer takes ownership — stop auto-populating.
+  form.elements.namedItem('maxOffer')?.addEventListener('input', () => {
+    const el = form.elements.namedItem('maxOffer');
+    el.dataset.userEdited = '1';
+    el.dataset.auto = '0';
+    $('#max-offer-hint').hidden = true;
   });
 
   // Form submit
@@ -826,14 +930,15 @@
       return isNaN(n) ? null : n;
     };
     const next = {
-      annualRate:       pct('#cfg-rate')        ?? FINANCE_DEFAULTS.annualRate,
-      origination:      pct('#cfg-origination') ?? FINANCE_DEFAULTS.origination,
-      buyCC:            pct('#cfg-buy-cc')      ?? FINANCE_DEFAULTS.buyCC,
-      sellCC:           pct('#cfg-sell-cc')     ?? FINANCE_DEFAULTS.sellCC,
-      defaultTaxRate:   pct('#cfg-tax-rate')    ?? FINANCE_DEFAULTS.defaultTaxRate,
-      insuranceAnnual:  pct('#cfg-insurance')   ?? FINANCE_DEFAULTS.insuranceAnnual,
-      utilitiesMonthly: int('#cfg-utilities')   ?? FINANCE_DEFAULTS.utilitiesMonthly,
-      daysHeld:         int('#cfg-days')        ?? FINANCE_DEFAULTS.daysHeld
+      annualRate:       pct('#cfg-rate')          ?? FINANCE_DEFAULTS.annualRate,
+      origination:      pct('#cfg-origination')   ?? FINANCE_DEFAULTS.origination,
+      buyCC:            pct('#cfg-buy-cc')        ?? FINANCE_DEFAULTS.buyCC,
+      sellCC:           pct('#cfg-sell-cc')       ?? FINANCE_DEFAULTS.sellCC,
+      defaultTaxRate:   pct('#cfg-tax-rate')      ?? FINANCE_DEFAULTS.defaultTaxRate,
+      insuranceAnnual:  pct('#cfg-insurance')     ?? FINANCE_DEFAULTS.insuranceAnnual,
+      utilitiesMonthly: int('#cfg-utilities')     ?? FINANCE_DEFAULTS.utilitiesMonthly,
+      targetProfit:     int('#cfg-target-profit') ?? FINANCE_DEFAULTS.targetProfit,
+      daysHeld:         int('#cfg-days')          ?? FINANCE_DEFAULTS.daysHeld
     };
     saveFinanceCfg(next);
     const fmt = x => (x * 100).toFixed(2).replace(/\.?0+$/, '');
