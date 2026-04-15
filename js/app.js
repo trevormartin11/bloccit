@@ -555,6 +555,21 @@
       ? `<div class="finance-row muted-row"><span>HOA ($${hold.monthlyHOA}/mo × ${(hold.days/30).toFixed(1)}) ${tag(hold.hoaSource)}</span><span>${fmtMoneyFull(hold.hoa)}</span></div>`
       : '';
 
+    // Monthly burn rate: every recurring carrying cost normalized to /mo.
+    // Includes loan interest (averaged over the hold) + tax + insurance +
+    // HOA + utilities. Excludes one-time fees (origination, buy/sell CC).
+    let monthlyCarry = null;
+    if (hold && fin.days) {
+      const months = fin.days / 30;
+      monthlyCarry = Math.round(
+        (fin.interest / months) +
+        (hold.annualTax / 12) +
+        (hold.annualIns / 12) +
+        hold.monthlyHOA +
+        hold.monthlyUtil
+      );
+    }
+
     el.innerHTML = `
       <div class="finance-grid">
         <div class="finance-row"><span>Purchase price</span><span>${fmtMoneyFull(fin.purchase)}</span></div>
@@ -573,6 +588,12 @@
         <div class="finance-row muted-row"><span>Insurance ($${Math.round(hold.annualIns).toLocaleString()}/yr × ${hold.days}/365) ${tag(hold.insuranceSource)}</span><span>${fmtMoneyFull(hold.insurance)}</span></div>
         <div class="finance-row muted-row"><span>Utilities ($${hold.monthlyUtil}/mo × ${(hold.days/30).toFixed(1)}) ${tag(hold.utilitiesSource)}</span><span>${fmtMoneyFull(hold.utilities)}</span></div>
         <div class="finance-row total-row"><span>Total holding costs</span><span>${fmtMoneyFull(holdTot)}</span></div>
+        ` : ''}
+        ${monthlyCarry != null ? `
+        <div class="finance-row info-row">
+          <span>Carrying cost per month <small>(interest + tax + ins + HOA + util)</small></span>
+          <span>${fmtMoneyFull(monthlyCarry)} / mo</span>
+        </div>
         ` : ''}
         <div class="finance-divider"></div>
         <div class="finance-row"><span>Est. ARV</span><span>${fmtMoneyFull(arv || null)}</span></div>

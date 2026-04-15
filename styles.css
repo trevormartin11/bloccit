@@ -976,6 +976,16 @@ table.props tbody tr:hover { background: var(--panel-alt); cursor: pointer; }
   font-size: 15px;
 }
 .finance-row.profit-row > span { font-weight: 700; font-size: 15px; }
+.finance-row.info-row {
+  background: var(--primary-soft);
+  margin: 6px -10px 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.finance-row.info-row > span:first-child { color: var(--primary); font-weight: 600; }
+.finance-row.info-row > span:last-child  { color: var(--primary); font-weight: 700; }
+
 .finance-row.profit-row.positive > span:last-child { color: var(--success); }
 .finance-row.profit-row.negative > span:last-child { color: var(--danger); }
 .finance-divider {
