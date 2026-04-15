@@ -707,9 +707,16 @@
       });
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
-        state = data.source === 'demo' || data._warning ? 'no-api-key' : 'ok';
+        // The function returns { probe: true, source: 'rentcast' | 'demo' }
+        // when given the magic query. 'rentcast' = key set; 'demo' = key missing.
+        if (data.probe) {
+          state = data.source === 'demo' ? 'no-api-key' : 'ok';
+        } else {
+          // Older deploy without the probe path — fall back to the looser check.
+          state = data.source === 'demo' ? 'no-api-key' : 'ok';
+        }
       } else if (res.status < 500) {
-        state = 'no-api-key'; // function alive but complained
+        state = 'no-api-key';
       }
     } catch { state = 'static'; }
 

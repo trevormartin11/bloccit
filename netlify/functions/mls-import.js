@@ -26,6 +26,16 @@ exports.handler = async (event) => {
   }
   if (!query) return json(400, { error: 'Missing query' });
 
+  // Probe mode: client wants to know whether the function is alive AND
+  // whether the API key is configured, without burning an API token on
+  // a fake address lookup. Used by the demo banner.
+  if (query === '__probe__') {
+    return json(200, {
+      probe: true,
+      source: process.env.RENTCAST_API_KEY ? 'rentcast' : 'demo'
+    });
+  }
+
   // Normalize URL -> address where possible.
   const address = extractAddressFromInput(query);
   const listingUrl = /^https?:\/\//i.test(query) ? query : null;
