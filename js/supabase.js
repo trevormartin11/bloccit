@@ -16,6 +16,7 @@
 (function (global) {
   const CFG_KEY = 'flipcrm.supabase.cfg.v1';
   const PHOTOS_BUCKET = 'flipcrm-photos';
+  const DOCS_BUCKET   = 'flipcrm-documents';
   // Currently-active config, regardless of whether persisted.
   let _activeCfg = null;
 
@@ -26,6 +27,49 @@
   function saveCfg(cfg) {
     if (!cfg) localStorage.removeItem(CFG_KEY);
     else localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  }
+
+  // Shared upload/delete helpers used by both photo and document APIs.
+  async function uploadToBucket(bucket, file, propId = 'misc') {
+    if (!_activeCfg) throw new Error('Team sync not active — cannot upload');
+    const safeId = String(propId).replace(/[^a-zA-Z0-9_-]/g, '_') || 'misc';
+    const extMatch = (file.name || '').match(/\.([a-z0-9]+)$/i);
+    const ext = (extMatch ? extMatch[1] : 'bin').toLowerCase();
+    const path = `${safeId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const base = _activeCfg.url.replace(/\/$/, '');
+    const res = await fetch(`${base}/storage/v1/object/${bucket}/${encodeURI(path)}`, {
+      method: 'POST',
+      headers: {
+        'apikey': _activeCfg.key,
+        'Authorization': `Bearer ${_activeCfg.key}`,
+        'Content-Type': file.type || 'application/octet-stream'
+      },
+      body: file
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Upload failed (${res.status}): ${text.slice(0, 140)}`);
+    }
+    return `${base}/storage/v1/object/public/${bucket}/${encodeURI(path)}`;
+  }
+
+  async function deleteFromBucket(bucket, url) {
+    if (!_activeCfg) return;
+    const base = _activeCfg.url.replace(/\/$/, '');
+    const marker = `/storage/v1/object/public/${bucket}/`;
+    const i = url.indexOf(marker);
+    if (i < 0) return;
+    const path = url.slice(i + marker.length);
+    const res = await fetch(`${base}/storage/v1/object/${bucket}/${path}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': _activeCfg.key,
+        'Authorization': `Bearer ${_activeCfg.key}`
+      }
+    });
+    if (!res.ok && res.status !== 404) {
+      console.warn(`Delete from ${bucket} failed (${res.status})`);
+    }
   }
 
   function makeAdapter(cfg) {
@@ -112,46 +156,19 @@
     // Upload a File to the flipcrm-photos Supabase bucket. Returns a public
     // URL suitable for <img src>. Path convention: <propId>/<timestamp>-<rand>.<ext>
     async uploadPhoto(file, propId = 'misc') {
-      if (!_activeCfg) throw new Error('Team sync not active — cannot upload photos');
-      const safeId = String(propId).replace(/[^a-zA-Z0-9_-]/g, '_') || 'misc';
-      const extMatch = (file.name || '').match(/\.([a-z0-9]+)$/i);
-      const ext = (extMatch ? extMatch[1] : 'jpg').toLowerCase();
-      const path = `${safeId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const base = _activeCfg.url.replace(/\/$/, '');
-      const res = await fetch(`${base}/storage/v1/object/${PHOTOS_BUCKET}/${encodeURI(path)}`, {
-        method: 'POST',
-        headers: {
-          'apikey': _activeCfg.key,
-          'Authorization': `Bearer ${_activeCfg.key}`,
-          'Content-Type': file.type || 'application/octet-stream'
-        },
-        body: file
-      });
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(`Upload failed (${res.status}): ${text.slice(0, 140)}`);
-      }
-      return `${base}/storage/v1/object/public/${PHOTOS_BUCKET}/${encodeURI(path)}`;
+      return uploadToBucket(PHOTOS_BUCKET, file, propId);
+    },
+    async deletePhoto(photoUrl) {
+      return deleteFromBucket(PHOTOS_BUCKET, photoUrl);
     },
 
-    async deletePhoto(photoUrl) {
-      if (!_activeCfg) return;
-      const base = _activeCfg.url.replace(/\/$/, '');
-      const marker = `/storage/v1/object/public/${PHOTOS_BUCKET}/`;
-      const i = photoUrl.indexOf(marker);
-      if (i < 0) return; // not our bucket; ignore
-      const path = photoUrl.slice(i + marker.length);
-      const res = await fetch(`${base}/storage/v1/object/${PHOTOS_BUCKET}/${path}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': _activeCfg.key,
-          'Authorization': `Bearer ${_activeCfg.key}`
-        }
-      });
-      // 404 is fine — object already gone. Treat other errors as soft failures.
-      if (!res.ok && res.status !== 404) {
-        console.warn(`Delete photo failed (${res.status})`);
-      }
+    // ---- Document storage ------------------------------------------------
+    // Uploads PDFs, spreadsheets, etc. to a separate flipcrm-documents bucket.
+    async uploadDocument(file, propId = 'misc') {
+      return uploadToBucket(DOCS_BUCKET, file, propId);
+    },
+    async deleteDocument(docUrl) {
+      return deleteFromBucket(DOCS_BUCKET, docUrl);
     },
 
     // Fetch the site-wide Supabase config from /.netlify/functions/config.

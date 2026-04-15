@@ -517,10 +517,12 @@
       form.elements.namedItem('status').value = 'New';
       form.elements.namedItem('daysHeld').value = financeCfg().daysHeld;
     }
-    // Seed per-form photo state from the property record (if any).
+    // Seed per-form photo + document state from the property record.
     currentFormPhotos = Array.isArray(prop && prop.photos) ? [...prop.photos] : [];
+    currentFormDocs   = Array.isArray(prop && prop.documents) ? [...prop.documents] : [];
     currentFormPropId = (prop && prop.id) || null;
     renderPhotoGallery();
+    renderDocList();
     tryAutoPopulateMaxOffer();
     updateFinancePanel();
     modal.classList.remove('hidden');
@@ -528,8 +530,9 @@
   }
   function closeModal() { modal.classList.add('hidden'); }
 
-  // ---- Photo gallery ----------------------------------------------------
+  // ---- Photo gallery & document list -----------------------------------
   let currentFormPhotos = [];
+  let currentFormDocs = [];
   let currentFormPropId = null;
 
   function renderPhotoGallery() {
@@ -597,6 +600,91 @@
     try { await Supa.deletePhoto(photo.url); } catch (err) { console.warn(err); }
     currentFormPhotos.splice(idx, 1);
     renderPhotoGallery();
+  });
+
+  // ---- Documents (PDFs, spreadsheets) -----------------------------------
+  function fmtBytes(n) {
+    if (!n || isNaN(n)) return '';
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+    return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  function docIcon(name) {
+    const ext = ((name || '').match(/\.([a-z0-9]+)$/i) || [])[1]?.toLowerCase() || '';
+    if (ext === 'pdf') {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h1.5a1.5 1.5 0 0 0 0-3H9v5m4-5v5m4-5h-2v5h2m-2-3h1.5"/></svg>`;
+    }
+    if (['xls','xlsx','csv','numbers','ods'].includes(ext)) {
+      return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 13 2 3 2-3m-2 3v5m-2-4h4"/></svg>`;
+    }
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+  }
+
+  function renderDocList() {
+    const el = $('#doc-list');
+    if (!el) return;
+    if (!currentFormDocs.length) {
+      el.innerHTML = '<div class="doc-empty">No documents yet. Upload PDFs, spreadsheets, etc.</div>';
+      return;
+    }
+    el.innerHTML = currentFormDocs.map((d, i) => `
+      <div class="doc-item">
+        <span class="doc-icon">${docIcon(d.name)}</span>
+        <a class="doc-name" href="${escapeHtml(d.url)}" target="_blank" rel="noopener" title="Open ${escapeHtml(d.name || '')}">
+          ${escapeHtml(d.name || 'document')}
+        </a>
+        <span class="doc-size">${fmtBytes(d.size)}</span>
+        <button type="button" class="doc-delete" data-idx="${i}" aria-label="Remove document">&times;</button>
+      </div>
+    `).join('');
+  }
+
+  async function handleDocUpload(files) {
+    if (!files || !files.length) return;
+    const statusEl = $('#doc-status');
+    const pending = Array.from(files);
+    statusEl.textContent = `Uploading ${pending.length} file${pending.length === 1 ? '' : 's'}...`;
+    statusEl.className = 'photo-status loading';
+
+    const propId = currentFormPropId || 'draft-' + Date.now().toString(36);
+    let ok = 0, failed = 0;
+    for (const file of pending) {
+      try {
+        const url = await Supa.uploadDocument(file, propId);
+        currentFormDocs.push({
+          url, name: file.name, size: file.size, type: file.type,
+          uploadedAt: new Date().toISOString()
+        });
+        ok++;
+        renderDocList();
+      } catch (err) {
+        console.error('Document upload failed:', err);
+        failed++;
+      }
+    }
+    statusEl.textContent = failed
+      ? `${ok} uploaded, ${failed} failed (see console).`
+      : `${ok} file${ok === 1 ? '' : 's'} uploaded.`;
+    statusEl.className = 'photo-status ' + (failed ? 'err' : 'ok');
+    setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'photo-status'; }, 3500);
+  }
+
+  const docInput = $('#doc-input');
+  $('#btn-add-doc')?.addEventListener('click', () => docInput?.click());
+  docInput?.addEventListener('change', async (e) => {
+    await handleDocUpload(e.target.files);
+    docInput.value = '';
+  });
+  $('#doc-list')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.doc-delete');
+    if (!btn) return;
+    const idx = Number(btn.dataset.idx);
+    const doc = currentFormDocs[idx];
+    if (!doc) return;
+    if (!confirm(`Remove "${doc.name || 'document'}"?`)) return;
+    try { await Supa.deleteDocument(doc.url); } catch (err) { console.warn(err); }
+    currentFormDocs.splice(idx, 1);
+    renderDocList();
   });
 
   // Reads current form values and renders the Financing & Profit panel.
@@ -881,8 +969,9 @@
     });
     const id = data.id;
     delete data.id;
-    // Persist the photos list alongside the other fields.
+    // Persist photos + documents alongside the other fields.
     data.photos = [...currentFormPhotos];
+    data.documents = [...currentFormDocs];
     if (id) {
       await Store.update(id, data);
       showToast('Property updated', 'success');

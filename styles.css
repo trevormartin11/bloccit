@@ -976,6 +976,89 @@ table.props tbody tr:hover { background: var(--panel-alt); cursor: pointer; }
   font-size: 15px;
 }
 .finance-row.profit-row > span { font-weight: 700; font-size: 15px; }
+/* Attachments grid — photos + documents side-by-side on desktop, stacked on mobile */
+.attachments-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.attachment-col { min-width: 0; }
+.attachment-head {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+@media (max-width: 720px) {
+  .attachments-grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* Document list */
+.doc-uploader { }
+.doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.doc-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--panel-alt);
+}
+.doc-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: var(--panel-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.doc-item:hover { border-color: var(--border-strong); }
+.doc-icon {
+  display: inline-flex;
+  width: 28px; height: 28px;
+  align-items: center; justify-content: center;
+  background: var(--panel);
+  border-radius: 6px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.doc-icon svg { width: 18px; height: 18px; }
+.doc-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-weight: 500;
+}
+.doc-name:hover { color: var(--primary); text-decoration: underline; }
+.doc-size {
+  color: var(--text-subtle);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.doc-delete {
+  background: transparent;
+  border: none;
+  color: var(--text-subtle);
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.doc-delete:hover { color: var(--danger); background: var(--danger-soft); }
+
 /* Photo uploader */
 .photo-uploader { }
 .photo-actions { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }

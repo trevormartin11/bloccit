@@ -23,25 +23,33 @@ drop policy if exists "flipcrm anon read/write" on flipcrm_properties;
 create policy "flipcrm anon read/write" on flipcrm_properties
   for all using (true) with check (true);
 
--- ===== Property photos (Supabase Storage bucket) =====
--- Public bucket so browsers can load images without auth headers.
--- Anon can insert/read/delete, same open policy as the table.
+-- ===== Storage buckets (photos + documents) =====
+-- Both are public so browsers can load files without auth headers.
+-- Anon role has full read/write/delete, same open policy as the table.
 
 insert into storage.buckets (id, name, public)
-values ('flipcrm-photos', 'flipcrm-photos', true)
+values
+  ('flipcrm-photos',    'flipcrm-photos',    true),
+  ('flipcrm-documents', 'flipcrm-documents', true)
 on conflict (id) do nothing;
 
-drop policy if exists "flipcrm photos anon upload" on storage.objects;
-create policy "flipcrm photos anon upload" on storage.objects
+-- Unified storage policies: anon + authenticated can CRUD objects in
+-- either flipcrm bucket. Uses IN (...) so one policy covers both buckets.
+
+drop policy if exists "flipcrm storage anon upload" on storage.objects;
+drop policy if exists "flipcrm photos anon upload"  on storage.objects;
+create policy "flipcrm storage anon upload" on storage.objects
   for insert to anon, authenticated
-  with check (bucket_id = 'flipcrm-photos');
+  with check (bucket_id in ('flipcrm-photos', 'flipcrm-documents'));
 
-drop policy if exists "flipcrm photos anon read" on storage.objects;
-create policy "flipcrm photos anon read" on storage.objects
+drop policy if exists "flipcrm storage anon read" on storage.objects;
+drop policy if exists "flipcrm photos anon read"  on storage.objects;
+create policy "flipcrm storage anon read" on storage.objects
   for select to anon, authenticated
-  using (bucket_id = 'flipcrm-photos');
+  using (bucket_id in ('flipcrm-photos', 'flipcrm-documents'));
 
-drop policy if exists "flipcrm photos anon delete" on storage.objects;
-create policy "flipcrm photos anon delete" on storage.objects
+drop policy if exists "flipcrm storage anon delete" on storage.objects;
+drop policy if exists "flipcrm photos anon delete"  on storage.objects;
+create policy "flipcrm storage anon delete" on storage.objects
   for delete to anon, authenticated
-  using (bucket_id = 'flipcrm-photos');
+  using (bucket_id in ('flipcrm-photos', 'flipcrm-documents'));
