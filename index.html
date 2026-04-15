@@ -297,8 +297,18 @@
               </div>
               <div class="setting-row">
                 <label>
-                  <span>Selling cost on resale (%)</span>
-                  <input id="cfg-selling" type="number" min="0" max="20" step="0.1" placeholder="6" />
+                  <span>Buy-side closing (% of purchase)</span>
+                  <input id="cfg-buy-cc" type="number" min="0" max="10" step="0.1" placeholder="0.5" />
+                </label>
+                <label>
+                  <span>Sell-side closing, all-in (% of ARV)</span>
+                  <input id="cfg-sell-cc" type="number" min="0" max="15" step="0.1" placeholder="3" />
+                </label>
+              </div>
+              <div class="setting-row">
+                <label>
+                  <span>Holding costs / PIUH (% of purchase)</span>
+                  <input id="cfg-holding" type="number" min="0" max="10" step="0.1" placeholder="1.5" />
                 </label>
                 <label>
                   <span>Default Days Held</span>

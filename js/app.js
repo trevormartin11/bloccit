@@ -60,10 +60,12 @@
   //   Total = Intr + Orig
   const FINANCE_CFG_KEY = 'flipcrm.finance.cfg.v1';
   const FINANCE_DEFAULTS = Object.freeze({
-    annualRate: 0.10,      // 10% hard-money interest
-    origination: 0.01,     // 1% points
-    sellingCost: 0.06,     // 6% agent commission on resale
-    daysHeld: 180
+    annualRate:   0.10,    // 10% hard-money interest
+    origination:  0.01,    // 1% points
+    buyCC:        0.005,   // 0.5% buy-side closing costs (% of purchase)
+    sellCC:       0.03,    // 3% all-in sell-side closing (% of ARV; incl. commission)
+    holdingCosts: 0.015,   // 1.5% PIUH over 180 days (% of purchase)
+    daysHeld:     180
   });
 
   function financeCfg() {
@@ -110,8 +112,11 @@
     const arv = Number(p.arv) || 0;
     const fin = financing(p);
     if (!arv || !fin) return null;
-    const sellingCost = arv * financeCfg().sellingCost;
-    return Math.round(arv - fin.purchase - fin.rehab - fin.total - sellingCost);
+    const cfg = financeCfg();
+    const buyCC   = fin.purchase * cfg.buyCC;
+    const holding = fin.purchase * cfg.holdingCosts;
+    const sellCC  = arv * cfg.sellCC;
+    return Math.round(arv - fin.purchase - buyCC - fin.rehab - holding - fin.total - sellCC);
   }
 
   function timeAgo(iso) {
@@ -441,23 +446,31 @@
       return;
     }
     const cfg = financeCfg();
-    const sellingCost = Math.round(arv * cfg.sellingCost);
-    const profit = arv ? arv - fin.purchase - fin.rehab - fin.total - sellingCost : null;
+    const buyCC   = Math.round(fin.purchase * cfg.buyCC);
+    const holding = Math.round(fin.purchase * cfg.holdingCosts);
+    const sellCC  = Math.round(arv * cfg.sellCC);
+    const profit = arv
+      ? arv - fin.purchase - buyCC - fin.rehab - holding - fin.total - sellCC
+      : null;
     const profitClass = profit == null ? '' : profit >= 0 ? 'positive' : 'negative';
+    const pct = x => (x * 100).toFixed(2).replace(/\.?0+$/, '');
 
     el.innerHTML = `
       <div class="finance-grid">
         <div class="finance-row"><span>Purchase price</span><span>${fmtMoneyFull(fin.purchase)}</span></div>
+        <div class="finance-row muted-row"><span>Buy-side closing (${pct(cfg.buyCC)}% of purchase)</span><span>${fmtMoneyFull(buyCC)}</span></div>
         <div class="finance-row"><span>Rehab</span><span>${fmtMoneyFull(fin.rehab)}</span></div>
         <div class="finance-row"><span>Days held</span><span>${fin.days}</span></div>
         <div class="finance-divider"></div>
         <div class="finance-row"><span>Loan amount <small>(Purchase + Rehab + Interest)</small></span><span>${fmtMoneyFull(fin.loan)}</span></div>
-        <div class="finance-row muted-row"><span>Interest (${(cfg.annualRate * 100).toFixed(2).replace(/\.?0+$/, '')}% annual, capitalized)</span><span>${fmtMoneyFull(fin.interest)}</span></div>
-        <div class="finance-row muted-row"><span>Origination (${(cfg.origination * 100).toFixed(2).replace(/\.?0+$/, '')}% of loan)</span><span>${fmtMoneyFull(fin.origination)}</span></div>
+        <div class="finance-row muted-row"><span>Interest (${pct(cfg.annualRate)}% annual, capitalized)</span><span>${fmtMoneyFull(fin.interest)}</span></div>
+        <div class="finance-row muted-row"><span>Origination (${pct(cfg.origination)}% of loan)</span><span>${fmtMoneyFull(fin.origination)}</span></div>
         <div class="finance-row total-row"><span>Total financing cost</span><span>${fmtMoneyFull(fin.total)}</span></div>
         <div class="finance-divider"></div>
+        <div class="finance-row muted-row"><span>Holding costs / PIUH (${pct(cfg.holdingCosts)}% of purchase)</span><span>${fmtMoneyFull(holding)}</span></div>
+        <div class="finance-divider"></div>
         <div class="finance-row"><span>Est. ARV</span><span>${fmtMoneyFull(arv || null)}</span></div>
-        <div class="finance-row muted-row"><span>Selling cost (${(cfg.sellingCost * 100).toFixed(2).replace(/\.?0+$/, '')}% of ARV)</span><span>${fmtMoneyFull(sellingCost || null)}</span></div>
+        <div class="finance-row muted-row"><span>Sell-side closing all-in (${pct(cfg.sellCC)}% of ARV)</span><span>${fmtMoneyFull(sellCC || null)}</span></div>
         <div class="finance-row profit-row ${profitClass}">
           <span>Projected profit</span>
           <span>${profit == null ? '—' : fmtMoneyFull(profit)}</span>
@@ -483,7 +496,9 @@
     const cfg = financeCfg();
     $('#cfg-rate').value        = (cfg.annualRate * 100);
     $('#cfg-origination').value = (cfg.origination * 100);
-    $('#cfg-selling').value     = (cfg.sellingCost * 100);
+    $('#cfg-buy-cc').value      = (cfg.buyCC * 100);
+    $('#cfg-sell-cc').value     = (cfg.sellCC * 100);
+    $('#cfg-holding').value     = (cfg.holdingCosts * 100);
     $('#cfg-days').value        = cfg.daysHeld;
   }
 
@@ -754,15 +769,18 @@
       return isNaN(n) ? null : n;
     };
     const next = {
-      annualRate:  pct('#cfg-rate')        ?? FINANCE_DEFAULTS.annualRate,
-      origination: pct('#cfg-origination') ?? FINANCE_DEFAULTS.origination,
-      sellingCost: pct('#cfg-selling')     ?? FINANCE_DEFAULTS.sellingCost,
-      daysHeld:    int('#cfg-days')        ?? FINANCE_DEFAULTS.daysHeld
+      annualRate:   pct('#cfg-rate')        ?? FINANCE_DEFAULTS.annualRate,
+      origination:  pct('#cfg-origination') ?? FINANCE_DEFAULTS.origination,
+      buyCC:        pct('#cfg-buy-cc')      ?? FINANCE_DEFAULTS.buyCC,
+      sellCC:       pct('#cfg-sell-cc')     ?? FINANCE_DEFAULTS.sellCC,
+      holdingCosts: pct('#cfg-holding')     ?? FINANCE_DEFAULTS.holdingCosts,
+      daysHeld:     int('#cfg-days')        ?? FINANCE_DEFAULTS.daysHeld
     };
     saveFinanceCfg(next);
+    const fmt = x => (x * 100).toFixed(2).replace(/\.?0+$/, '');
     const status = $('#finance-cfg-status');
     status.className = 'sync-status ok';
-    status.textContent = `Saved — ${(next.annualRate * 100).toFixed(2).replace(/\.?0+$/, '')}% interest, ${(next.origination * 100).toFixed(2).replace(/\.?0+$/, '')}% origination, ${(next.sellingCost * 100).toFixed(2).replace(/\.?0+$/, '')}% selling, ${next.daysHeld} days default.`;
+    status.textContent = `Saved — ${fmt(next.annualRate)}% rate · ${fmt(next.origination)}% orig · ${fmt(next.buyCC)}% buy · ${fmt(next.sellCC)}% sell · ${fmt(next.holdingCosts)}% holding · ${next.daysHeld}d default.`;
     renderFinanceCfgForm();
     renderAll();
     showToast('Financing defaults saved', 'success');
@@ -774,7 +792,7 @@
     renderAll();
     const status = $('#finance-cfg-status');
     status.className = 'sync-status';
-    status.textContent = 'Reset to defaults (10% / 1% / 6% / 180 days).';
+    status.textContent = 'Reset to defaults (10% rate, 1% orig, 0.5% buy, 3% sell, 1.5% holding, 180d).';
     showToast('Financing defaults reset');
   });
 
