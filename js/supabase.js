@@ -15,6 +15,9 @@
 
 (function (global) {
   const CFG_KEY = 'flipcrm.supabase.cfg.v1';
+  const PHOTOS_BUCKET = 'flipcrm-photos';
+  // Currently-active config, regardless of whether persisted.
+  let _activeCfg = null;
 
   function loadCfg() {
     try { return JSON.parse(localStorage.getItem(CFG_KEY) || 'null'); }
@@ -81,6 +84,7 @@
       const adapter = makeAdapter(cfg);
       await adapter.ping(); // validate before saving
       if (persist) saveCfg(cfg);
+      _activeCfg = cfg;
       Store.setRemote(adapter);
       await Store.hydrate();
       return adapter;
@@ -90,14 +94,64 @@
       const cfg = loadCfg();
       if (!cfg) return null;
       const adapter = makeAdapter(cfg);
+      _activeCfg = cfg;
       Store.setRemote(adapter);
       return adapter;
     },
 
     disconnect() {
       saveCfg(null);
+      _activeCfg = null;
       Store.setRemote(null);
       _serverManaged = false;
+    },
+
+    activeConfig() { return _activeCfg; },
+
+    // ---- Photo storage ----------------------------------------------------
+    // Upload a File to the flipcrm-photos Supabase bucket. Returns a public
+    // URL suitable for <img src>. Path convention: <propId>/<timestamp>-<rand>.<ext>
+    async uploadPhoto(file, propId = 'misc') {
+      if (!_activeCfg) throw new Error('Team sync not active — cannot upload photos');
+      const safeId = String(propId).replace(/[^a-zA-Z0-9_-]/g, '_') || 'misc';
+      const extMatch = (file.name || '').match(/\.([a-z0-9]+)$/i);
+      const ext = (extMatch ? extMatch[1] : 'jpg').toLowerCase();
+      const path = `${safeId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const base = _activeCfg.url.replace(/\/$/, '');
+      const res = await fetch(`${base}/storage/v1/object/${PHOTOS_BUCKET}/${encodeURI(path)}`, {
+        method: 'POST',
+        headers: {
+          'apikey': _activeCfg.key,
+          'Authorization': `Bearer ${_activeCfg.key}`,
+          'Content-Type': file.type || 'application/octet-stream'
+        },
+        body: file
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(`Upload failed (${res.status}): ${text.slice(0, 140)}`);
+      }
+      return `${base}/storage/v1/object/public/${PHOTOS_BUCKET}/${encodeURI(path)}`;
+    },
+
+    async deletePhoto(photoUrl) {
+      if (!_activeCfg) return;
+      const base = _activeCfg.url.replace(/\/$/, '');
+      const marker = `/storage/v1/object/public/${PHOTOS_BUCKET}/`;
+      const i = photoUrl.indexOf(marker);
+      if (i < 0) return; // not our bucket; ignore
+      const path = photoUrl.slice(i + marker.length);
+      const res = await fetch(`${base}/storage/v1/object/${PHOTOS_BUCKET}/${path}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': _activeCfg.key,
+          'Authorization': `Bearer ${_activeCfg.key}`
+        }
+      });
+      // 404 is fine — object already gone. Treat other errors as soft failures.
+      if (!res.ok && res.status !== 404) {
+        console.warn(`Delete photo failed (${res.status})`);
+      }
     },
 
     // Fetch the site-wide Supabase config from /.netlify/functions/config.

@@ -312,8 +312,15 @@
     const profit = potentialProfit(p);
     const meta = [p.beds && `${p.beds}bd`, p.baths && `${p.baths}ba`, p.sqft && `${Number(p.sqft).toLocaleString()} sqft`]
       .filter(Boolean).map(x => `<span>${x}</span>`).join('');
+    const heroPhoto = Array.isArray(p.photos) && p.photos[0] ? p.photos[0].url : null;
+    const photoCount = Array.isArray(p.photos) ? p.photos.length : 0;
     return `
       <div class="prop-card" draggable="true" data-id="${p.id}">
+        ${heroPhoto ? `
+          <div class="prop-card-photo">
+            <img src="${escapeHtml(heroPhoto)}" alt="" loading="lazy" />
+            ${photoCount > 1 ? `<span class="prop-card-photo-count">+${photoCount - 1}</span>` : ''}
+          </div>` : ''}
         <div class="prop-card-addr">${escapeHtml(p.address || '—')}</div>
         ${meta ? `<div class="prop-card-meta">${meta}</div>` : ''}
         <div class="prop-card-numbers">
@@ -510,12 +517,87 @@
       form.elements.namedItem('status').value = 'New';
       form.elements.namedItem('daysHeld').value = financeCfg().daysHeld;
     }
+    // Seed per-form photo state from the property record (if any).
+    currentFormPhotos = Array.isArray(prop && prop.photos) ? [...prop.photos] : [];
+    currentFormPropId = (prop && prop.id) || null;
+    renderPhotoGallery();
     tryAutoPopulateMaxOffer();
     updateFinancePanel();
     modal.classList.remove('hidden');
     setTimeout(() => form.elements.namedItem('address').focus(), 50);
   }
   function closeModal() { modal.classList.add('hidden'); }
+
+  // ---- Photo gallery ----------------------------------------------------
+  let currentFormPhotos = [];
+  let currentFormPropId = null;
+
+  function renderPhotoGallery() {
+    const gallery = $('#photo-gallery');
+    if (!gallery) return;
+    if (!currentFormPhotos.length) {
+      gallery.innerHTML = '<div class="photo-empty">No photos yet. Click "Add photos" to upload from your device.</div>';
+      return;
+    }
+    gallery.innerHTML = currentFormPhotos.map((p, i) => `
+      <div class="photo-thumb">
+        <a href="${escapeHtml(p.url)}" target="_blank" rel="noopener">
+          <img src="${escapeHtml(p.url)}" alt="Property photo ${i + 1}" loading="lazy" />
+        </a>
+        <button type="button" class="photo-delete" data-idx="${i}" aria-label="Remove photo">&times;</button>
+      </div>
+    `).join('');
+  }
+
+  async function handlePhotoUpload(files) {
+    if (!files || !files.length) return;
+    const statusEl = $('#photo-status');
+    const pending = Array.from(files);
+    statusEl.textContent = `Uploading ${pending.length} photo${pending.length === 1 ? '' : 's'}...`;
+    statusEl.className = 'photo-status loading';
+
+    const propId = currentFormPropId || 'draft-' + Date.now().toString(36);
+    let ok = 0, failed = 0;
+    for (const file of pending) {
+      try {
+        const url = await Supa.uploadPhoto(file, propId);
+        currentFormPhotos.push({ url, uploadedAt: new Date().toISOString() });
+        ok++;
+        renderPhotoGallery();
+      } catch (err) {
+        console.error('Photo upload failed:', err);
+        failed++;
+      }
+    }
+    if (failed === 0) {
+      statusEl.textContent = `${ok} photo${ok === 1 ? '' : 's'} uploaded.`;
+      statusEl.className = 'photo-status ok';
+    } else {
+      statusEl.textContent = `${ok} uploaded, ${failed} failed (see console).`;
+      statusEl.className = 'photo-status err';
+    }
+    setTimeout(() => { statusEl.textContent = ''; statusEl.className = 'photo-status'; }, 3500);
+  }
+
+  // Wire up the photo-uploader UI once.
+  const photoInput = $('#photo-input');
+  $('#btn-add-photo')?.addEventListener('click', () => photoInput?.click());
+  photoInput?.addEventListener('change', async (e) => {
+    await handlePhotoUpload(e.target.files);
+    photoInput.value = ''; // allow re-selecting the same file later
+  });
+  // Delete-photo click (delegated)
+  $('#photo-gallery')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.photo-delete');
+    if (!btn) return;
+    const idx = Number(btn.dataset.idx);
+    const photo = currentFormPhotos[idx];
+    if (!photo) return;
+    if (!confirm('Remove this photo?')) return;
+    try { await Supa.deletePhoto(photo.url); } catch (err) { console.warn(err); }
+    currentFormPhotos.splice(idx, 1);
+    renderPhotoGallery();
+  });
 
   // Reads current form values and renders the Financing & Profit panel.
   function updateFinancePanel() {
@@ -632,41 +714,17 @@
     $('#cfg-days').value          = cfg.daysHeld;
   }
 
-  // ---- Settings / sync --------------------------------------------------
+  // ---- Sidebar sync pill ------------------------------------------------
   function renderSyncStatus() {
     const pill = $('#sync-pill');
     const label = $('#sync-label');
-    const status = $('#sync-status');
-    const manualPanel = $('#sync-manual-panel');
-    const managedPanel = $('#sync-managed-panel');
-
-    if (Supa.isServerManaged()) {
-      // Site-wide config: everyone who visits this URL auto-connects.
+    if (!pill || !label) return;
+    if (Supa.isServerManaged() || Supa.isConfigured()) {
       pill.classList.add('synced');
       label.textContent = 'Team sync on';
-      if (manualPanel) manualPanel.style.display = 'none';
-      if (managedPanel) managedPanel.style.display = '';
-      status.className = 'sync-status ok';
-      status.textContent = '';
-    } else if (Supa.isConfigured()) {
-      // User pasted credentials manually in Settings.
-      pill.classList.add('synced');
-      label.textContent = 'Team sync on';
-      if (manualPanel) manualPanel.style.display = '';
-      if (managedPanel) managedPanel.style.display = 'none';
-      const cfg = Supa.config();
-      $('#cfg-supabase-url').value = cfg.url;
-      $('#cfg-supabase-key').value = cfg.key;
-      status.className = 'sync-status ok';
-      status.textContent = `Connected to ${cfg.url}`;
     } else {
-      // No sync at all.
       pill.classList.remove('synced');
       label.textContent = 'Local only';
-      if (manualPanel) manualPanel.style.display = '';
-      if (managedPanel) managedPanel.style.display = 'none';
-      status.textContent = 'Not connected — data lives in this browser only.';
-      status.className = 'sync-status';
     }
   }
 
@@ -823,6 +881,8 @@
     });
     const id = data.id;
     delete data.id;
+    // Persist the photos list alongside the other fields.
+    data.photos = [...currentFormPhotos];
     if (id) {
       await Store.update(id, data);
       showToast('Property updated', 'success');
@@ -956,25 +1016,8 @@
   });
 
   // ---- Settings handlers ------------------------------------------------
-  $('#btn-save-sync').addEventListener('click', async () => {
-    const url = $('#cfg-supabase-url').value.trim();
-    const key = $('#cfg-supabase-key').value.trim();
-    const status = $('#sync-status');
-    status.className = 'sync-status';
-    status.textContent = 'Connecting...';
-    try {
-      await Supa.connect(url, key);
-      status.className = 'sync-status ok';
-      status.textContent = 'Connected. Data will now sync across devices.';
-      renderSyncStatus();
-      renderAll();
-      showToast('Team sync enabled', 'success');
-    } catch (err) {
-      status.className = 'sync-status err';
-      status.textContent = `Connection failed: ${err.message}`;
-      showToast('Sync connection failed', 'error');
-    }
-  });
+  // (Team-sync configuration was removed from Settings — sync is now always
+  //  active via Netlify env vars. The sidebar pill still reflects status.)
 
   // Financing defaults
   $('#btn-save-finance').addEventListener('click', () => {
@@ -1021,12 +1064,7 @@
     showToast('Financing defaults reset');
   });
 
-  $('#btn-disable-sync').addEventListener('click', () => {
-    if (!confirm('Disable team sync? Your local data will remain intact.')) return;
-    Supa.disconnect();
-    renderSyncStatus();
-    showToast('Team sync disabled');
-  });
+  // (Team-sync disconnect handler removed along with its UI.)
 
   $('#btn-settings-export').addEventListener('click', () => {
     const json = Store.exportJSON();
