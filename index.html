@@ -418,6 +418,10 @@
               <span>Listing URL</span>
               <input name="listingUrl" type="url" placeholder="https://www.zillow.com/homedetails/..." />
             </label>
+            <label class="full">
+              <span>Notes</span>
+              <textarea name="notes" rows="3" placeholder="Condition, motivation, next steps..."></textarea>
+            </label>
           </div>
         </div>
 
@@ -524,36 +528,16 @@
 
         <div class="form-section">
           <div class="form-section-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <h3>Owner &amp; contact</h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1Z"/></svg>
+            <h3>Comps <small style="font-weight:400;color:var(--text-subtle);">(up to 4)</small></h3>
           </div>
-          <div class="form-grid">
-            <label>
-              <span>Owner Name</span>
-              <input name="ownerName" />
-            </label>
-            <label>
-              <span>Owner Type</span>
-              <select name="ownerType">
-                <option value="">—</option><option>Individual</option><option>Corporate</option><option>Trust</option>
-              </select>
-            </label>
-            <label>
-              <span>Phone</span>
-              <input name="ownerPhone" type="tel" />
-            </label>
-            <label>
-              <span>Email</span>
-              <input name="ownerEmail" type="email" />
-            </label>
-            <label>
-              <span>Last Contact</span>
-              <input name="lastContact" type="date" />
-            </label>
-            <label class="full">
-              <span>Notes</span>
-              <textarea name="notes" rows="3" placeholder="Condition, motivation, next steps..."></textarea>
-            </label>
+          <div id="comps-list" class="comps-list"></div>
+          <div class="comps-actions">
+            <button type="button" id="btn-add-comp" class="btn btn-secondary">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Add comp</span>
+            </button>
+            <span id="comps-summary" class="comps-summary"></span>
           </div>
         </div>
 

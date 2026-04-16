@@ -520,9 +520,11 @@
     // Seed per-form photo + document state from the property record.
     currentFormPhotos = Array.isArray(prop && prop.photos) ? [...prop.photos] : [];
     currentFormDocs   = Array.isArray(prop && prop.documents) ? [...prop.documents] : [];
+    currentFormComps  = Array.isArray(prop && prop.comps) ? prop.comps.map(c => ({...c})) : [];
     currentFormPropId = (prop && prop.id) || null;
     renderPhotoGallery();
     renderDocList();
+    renderCompsList();
     tryAutoPopulateMaxOffer();
     updateFinancePanel();
     modal.classList.remove('hidden');
@@ -533,6 +535,7 @@
   // ---- Photo gallery & document list -----------------------------------
   let currentFormPhotos = [];
   let currentFormDocs = [];
+  let currentFormComps = [];
   let currentFormPropId = null;
 
   function renderPhotoGallery() {
@@ -757,6 +760,79 @@
     try { await Supa.deleteDocument(doc.url); } catch (err) { console.warn(err); }
     currentFormDocs.splice(idx, 1);
     renderDocList();
+  });
+
+  // ---- Comps (up to 4) --------------------------------------------------
+  const MAX_COMPS = 4;
+
+  function renderCompsList() {
+    const el = $('#comps-list');
+    const addBtn = $('#btn-add-comp');
+    const summaryEl = $('#comps-summary');
+    if (!el) return;
+
+    if (!currentFormComps.length) {
+      el.innerHTML = '<div class="comp-empty">No comps added yet.</div>';
+    } else {
+      el.innerHTML = currentFormComps.map((c, i) => `
+        <div class="comp-row" data-idx="${i}">
+          <input class="comp-address" placeholder="Street address" value="${escapeHtml(c.address || '')}" data-field="address" />
+          <input class="comp-num" type="number" placeholder="Bd" min="0" step="1" value="${c.beds ?? ''}" data-field="beds" title="Bedrooms" />
+          <input class="comp-num" type="number" placeholder="Ba" min="0" step="0.5" value="${c.baths ?? ''}" data-field="baths" title="Bathrooms" />
+          <input class="comp-num" type="number" placeholder="Sq ft" min="0" step="1" value="${c.sqft ?? ''}" data-field="sqft" title="Total square footage" />
+          <input class="comp-num comp-dollar" type="number" placeholder="$/sqft" min="0" step="0.01" value="${c.pricePerSqft ?? ''}" data-field="pricePerSqft" title="Dollar per sq ft" />
+          <button type="button" class="comp-delete" data-idx="${i}" aria-label="Remove comp">&times;</button>
+        </div>
+      `).join('');
+    }
+
+    // Disable the Add button once we hit the cap.
+    if (addBtn) addBtn.disabled = currentFormComps.length >= MAX_COMPS;
+
+    // Compute and display average $/sqft summary.
+    const validPsf = currentFormComps.map(c => Number(c.pricePerSqft)).filter(v => v > 0);
+    if (validPsf.length > 0 && summaryEl) {
+      const avg = validPsf.reduce((s, v) => s + v, 0) / validPsf.length;
+      const subjectSqft = Number(form.elements.namedItem('sqft')?.value) || 0;
+      let text = `Avg $/sqft: $${avg.toFixed(2)}`;
+      if (subjectSqft > 0) {
+        text += ` → est. ARV $${Math.round(avg * subjectSqft).toLocaleString()} (${subjectSqft.toLocaleString()} sqft)`;
+      }
+      summaryEl.textContent = text;
+    } else if (summaryEl) {
+      summaryEl.textContent = '';
+    }
+  }
+
+  // Add / remove / edit comp wiring.
+  $('#btn-add-comp')?.addEventListener('click', () => {
+    if (currentFormComps.length >= MAX_COMPS) return;
+    currentFormComps.push({ address: '', beds: null, baths: null, sqft: null, pricePerSqft: null });
+    renderCompsList();
+    // Focus the new row's address field.
+    const rows = $$('.comp-row');
+    rows[rows.length - 1]?.querySelector('.comp-address')?.focus();
+  });
+
+  // Delegated input + delete on the comps-list container.
+  $('#comps-list')?.addEventListener('input', (e) => {
+    const row = e.target.closest('.comp-row');
+    if (!row) return;
+    const idx = Number(row.dataset.idx);
+    const field = e.target.dataset.field;
+    if (idx < 0 || idx >= currentFormComps.length || !field) return;
+    const numericFields = new Set(['beds', 'baths', 'sqft', 'pricePerSqft']);
+    currentFormComps[idx][field] = numericFields.has(field)
+      ? (e.target.value === '' ? null : Number(e.target.value))
+      : e.target.value;
+    // Update the summary whenever $/sqft changes.
+    if (field === 'pricePerSqft') renderCompsList();
+  });
+  $('#comps-list')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.comp-delete');
+    if (!btn) return;
+    currentFormComps.splice(Number(btn.dataset.idx), 1);
+    renderCompsList();
   });
 
   // Reads current form values and renders the Financing & Profit panel.
@@ -1041,9 +1117,10 @@
     });
     const id = data.id;
     delete data.id;
-    // Persist photos + documents alongside the other fields.
+    // Persist photos, documents, and comps alongside the other fields.
     data.photos = [...currentFormPhotos];
     data.documents = [...currentFormDocs];
+    data.comps = currentFormComps.filter(c => c.address || c.beds || c.baths || c.sqft || c.pricePerSqft);
     if (id) {
       await Store.update(id, data);
       showToast('Property updated', 'success');
