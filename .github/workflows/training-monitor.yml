@@ -26,6 +26,10 @@ on:
         description: "Run even if outside the target Eastern-time hours"
         type: boolean
         default: true
+      send_test_email:
+        description: "Send a one-off test email to verify delivery, then exit"
+        type: boolean
+        default: false
 
 # Prevent overlapping runs from racing on the state-file commit.
 concurrency:
@@ -51,6 +55,7 @@ jobs:
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           FORCE_RUN: ${{ github.event.inputs.force_run == 'true' && '1' || '0' }}
+          SEND_TEST_EMAIL: ${{ github.event.inputs.send_test_email == 'true' && '1' || '0' }}
           MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
           MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
           MAIL_FROM: ${{ secrets.MAIL_FROM }}
