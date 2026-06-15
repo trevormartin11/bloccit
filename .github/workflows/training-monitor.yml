@@ -1,0 +1,70 @@
+name: HK USA Training Monitor
+
+# Checks the HK USA training schedule four times a day in US Eastern Time
+# (09:00, 12:00, 15:00, 18:00 ET) and emails any newly added training events.
+#
+# GitHub cron runs in UTC and does NOT follow daylight saving, so we schedule
+# the UTC equivalents for BOTH EDT (UTC-4) and EST (UTC-5). The script
+# (monitor.py) then only acts when the current Eastern-time hour is one of the
+# four targets, giving exactly four effective runs per day all year round.
+
+on:
+  schedule:
+    # --- EDT (summer, UTC-4): 09/12/15/18 ET -> 13/16/19/22 UTC ---
+    - cron: "5 13 * * *"
+    - cron: "5 16 * * *"
+    - cron: "5 19 * * *"
+    - cron: "5 22 * * *"
+    # --- EST (winter, UTC-5): 09/12/15/18 ET -> 14/17/20/23 UTC ---
+    - cron: "5 14 * * *"
+    - cron: "5 17 * * *"
+    - cron: "5 20 * * *"
+    - cron: "5 23 * * *"
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: "Run even if outside the target Eastern-time hours"
+        type: boolean
+        default: true
+
+# Prevent overlapping runs from racing on the state-file commit.
+concurrency:
+  group: training-monitor
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check schedule and notify
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          FORCE_RUN: ${{ github.event.inputs.force_run == 'true' && '1' || '0' }}
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM: ${{ secrets.MAIL_FROM }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python training-monitor/monitor.py
+
+      - name: Commit updated state
+        run: |
+          if [[ -n "$(git status --porcelain training-monitor/last_seen.json)" ]]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add training-monitor/last_seen.json
+            git commit -m "chore(training-monitor): update last-seen events [skip ci]"
+            git push
+          else
+            echo "No state change to commit."
+          fi
