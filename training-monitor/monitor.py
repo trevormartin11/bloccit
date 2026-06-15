@@ -88,12 +88,14 @@ def save_state(events: list[str]) -> None:
 
 
 def send_email(new_events: list[str], test: bool = False) -> None:
-    host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
-    port = int(os.environ.get("SMTP_PORT", "465"))
+    host = os.environ.get("SMTP_HOST") or "smtp.gmail.com"
+    port = int(os.environ.get("SMTP_PORT") or "465")
     user = os.environ["MAIL_USERNAME"]
     password = os.environ["MAIL_PASSWORD"]
-    sender = os.environ.get("MAIL_FROM", user)
-    recipient = os.environ.get("MAIL_TO", "trevormartin11@gmail.com")
+    # Use `or` (not get-default) so an empty env var — which the workflow
+    # always sets when the optional secret is absent — falls back correctly.
+    sender = os.environ.get("MAIL_FROM") or user
+    recipient = os.environ.get("MAIL_TO") or "trevormartin11@gmail.com"
 
     if test:
         subject = "[HK USA Training] Test email - monitor is working"
@@ -157,7 +159,11 @@ def send_email(new_events: list[str], test: bool = False) -> None:
             s.login(user, password)
             s.send_message(msg)
 
-    print(f"Sent notification to {recipient} for {count} new event(s).")
+    if test:
+        print(f"Sent test email to {recipient}.")
+    else:
+        print(f"Sent notification to {recipient} for {len(new_events)} "
+              f"new event(s).")
 
 
 def within_target_window() -> bool:
