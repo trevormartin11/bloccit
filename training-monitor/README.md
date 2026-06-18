@@ -1,6 +1,6 @@
 # HK USA Training Monitor
 
-Automatically watches the [HK USA training schedule](https://hk-usa.com/training/)
+Automatically watches the [HK USA training schedule](https://training.hk-usa.com/courses/)
 and emails **trevormartin11@gmail.com** whenever new training dates/events are
 added.
 
@@ -9,9 +9,13 @@ added.
 - A GitHub Actions workflow (`.github/workflows/training-monitor.yml`) runs the
   monitor **four times a day in US Eastern Time — 9:00 AM, 12:00 PM, 3:00 PM,
   and 6:00 PM**.
-- `monitor.py` fetches the page, extracts each event line
-  (e.g. `8 July 2026: SP5 Armorer Course ($350)`), and compares it to the
-  last-known list stored in `last_seen.json`.
+- The schedule moved from a static page on `hk-usa.com` to a WooCommerce store
+  on `training.hk-usa.com`, so `monitor.py` reads the courses from the public
+  **WooCommerce Store API**
+  (`/wp-json/wc/store/v1/products`) — structured JSON, much more robust than
+  HTML scraping. Each dated product (e.g. `SP5 Armorer Course: 8 July 2026`) is
+  an event; a trailing `(SOLD OUT)` status is ignored so a sell-out isn't
+  treated as a new event. The list is compared to `last_seen.json`.
 - If any **new** events appear, it emails them. If nothing changed, it stays
   silent (no inbox spam).
 - The updated `last_seen.json` is committed back to the repo after each run so

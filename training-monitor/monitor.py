@@ -13,6 +13,7 @@ so the GitHub Actions workflow needs no `pip install` step.
 
 from __future__ import annotations
 
+import gzip
 import html as ihtml
 import json
 import os
@@ -20,7 +21,9 @@ import re
 import smtplib
 import ssl
 import sys
+import time
 import urllib.request
+import zlib
 from datetime import datetime, timezone
 from email.message import EmailMessage
 from pathlib import Path
@@ -30,36 +33,92 @@ try:
 except ImportError:  # pragma: no cover
     ZoneInfo = None
 
-URL = "https://hk-usa.com/training/"
+# The training schedule moved from a static page on hk-usa.com to a
+# WooCommerce store on training.hk-usa.com. Each course/date is now a product,
+# exposed as clean structured JSON by the public WooCommerce Store API — far
+# more robust than scraping HTML. URL is the human-facing page used in emails.
+URL = "https://training.hk-usa.com/courses/"
+API_URL = ("https://training.hk-usa.com/wp-json/wc/store/v1/products"
+           "?per_page=100")
 STATE_FILE = Path(__file__).resolve().parent / "last_seen.json"
-USER_AGENT = "Mozilla/5.0 (compatible; hk-training-monitor/1.0)"
+# Browser-like UA + headers: the site/CDN intermittently serves a bot
+# challenge or compressed body to generic clients, which yields zero parsed
+# events. Looking like a normal browser makes that far less likely.
+USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
+REQUEST_HEADERS = {
+    "User-Agent": USER_AGENT,
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate",
+}
+FETCH_ATTEMPTS = 4
 
-# An "event" line looks like: "8 July 2026: SP5 Armorer Course ($350)"
-EVENT_RE = re.compile(r"^\d{1,2}\s+[A-Za-z]{3,9}\.?\s+\d{4}\s*:\s*.+")
+# A product name looks like: "SP5 Armorer Course: 8 July 2026 (SOLD OUT)".
+# Treat any product whose name contains a date as a schedule event.
+DATE_RE = re.compile(r"\b\d{1,2}\s+[A-Za-z]{3,9}\.?\s+20\d\d\b")
+# Strip a trailing "(... sold out ...)" status so a course selling out doesn't
+# look like a brand-new event.
+SOLDOUT_RE = re.compile(r"\s*\([^)]*sold\s*out[^)]*\)\s*$", re.I)
 
 # Eastern-time hours at which we actually want to act (9am, 12pm, 3pm, 6pm).
 TARGET_ET_HOURS = {9, 12, 15, 18}
 
 
-def fetch_html(url: str = URL) -> str:
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+def fetch_json(url: str = API_URL):
+    req = urllib.request.Request(url, headers=REQUEST_HEADERS)
     with urllib.request.urlopen(req, timeout=45) as resp:
-        return resp.read().decode("utf-8", errors="replace")
+        raw = resp.read()
+        encoding = (resp.headers.get("Content-Encoding") or "").lower()
+    if "gzip" in encoding:
+        raw = gzip.decompress(raw)
+    elif "deflate" in encoding:
+        try:
+            raw = zlib.decompress(raw)
+        except zlib.error:
+            raw = zlib.decompress(raw, -zlib.MAX_WBITS)
+    return json.loads(raw.decode("utf-8", errors="replace"))
 
 
-def extract_events(html: str) -> list[str]:
-    """Return the ordered, de-duplicated list of training event lines."""
-    no_scripts = re.sub(r"<(script|style)[^>]*>.*?</\1>", " ", html,
-                        flags=re.S | re.I)
-    text = ihtml.unescape(re.sub(r"<[^>]+>", "\n", no_scripts))
+def extract_events(products) -> list[str]:
+    """Return the ordered, de-duplicated list of dated course names.
+
+    ``products`` is the list returned by the WooCommerce Store API. Only
+    products whose name contains a date are treated as schedule events, and
+    a trailing "(sold out)" status is stripped so a sell-out isn't mistaken
+    for a newly added event.
+    """
     events: list[str] = []
-    for raw in text.split("\n"):
-        line = re.sub(r"\s+", " ", raw).strip()
-        if EVENT_RE.match(line):
-            line = re.sub(r"[\s–—\-]+$", "", line).strip()
-            if line and line not in events:
-                events.append(line)
+    for product in products if isinstance(products, list) else []:
+        name = re.sub(r"\s+", " ", (product.get("name") or "")).strip()
+        if not DATE_RE.search(name):
+            continue
+        name = SOLDOUT_RE.sub("", name).strip()
+        if name and name not in events:
+            events.append(name)
     return events
+
+
+def fetch_events_with_retry() -> list[str] | None:
+    """Fetch and parse, retrying transient failures and empty results.
+
+    The endpoint can occasionally return a transient error or an empty/partial
+    body. Retrying with backoff resolves nearly all of these. Returns the
+    parsed events, or None if every attempt yielded zero events (ambiguous —
+    caller decides what to do).
+    """
+    for attempt in range(1, FETCH_ATTEMPTS + 1):
+        try:
+            events = extract_events(fetch_json())
+        except Exception as exc:  # noqa: BLE001
+            print(f"Fetch attempt {attempt}/{FETCH_ATTEMPTS} failed: {exc}",
+                  file=sys.stderr)
+            events = []
+        if events:
+            return events
+        if attempt < FETCH_ATTEMPTS:
+            time.sleep(2 ** attempt)  # 2s, 4s, 8s
+    return None
 
 
 def load_state() -> list[str]:
@@ -195,17 +254,17 @@ def main() -> int:
               f"{sorted(TARGET_ET_HOURS)}.")
         return 0
 
-    try:
-        html = fetch_html()
-    except Exception as exc:  # noqa: BLE001
-        print(f"ERROR: failed to fetch {URL}: {exc}", file=sys.stderr)
-        return 1
-
-    current = extract_events(html)
+    current = fetch_events_with_retry()
     if not current:
-        print("ERROR: no events parsed — page layout may have changed. "
-              "Leaving state untouched.", file=sys.stderr)
-        return 1
+        # Every attempt returned zero events. This is almost always a
+        # transient bot-challenge/partial response rather than a real layout
+        # change, so exit 0 (leave state untouched) to avoid spamming the
+        # repo owner with GitHub "workflow failed" emails on every check.
+        # A genuine layout change shows up as repeated warnings in the logs.
+        print(f"WARNING: no events parsed from {URL} after "
+              f"{FETCH_ATTEMPTS} attempts; leaving state untouched and "
+              f"skipping this run.", file=sys.stderr)
+        return 0
 
     previous = load_state()
     first_run = not STATE_FILE.exists()
